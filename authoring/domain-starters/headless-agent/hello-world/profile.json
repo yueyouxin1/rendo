@@ -1,0 +1,10 @@
+{
+  "profileId": "headless-agent/hello-world",
+  "starterId": "hello-world-starter",
+  "category": "headless-agent",
+  "title": "Hello World Starter",
+  "description": "Minimal hello-world Domain Starter derived from Core Starter to validate author and consumer flows.",
+  "baseTemplatePath": "templates/core-starter",
+  "outputTemplatePath": "templates/hello-world-starter",
+  "overlayPath": "authoring/domain-starters/headless-agent/hello-world/overlay"
+}
