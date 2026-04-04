@@ -2,7 +2,7 @@
 
 ## 目标
 
-让 `rendo cli` 成为 starter 和 pack 的统一入口。
+让 `rendo cli` 成为 starter 和能力模板的统一入口。
 
 ## TODO
 
@@ -12,4 +12,4 @@
 - [ ] 支持交互式调用
 - [ ] 支持非交互式参数调用
 - [ ] 支持结构化输出给强 Agent
-- [ ] 让 CLI 直接读取 starter / pack manifest
+- [ ] 让 CLI 直接读取 starter / 能力模板 manifest

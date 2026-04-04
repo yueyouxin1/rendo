@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rendo.dev/contracts/project-manifest.schema.json",
+  "type": "object",
+  "required": ["schemaVersion", "projectName", "surfaces", "starter", "installedTemplates", "installedPacks"],
+  "properties": {
+    "schemaVersion": { "type": "string", "minLength": 1 },
+    "projectName": { "type": "string", "minLength": 1 },
+    "surfaces": {
+      "type": "array",
+      "items": { "enum": ["web", "miniapp", "mobile", "desktop"] }
+    },
+    "starter": {
+      "type": "object",
+      "required": ["id", "version", "runtimeMode", "createdFrom", "createdAt"],
+      "properties": {
+        "id": { "type": "string" },
+        "version": { "type": "string" },
+        "runtimeMode": { "type": "string" },
+        "createdFrom": { "type": "string" },
+        "createdAt": { "type": "string" }
+      }
+    },
+    "installedTemplates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "templateKind", "templateRole", "targetPath", "installedAt"],
+        "properties": {
+          "id": { "type": "string" },
+          "templateKind": { "type": "string" },
+          "templateRole": { "type": "string" },
+          "targetPath": { "type": "string" },
+          "installedAt": { "type": "string" }
+        }
+      }
+    },
+    "installedPacks": { "type": "array" }
+  }
+}

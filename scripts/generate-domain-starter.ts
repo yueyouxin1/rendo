@@ -3,11 +3,11 @@ import { generateDomainStarterFromProfile } from "./lib/domain-starter-generator
 async function main() {
   const profileRef = process.argv[2];
   if (!profileRef) {
-    throw new Error("profile ref is required, for example: headless-agent/hello-world");
+    throw new Error("profile ref is required, for example: base/application/application-base");
   }
 
   const result = await generateDomainStarterFromProfile(
-    `authoring/domain-starters/${profileRef}/profile.json`,
+    `shared/authoring/starter-templates/${profileRef}/profile.json`,
   );
 
   console.log(JSON.stringify(result, null, 2));

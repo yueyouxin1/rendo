@@ -1,0 +1,16 @@
+{
+  "templates": [
+    {
+      "id": "core-starter",
+      "ref": "rendo:core-starter",
+      "aliases": [
+        "core-starter"
+      ],
+      "official": true,
+      "templateKind": "starter-template",
+      "templateRole": "core",
+      "manifestPath": "shared/templates/core-starter/rendo.template.json",
+      "templatePath": "shared/templates/core-starter"
+    }
+  ]
+}

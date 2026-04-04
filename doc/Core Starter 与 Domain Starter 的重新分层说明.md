@@ -1,9 +1,9 @@
-# Core Starter 与 Domain Starter 的重新分层说明
+# Core Starter 与 Starter Template 的重新分层说明
 
 - 文档版本：v1.0
 - 日期：2026-04-04
 - 文档性质：Rendo 新定位下的核心脚手架分层说明
-- 目标：明确 `Core Starter` 与 `Domain Starter` 的职责边界，说明为什么 `Core Starter` 不应默认采用 `Next.js`，以及为什么 `Next.js` 应作为某类 `Domain Starter` 的默认壳
+- 目标：明确 `Core Starter` 与 `Starter Template` 的职责边界，说明为什么 `Core Starter` 不应默认采用 `Next.js`，以及为什么 `Next.js` 应作为某类 `Starter Template` 的默认壳
 - 核心结论：**`Core Starter` 应该是唯一的、最轻量的基础脚手架，不默认选择 `Next.js`、图形界面或前后端统一产品形态；`Next.js` 应降级为某些领域最佳实践模板的默认壳，而不是整个 Rendo 体系的唯一基础形态。**
 
 ---
@@ -55,7 +55,7 @@
 
 而 `Next.js` 应该被重新定位为：
 
-- 某一类 `Domain Starter` 的默认壳
+- 某一类 `Starter Template` 的默认壳
 
 例如：
 
@@ -65,7 +65,7 @@
 
 换句话说：
 
-**`Core Starter` 定义“怎么长”，`Domain Starter` 定义“长成什么”。**
+**`Core Starter` 定义“怎么长”，`Starter Template` 定义“长成什么”。**
 
 ---
 
@@ -172,9 +172,9 @@
 
 ---
 
-## 5. `Domain Starter` 应该是什么
+## 5. `Starter Template` 应该是什么
 
-`Domain Starter` 是建立在 `Core Starter` 之上的具体产品形态脚手架。
+`Starter Template` 是建立在 `Core Starter` 之上的具体产品形态脚手架。
 
 它负责回答：
 
@@ -273,7 +273,7 @@
 - CLI 基础
 - Docker 基础入口
 
-## 8.2 `Domain Starter`
+## 8.2 `Starter Template`
 
 领域层，负责：
 
@@ -281,7 +281,7 @@
 - 默认前端 / 后端壳
 - 默认能力骨架
 
-## 8.3 `Capability Pack`
+## 8.3 `Capability Template`
 
 能力层，负责：
 
@@ -304,12 +304,12 @@
 应先：
 
 1. 定义 `Core Starter`
-2. 再选一个第一版 `Domain Starter`
+2. 再选一个第一版 `Starter Template`
 
-## 9.2 第一版 Domain Starter
+## 9.2 第一版 Starter Template
 
 即使 `Core Starter` 不默认采用 `Next.js`，  
-第一版 `Domain Starter` 仍然完全可以选择：
+第一版 `Starter Template` 仍然完全可以选择：
 
 - `Next.js + AI Web App`
 
@@ -318,7 +318,7 @@
 这两件事并不冲突：
 
 - `Core Starter` 中立
-- `第一版 Domain Starter` 用 `Next.js`
+- `第一版 Starter Template` 用 `Next.js`
 
 ## 9.3 文档与工程需要同步调整
 
@@ -329,7 +329,7 @@
 而应改成：
 
 - “唯一 `Core Starter` 不绑定形态”
-- “当前第一版 `Domain Starter` 采用 Next.js”
+- “当前第一版 `Starter Template` 采用 Next.js”
 
 ---
 
@@ -342,8 +342,8 @@
 更合理的结构是：
 
 - `Core Starter` 作为唯一基础脚手架，保持对产品形态中立
-- `Next.js` 作为 `Web / SaaS / AI 应用` 这类 `Domain Starter` 的默认壳
+- `Next.js` 作为 `Web / SaaS / AI 应用` 这类 `Starter Template` 的默认壳
 
 一句话结论：
 
-**`Core Starter` 负责定义底座，`Domain Starter` 负责定义形态；`Next.js` 应属于后者，而不应属于前者。**
+**`Core Starter` 负责定义底座，`Starter Template` 负责定义形态；`Next.js` 应属于后者，而不应属于前者。**

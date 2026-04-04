@@ -1,76 +1,108 @@
 # Rendo
 
-Rendo is building a starter system for strong agents, not a generic platform.
+Rendo is currently implemented as a starter-system workspace for strong agents.
 
-Current implementation focus:
+The active architecture follows the template asset layering described in [doc/23-Rendo模板资产分层与分类体系说明.md](/D:/code/rendo/doc/23-Rendo模板资产分层与分类体系说明.md):
 
-1. Production-grade `Core Starter`
-2. Production-grade `rendo cli`
-3. Minimal authoring proof that a `Domain Starter` is created from `rendo init`
-4. Minimal consumer proof that users can `rendo create` a published domain starter
+1. `Core Starter`
+2. `Base Template`
+3. `Derived Template`
 
-The current published validation starter is `hello-world-starter`. It exists only to prove the contract and workflow. It is not intended to be the first real business starter.
+At this stage, the implemented template kind is `Starter Template`.
 
-## Mental model
+## Current structure
 
-### Author side
+- [shared/templates](/D:/code/rendo/shared/templates)
+  - `core-starter`
+  - `base/starter/*`
+  - `derived/starter/*`
+- [shared/authoring](/D:/code/rendo/shared/authoring)
+  - `starter-templates/base/<category>/<profile>/...`
+- [shared/registry](/D:/code/rendo/shared/registry)
+  - language-neutral starter registry
+- [shared/contracts](/D:/code/rendo/shared/contracts)
+  - language-neutral JSON schemas
+- [cli/node](/D:/code/rendo/cli/node)
+  - Node implementation of the Rendo CLI
+- [cli/python](/D:/code/rendo/cli/python)
+  - Python implementation of the Rendo CLI
 
-Use `rendo init` to create a `Core Starter` workspace, then evolve that workspace into a `Domain Starter` and publish it.
+## Starter asset semantics
 
-Author flow:
+Each starter manifest now carries both:
+
+- `templateKind`
+  - currently `starter-template`
+- `templateRole`
+  - `core`
+  - `base`
+  - `derived`
+
+This is layered on top of the existing `type` field:
+
+- `core-starter`
+- `domain-starter`
+
+So the current assets are interpreted as:
+
+- `core-starter`: `starter-template` + `core`
+- `application-base-starter`: `starter-template` + `base`
+- `ai-web-next-fastapi-starter`: `starter-template` + `derived`
+
+Each starter also carries:
+
+- `domainTags`: multi-select domain classification
+- `scenarioTags`: optional multi-select scenario classification
+- `surfaceCapabilities`: explicit surface capability attributes
+
+## CLI usage
+
+Node CLI:
 
 ```bash
-rendo init my-domain-starter
-# develop on top of the Core Starter contract
-# publish the resulting Domain Starter to registry
+node --import tsx cli/node/src/bin.ts search --type starter --json
+node --import tsx cli/node/src/bin.ts init --output my-core
+node --import tsx cli/node/src/bin.ts create application --surfaces web,miniapp --output my-app
 ```
 
-### User side
-
-Use `rendo create` to instantiate an already-published `Domain Starter`.
-
-Consumer flow:
+Python CLI:
 
 ```bash
-rendo create hello-world-starter my-app
+python cli/python/rendo.py search --type starter --json
+python cli/python/rendo.py inspect application-base-starter --json
+python cli/python/rendo.py create application --surfaces web --output my-app
 ```
 
-## Repository layout
+## Authoring usage
 
-- `src/`: CLI implementation and shared scaffolding logic
-- `templates/core-starter`: the only foundational starter contract
-- `templates/hello-world-starter`: minimal Domain Starter asset generated from Core Starter
-- `authoring/`: domain-starter authoring profiles and overlays, grouped by domain category
-- `scripts/generate-domain-starter.ts`: generic author-side generation entrypoint
-- `scripts/generate-hello-world-starter.ts`: thin wrapper for the hello-world sample profile
-- `registry/`: local starter and pack indexes used by the CLI
-- `doc/`: source-of-truth documents
-
-## CLI commands
+Generate a base starter template from `Core Starter` through the generic pipeline:
 
 ```bash
-rendo init <dir>
-rendo create <starter-ref> <dir>
-rendo search --type starter --keyword hello
-rendo inspect hello-world-starter
-rendo doctor
+npm run generate:domain-starter -- base/application/application-base
+npm run generate:domain-starter -- derived/ai-webapp/next-fastapi-landing
 ```
 
-Pack commands are present in the CLI surface because they are part of the protocol, but the current registry intentionally does not ship official packs in this phase.
+The generated starter outputs are written into [shared/templates](/D:/code/rendo/shared/templates).
 
-## Development
+## Validation status
+
+Implemented and tested:
+
+- Node CLI and Python CLI produce identical `search` results
+- Node CLI and Python CLI produce identical `inspect` payloads
+- `rendo init` creates a runnable `Core Starter`
+- `rendo create application --surfaces ...` creates runnable application base projects
+- Node and Python CLIs generate byte-identical source trees for `ai-web-next-fastapi-starter`
+- The generated `ai-web-next-fastapi-starter` runs successfully with:
+  - Next.js web app
+  - FastAPI mock LLM service
+
+## Commands
 
 ```bash
 npm install
 npm run check
-npm run generate:domain-starter -- headless-agent/hello-world
-npm run refresh:hello-world-starter
+npm run build
 npm test
+python -m compileall cli/python
 ```
-
-## Current boundary
-
-- `Core Starter` must be runnable, minimal, and agent-readable.
-- `Core Starter` must not default to Next.js, product UI, auth, billing, or database stacks.
-- `hello-world-starter` must stay tiny and only validate the authoring and consumption flow.
-- Full SaaS/AI business starters come later, after `rendo cli` and `Core Starter` are stable.

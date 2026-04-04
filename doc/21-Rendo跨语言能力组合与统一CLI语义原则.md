@@ -41,7 +41,7 @@ Rendo 不应做成：
 
 - 每种语言一套独立 starter 世界
 - 每种语言一套独立 CLI 语义
-- 每种语言一套独立 pack 生态
+- 每种语言一套独立能力模板生态
 - 每种语言一套独立平台规则
 
 这种做法的问题是：
@@ -58,7 +58,7 @@ Rendo 应该把：
 - 契约
 - CLI 语义
 - 模板描述方式
-- pack 扩展方式
+- 能力模板扩展方式
 - runtime mode 语义
 
 统一下来。
@@ -70,7 +70,7 @@ Rendo 应该把：
 - 具体目录落位
 - 具体实现方式
 
-留给不同 starter 和 pack 在各自场景中合理实现。
+留给不同 starter 和能力模板在各自场景中合理实现。
 
 一句话：
 
@@ -107,7 +107,7 @@ Rendo 的跨语言支持，不应被理解成：
 
 - 每种语言一套命令
 - 每种 starter 一套行为
-- 每种 pack 一套安装方式
+- 每种能力模板一套安装方式
 
 它最适合面对的是：
 
@@ -153,17 +153,17 @@ Rendo 的跨语言支持，不应被理解成：
 必须统一：
 
 - 什么是 `Core Starter`
-- 什么是 `Domain Starter`
+- 什么是 `Starter Template`
 - 一个 starter 如何声明自己的类型、能力和默认依赖
 
-## 5.2 Pack 语义
+## 5.2 Capability Template 语义
 
 必须统一：
 
-- 什么是 pack
-- pack 如何声明类型
-- pack 如何声明运行模式
-- pack 如何声明安装影响面
+- 什么是能力模板
+- 能力模板如何声明类型
+- 能力模板如何声明运行模式
+- 能力模板如何声明安装影响面
 
 ## 5.3 Runtime mode 语义
 
@@ -181,7 +181,7 @@ Rendo 的跨语言支持，不应被理解成：
 
 - `init` 是初始化底座
 - `create` 是创建 starter
-- `inspect` 是查看 starter 或 pack 说明
+- `inspect` 是查看 starter 或能力模板说明
 - `add` 是安装能力
 - `doctor` 是诊断环境和依赖
 
@@ -239,7 +239,7 @@ Rendo 的跨语言支持，不应被理解成：
 
 快速理解这个 starter。
 
-## 条件 2：不同语言实现仍然能被纳入同一套模板与 pack 体系
+## 条件 2：不同语言实现仍然能被纳入同一套 starter 与能力模板体系
 
 无论某个能力是：
 
@@ -247,7 +247,7 @@ Rendo 的跨语言支持，不应被理解成：
 - `Python`
 - 其他生态
 
-都必须可以被 starter 和 pack 体系统一描述。
+都必须可以被 starter 与能力模板体系统一描述。
 
 ## 条件 3：组合能力不应破坏 starter 的可理解性
 
@@ -269,7 +269,7 @@ Rendo 的跨语言支持，不应被理解成：
 先定义：
 
 - starter contract
-- pack contract
+- 能力模板 contract
 - runtime mode
 - CLI semantics
 
@@ -292,7 +292,7 @@ Rendo 的跨语言支持，不应被理解成：
 所以：
 
 - `Core Starter` 应足够抽象
-- `Domain Starter` 才去绑定具体实现形态
+- `Starter Template` 才去绑定具体实现形态
 
 这让多语言支持成为：
 

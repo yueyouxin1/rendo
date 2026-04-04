@@ -1,17 +1,13 @@
 {
-  "name": "rendo",
+  "name": "rendo-workspace",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "bin": {
-    "rendo": "./dist/bin.js"
-  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "check": "tsc -p tsconfig.json --noEmit",
-    "dev": "tsx src/bin.ts",
+    "dev": "tsx cli/node/src/bin.ts",
     "generate:domain-starter": "tsx scripts/generate-domain-starter.ts",
-    "refresh:hello-world-starter": "tsx scripts/generate-hello-world-starter.ts",
     "test": "node --import tsx --test tests/cli.test.ts"
   },
   "dependencies": {

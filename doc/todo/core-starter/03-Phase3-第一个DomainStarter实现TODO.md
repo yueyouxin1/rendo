@@ -1,8 +1,8 @@
-# Phase 3 - 第一个 Domain Starter 实现 TODO
+# Phase 3 - 第一个 Starter Template 实现 TODO
 
 ## 目标
 
-基于 `Core Starter` 做出第一个高质量 `Domain Starter`。
+基于 `Core Starter` 做出第一个高质量 `Starter Template`。
 
 ## TODO
 

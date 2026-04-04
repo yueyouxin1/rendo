@@ -27,7 +27,7 @@
 
 用于：
 
-- 基于某个 `Domain Starter` 创建真正可用的项目
+- 基于某个 `Starter Template` 创建真正可用的项目
 
 它更适合：
 
@@ -38,6 +38,24 @@
 一句话：
 
 **`init` 负责底座，`create` 负责产品形态。**
+
+### 关于多端 starter
+
+如果目标 starter 支持多端形态，`rendo create` 还应负责：
+
+- 决定本次项目实例实际生成哪些端
+
+例如：
+
+```bash
+rendo create application --surfaces web
+rendo create application --surfaces web,miniapp
+```
+
+也就是说：
+
+- starter 可以内建多端最佳实践蓝图
+- 但具体项目由 `create` 决定本次落地哪些端
 
 ---
 
@@ -51,7 +69,7 @@
 混在一起。  
 这会导致：
 
-- `Core Starter` 和 `Domain Starter` 边界变糊
+- `Core Starter` 和 `Starter Template` 边界变糊
 - CLI 心智变乱
 
 ---

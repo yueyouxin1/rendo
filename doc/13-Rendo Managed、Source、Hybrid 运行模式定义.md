@@ -204,7 +204,7 @@
 
 - 默认 `source`
 
-### 第一版 `Domain Starter`
+### 第一版 `Starter Template`
 
 - 默认 `hybrid`
 

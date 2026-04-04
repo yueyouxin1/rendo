@@ -1,8 +1,8 @@
-# Pack Manifest 最小规范
+# Capability Template Manifest 最小规范
 
 ## 文档目标
 
-定义 `Capability Pack` 的最小 manifest 结构与语义，使 starter、CLI、平台和强 Agent 都能以统一方式理解和操作 pack。
+定义 `Capability Template` 的最小 manifest 结构与语义，使 starter、CLI、平台和强 Agent 都能以统一方式理解和操作该类模板资产。
 
 ---
 

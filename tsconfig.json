@@ -7,7 +7,6 @@
     "noEmitOnError": true,
     "declaration": true,
     "outDir": "dist",
-    "rootDir": "src",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
@@ -16,7 +15,9 @@
     ]
   },
   "include": [
-    "src/**/*.ts"
+    "cli/node/src/**/*.ts",
+    "scripts/**/*.ts",
+    "tests/**/*.ts"
   ],
   "exclude": [
     "dist"

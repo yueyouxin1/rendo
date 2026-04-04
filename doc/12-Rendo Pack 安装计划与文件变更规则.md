@@ -1,8 +1,8 @@
-# Rendo Pack 安装计划与文件变更规则
+# Rendo Capability Template 安装计划与文件变更规则
 
 ## 文档目标
 
-定义 `Capability Pack` 在安装、升级、移除时如何表达文件变更、配置变更和工程影响范围，确保人类、CLI 和强 Agent 都能明确理解 pack 会做什么。
+定义 `Capability Template` 在安装、升级、移除时如何表达文件变更、配置变更和工程影响范围，确保人类、CLI 和强 Agent 都能明确理解该模板会做什么。
 
 ---
 

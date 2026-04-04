@@ -13,7 +13,7 @@
 当 `Core Starter` 被定义为：
 
 - 唯一基础脚手架
-- 所有 `Domain Starter` 的底座
+- 所有 `Starter Template` 的底座
 - 强 Agent 理解和扩展的统一起点
 
 就会自然出现一个问题：
@@ -29,7 +29,7 @@
 如果答案是肯定的，又会担心：
 
 - 它会不会慢慢变成一个完整产品
-- 会不会和 `Domain Starter` 职责重叠
+- 会不会和 `Starter Template` 职责重叠
 
 这份文档就是为了解决这个边界问题。
 
@@ -55,7 +55,7 @@
 
 `Core Starter` 不是给最终用户直接消费的产品，而是：
 
-- 给 `Domain Starter`
+- 给 `Starter Template`
 - 给强 Agent
 - 给模板作者
 - 给 starter / pack 协议
@@ -91,10 +91,10 @@
 
 这些职责。
 
-## 3.2 `Domain Starter` 失去稳定底座
+## 3.2 `Starter Template` 失去稳定底座
 
-`Domain Starter` 建立在 `Core Starter` 之上。  
-如果底座本身不活，后续 `Domain Starter` 的很多问题就无法分辨：
+`Starter Template` 建立在 `Core Starter` 之上。
+如果底座本身不活，后续 `Starter Template` 的很多问题就无法分辨：
 
 - 是领域模板问题
 - 还是底座问题
@@ -123,7 +123,7 @@
 
 那它就不再是底座，而已经变成：
 
-- 某种 `Domain Starter`
+- 某种 `Starter Template`
 
 这会直接破坏分层。
 
@@ -135,7 +135,7 @@
 
 这和“基础底座保持中立”的原则冲突。
 
-## 4.2 会让 `Domain Starter` 失去意义
+## 4.2 会让 `Starter Template` 失去意义
 
 如果底座本身就很像一个完整应用，那领域模板和底座之间的差异会越来越模糊。
 
@@ -244,7 +244,7 @@
 
 ---
 
-## 8. 与 `Domain Starter` 的关系
+## 8. 与 `Starter Template` 的关系
 
 ## `Core Starter`
 
@@ -254,7 +254,7 @@
 - 扩展机制
 - 统一契约
 
-## `Domain Starter`
+## `Starter Template`
 
 负责：
 
@@ -266,7 +266,7 @@
 所以：
 
 - `Core Starter` 可运行，但不是最终产品
-- `Domain Starter` 才是用户更直接感知的 starter
+- `Starter Template` 才是用户更直接感知的 starter
 
 ---
 

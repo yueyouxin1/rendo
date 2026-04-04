@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectName": "__RENDO_PROJECT_NAME__",
+  "surfaces": [],
+  "starter": {
+    "id": "__RENDO_STARTER_ID__",
+    "version": "__RENDO_TEMPLATE_VERSION__",
+    "runtimeMode": "__RENDO_RUNTIME_MODE__",
+    "createdFrom": "rendo:core-starter",
+    "createdAt": "__RENDO_CREATED_AT__"
+  },
+  "installedTemplates": [],
+  "installedPacks": []
+}

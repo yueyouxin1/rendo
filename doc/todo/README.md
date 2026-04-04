@@ -5,7 +5,7 @@
 目录结构：
 
 - `core-starter/`
-  - 负责从契约、底座到第一个 starter 与 pack 机制的实现
+  - 负责从契约、底座到第一个 starter 与能力模板机制的实现
 - `rendo-platform/`
   - 负责双模式、共享核心、多端准备和平台闭环
 
@@ -22,4 +22,4 @@
 
 一句话：
 
-**先把 `Core Starter`、`CLI`、`Domain Starter` 和 `Pack` 做成，再让平台长出来。**
+**先把 `Core Starter`、`CLI`、`Starter Template` 和 `Capability Template` 做成，再让平台长出来。**

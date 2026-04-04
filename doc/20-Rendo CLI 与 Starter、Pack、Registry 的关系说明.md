@@ -1,8 +1,8 @@
-# Rendo CLI 与 Starter、Pack、Registry 的关系说明
+# Rendo CLI 与 Starter、Capability Template、Registry 的关系说明
 
 ## 文档目标
 
-说明 CLI 在整个 Rendo 体系中的位置，以及它与 starter、pack、registry 的关系。
+说明 CLI 在整个 Rendo 体系中的位置，以及它与 starter、能力模板、registry 的关系。
 
 ---
 
@@ -11,7 +11,7 @@
 CLI 是：
 
 - starter 的入口
-- pack 的入口
+- 能力模板的入口
 - Agent 的入口
 - registry 的入口
 
@@ -48,7 +48,7 @@ CLI 负责：
 
 ---
 
-## 3. 与 `Domain Starter` 的关系
+## 3. 与 `Starter Template` 的关系
 
 CLI 负责：
 
@@ -57,11 +57,11 @@ CLI 负责：
 - 初始化配置
 - 启动工作区
 
-所以 `Domain Starter` 的主入口应是 CLI。
+所以 `Starter Template` 的主入口应是 CLI。
 
 ---
 
-## 4. 与 `Pack` 的关系
+## 4. 与 `Capability Template` 的关系
 
 CLI 负责：
 
@@ -72,7 +72,7 @@ CLI 负责：
 - `upgrade`
 - `doctor`
 
-没有 CLI，pack 生态就很难自然成立。
+没有 CLI，能力模板生态就很难自然成立。
 
 ---
 
@@ -80,7 +80,7 @@ CLI 负责：
 
 Registry 是：
 
-- starter 和 pack 的来源
+- starter 和能力模板的来源
 
 CLI 是：
 

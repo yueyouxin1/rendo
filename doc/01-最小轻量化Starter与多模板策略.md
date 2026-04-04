@@ -7,7 +7,7 @@
 正确的结构应该是：
 
 - 一个唯一 `Core Starter`
-- 多个按领域 / 形态划分的 `Domain Starter`
+- 多个按领域 / 形态划分的 `Starter Template`
 
 ## 为什么不能只有一个重型 starter
 
@@ -35,7 +35,7 @@ starter 默认只保留：
 
 不绑定领域，不绑定 UI，不绑定 Web。
 
-### `Domain Starter`
+### `Starter Template`
 
 应至少分成：
 
@@ -70,4 +70,3 @@ starter 默认只保留：
 ## 最终原则
 
 **starter 先轻，能力再长。**
-

@@ -9,6 +9,6 @@
 - [ ] 接入 `Rendo API Key`
 - [ ] 接入最小官方 registry
 - [ ] 接入最小默认 provider
-- [ ] 接入最小 managed pack
+- [ ] 接入最小 managed capability template
 - [ ] 验证 `managed / source / hybrid` 真实行为
 - [ ] 验证 CLI 与真实官方能力的联动

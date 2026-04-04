@@ -1,14 +1,14 @@
-# Domain Starter 分类标准
+# Starter Template 分类标准
 
 ## 文档目标
 
-定义 `Domain Starter` 应如何分类、各类 starter 的典型边界是什么、如何判断一个新 starter 应属于哪一类。
+定义 `Starter Template` 应如何分类、各类 starter 的典型边界是什么、如何判断一个新 starter 应属于哪一类。
 
 ---
 
-## 1. 什么是 `Domain Starter`
+## 1. 什么是 `Starter Template`
 
-`Domain Starter` 是建立在 `Core Starter` 之上的具体产品形态与场景模板。
+`Starter Template` 是建立在 `Core Starter` 之上的具体产品形态与场景模板。
 
 它负责定义：
 
@@ -20,7 +20,7 @@
 
 一句话：
 
-**`Domain Starter` 定义“长成什么业务起点”。**
+**`Starter Template` 定义“长成什么业务起点”。**
 
 ---
 
@@ -149,7 +149,7 @@
 
 ## 6. 最终结论
 
-`Domain Starter` 的分类必须服务于真实交付和真实复用，而不是为了把模板目录做得更好看。
+`Starter Template` 的分类必须服务于真实交付和真实复用，而不是为了把模板目录做得更好看。
 
 一句话结论：
 

@@ -65,5 +65,5 @@ Rendo 不应继续把这些底层能力作为主要自研目标：
 不是先做平台，而是：
 
 - 定义 `Core Starter`
-- 做出第一个高质量 `Domain Starter`
-- 建立自然的 `Capability Pack` 机制
+- 做出第一个高质量 `Starter Template`
+- 建立自然的 `Capability Template` 机制

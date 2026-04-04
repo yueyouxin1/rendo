@@ -11,7 +11,7 @@
 `Core Starter` 不是业务模板，不是 Web 应用，不是 SaaS 模板，也不是 headless 服务模板。  
 它是：
 
-- 所有 `Domain Starter` 的统一底座
+- 所有 `Starter Template` 的统一底座
 - 所有模板作者、强 Agent、扩展能力都必须遵守的最小工程规范
 
 一句话：
@@ -40,7 +40,7 @@
 - 模板 id / name / version
 - starter type
 - runtime modes
-- capability pack 依赖声明
+- capability template 依赖声明
 
 ## 2.3 Agent 指令契约
 
@@ -104,8 +104,8 @@
 
 这些都属于：
 
-- `Domain Starter`
-- 或 `Capability Pack`
+- `Starter Template`
+- 或 `Capability Template`
 
 ---
 

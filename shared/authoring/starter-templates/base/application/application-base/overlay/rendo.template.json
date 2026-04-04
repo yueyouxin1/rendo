@@ -1,0 +1,75 @@
+{
+  "id": "application-base-starter",
+  "name": "Application Base Starter",
+  "version": "__RENDO_TEMPLATE_VERSION__",
+  "type": "domain-starter",
+  "templateKind": "starter-template",
+  "templateRole": "base",
+  "category": "application",
+  "title": "Rendo Application Base Starter",
+  "description": "Official multi-surface-capable application base starter with a web hello-world landing page and optional miniapp/mobile placeholders.",
+  "uiMode": "multi",
+  "domainTags": [
+    "developer-tool",
+    "productivity"
+  ],
+  "scenarioTags": [],
+  "runtimeModes": [
+    "source"
+  ],
+  "defaultProviders": {
+    "agent": "none",
+    "workflow": "none",
+    "auth": "none",
+    "db": "none",
+    "cache": "none"
+  },
+  "recommendedPacks": [],
+  "requiredEnv": [],
+  "toolchains": [
+    {
+      "name": "node",
+      "version": "22",
+      "role": "web-runtime"
+    },
+    {
+      "name": "npm",
+      "version": "11",
+      "role": "web-package-manager"
+    },
+    {
+      "name": "docker",
+      "version": "28",
+      "role": "container"
+    }
+  ],
+  "lineage": {
+    "coreStarter": "core-starter",
+    "baseTemplate": null
+  },
+  "surfaceCapabilities": [
+    "web",
+    "miniapp",
+    "mobile"
+  ],
+  "defaultSurfaces": [
+    "web"
+  ],
+  "surfacePaths": {
+    "web": [
+      "apps/web"
+    ],
+    "miniapp": [
+      "apps/miniapp"
+    ],
+    "mobile": [
+      "apps/mobile"
+    ]
+  },
+  "supports": {
+    "web": true,
+    "miniapp": true,
+    "mobile": true,
+    "desktop": false
+  }
+}
