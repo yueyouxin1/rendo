@@ -50,30 +50,33 @@ rendo init capability --output my-capability-core
 用途：
 
 - 搜索模板与 pack
+- 支持 `local` 与 `remote registry provider`
 
 ### `rendo inspect`
 
 用途：
 
-- 查看 manifest 与结构化元信息
+- 查看 manifest、结构化元信息、兼容矩阵与 install plan 元数据
 
 ### `rendo add`
 
 用途：
 
 - 向当前项目添加非 starter 模板或 pack
+- 对 template asset 使用 manifest 驱动的 install plan
 
 ### `rendo pull`
 
 用途：
 
 - 把模板或 pack 拉到本地目录进行查看、对比或二次加工
+- 远程拉取时对 bundle 做 digest 校验
 
 ### `rendo upgrade`
 
 用途：
 
-- 升级已安装 pack
+- 升级已安装 template asset 或 pack
 
 ### `rendo doctor`
 
@@ -86,4 +89,5 @@ rendo init capability --output my-capability-core
 - `init` 负责 `core`
 - `create` 负责 starter 的项目实例化
 - `add / pull` 负责非 starter 模板与 pack 的消费
-
+- `--registry <provider>` 负责切换 `local` 与 `remote`
+- `--registry-token` 负责 bearer token 鉴权

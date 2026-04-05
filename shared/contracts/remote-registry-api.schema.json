@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rendo.dev/contracts/remote-registry-api.schema.json",
+  "type": "object",
+  "required": ["searchResponse", "inspectResponse"],
+  "properties": {
+    "searchResponse": {
+      "type": "object",
+      "required": ["registry", "results"],
+      "properties": {
+        "registry": {
+          "type": "object",
+          "required": ["id", "protocolVersion"],
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "protocolVersion": { "type": "string", "minLength": 1 }
+          }
+        },
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["kind", "id", "title", "version", "category", "official"],
+            "properties": {
+              "kind": { "type": "string", "minLength": 1 },
+              "id": { "type": "string", "minLength": 1 },
+              "title": { "type": "string", "minLength": 1 },
+              "version": { "type": "string", "minLength": 1 },
+              "category": { "type": "string", "minLength": 1 },
+              "templateKind": { "type": "string" },
+              "templateRole": { "type": "string" },
+              "official": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    },
+    "inspectResponse": {
+      "type": "object",
+      "required": ["registry", "payload"],
+      "properties": {
+        "registry": {
+          "type": "object",
+          "required": ["id", "protocolVersion"],
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "protocolVersion": { "type": "string", "minLength": 1 }
+          }
+        },
+        "payload": {
+          "type": "object"
+        },
+        "manifest": {
+          "$ref": "https://rendo.dev/contracts/template-manifest.schema.json"
+        },
+        "bundle": {
+          "type": "object",
+          "required": ["url", "digest", "templateDigest", "bundleFormat"],
+          "properties": {
+            "url": { "type": "string", "minLength": 1 },
+            "digest": {
+              "type": "object",
+              "required": ["algorithm", "value"],
+              "properties": {
+                "algorithm": { "const": "sha256" },
+                "value": { "type": "string", "minLength": 1 }
+              }
+            },
+            "templateDigest": {
+              "type": "object",
+              "required": ["algorithm", "value"],
+              "properties": {
+                "algorithm": { "const": "sha256" },
+                "value": { "type": "string", "minLength": 1 }
+              }
+            },
+            "bundleFormat": { "const": "rendo-bundle.v1" }
+          }
+        }
+      }
+    }
+  }
+}

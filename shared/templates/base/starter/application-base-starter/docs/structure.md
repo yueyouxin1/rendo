@@ -4,9 +4,8 @@
 
 - `docs/`: contract and authoring guidance
 - `scripts/`: validation helpers
-- `starter/`: starter-core specific notes
+- `starter/`: `starter templates`-specific notes
 
 ## Design rule
 
-This template is the core layer for starter assets. Base and derived starter templates should extend it without weakening the control-plane contract.
-
+This template is the core layer for `starter templates`. Base and derived templates should extend it without weakening the control-plane contract.

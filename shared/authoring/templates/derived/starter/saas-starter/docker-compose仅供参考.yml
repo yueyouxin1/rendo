@@ -1,0 +1,50 @@
+services:
+  web:
+    build:
+      context: ./apps/web
+    environment:
+      RENDO_PUBLIC_BASE_URL: ${RENDO_PUBLIC_BASE_URL:-http://127.0.0.1:3000}
+      RENDO_REGISTRY_TITLE: ${RENDO_REGISTRY_TITLE:-Rendo Local Runtime}
+      RENDO_REGISTRY_ID: ${RENDO_REGISTRY_ID:-rendo-local-runtime}
+      RENDO_REGISTRY_TOKEN: ${RENDO_REGISTRY_TOKEN:-dev-rendo-token}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/rendo}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_BUCKET: ${S3_BUCKET:-rendo-artifacts}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-minioadmin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-minioadmin}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
+      - minio
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: rendo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+  redis:
+    image: redis:7.4-alpine
+    ports:
+      - "6379:6379"
+  minio:
+    image: minio/minio:RELEASE.2025-02-28T09-55-16Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minioadmin}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+
+volumes:
+  postgres-data:
+  minio-data:

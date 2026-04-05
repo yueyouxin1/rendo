@@ -1,4 +1,3 @@
 # Provider Core Notes
 
-This directory documents the canonical provider boundary: adapter contracts, credential expectations, runtime modes, and fallback behavior should stay explicit.
-
+This directory documents the canonical provider boundary: keep contracts, extension points, and runtime modes explicit before any base or derived opinion is layered on top.

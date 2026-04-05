@@ -1,9 +1,9 @@
 import path from "node:path";
 import { copyTreeWithReplacements, ensureMissingOrEmptyDir, slugify, writeJsonFile } from "./fs.js";
-import { loadTemplateManifest } from "./registry.js";
-import { projectManifestSchema, type TemplateRegistryEntry, type TemplateManifest } from "./contracts.js";
+import { projectManifestSchema, type TemplateManifest } from "./contracts.js";
 import { readJsonFile } from "./fs.js";
 import { promises as fs } from "node:fs";
+import type { PreparedTemplateSource } from "./registry-client.js";
 
 export type ScaffoldResult = {
   targetDir: string;
@@ -64,21 +64,21 @@ async function persistProjectSurfaces(targetDir: string, selectedSurfaces: strin
 }
 
 export async function scaffoldTemplate(
-  entry: TemplateRegistryEntry,
+  source: PreparedTemplateSource,
   requestedTargetDir: string,
   runtimeMode?: string,
   requestedSurfaces?: string[],
 ): Promise<ScaffoldResult> {
   const targetDir = path.resolve(requestedTargetDir);
   await ensureMissingOrEmptyDir(targetDir);
-  const manifest = await loadTemplateManifest(entry);
+  const manifest = source.manifest;
   const projectName = path.basename(targetDir);
   const projectSlug = slugify(projectName);
   const selectedRuntimeMode = runtimeMode ?? manifest.runtimeModes[0];
   const createdAt = process.env.RENDO_CREATED_AT_OVERRIDE ?? new Date().toISOString();
   const selectedSurfaces = resolveSelectedSurfaces(manifest, requestedSurfaces);
   const copiedFiles = await copyTreeWithReplacements(
-    path.resolve(entry.templatePath),
+    source.templateDir,
     targetDir,
     {
       "__RENDO_PROJECT_NAME__": projectName,

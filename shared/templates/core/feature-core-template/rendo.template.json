@@ -1,7 +1,8 @@
 {
+  "schemaVersion": "1.0.0",
   "id": "feature-core-template",
   "name": "Feature Core Template",
-  "version": "__RENDO_TEMPLATE_VERSION__",
+  "version": "0.2.0",
   "type": "template",
   "templateKind": "feature-template",
   "templateRole": "core",
@@ -11,7 +12,10 @@
   "uiMode": "none",
   "domainTags": [],
   "scenarioTags": [],
-  "runtimeModes": ["source", "hybrid"],
+  "runtimeModes": [
+    "source",
+    "hybrid"
+  ],
   "defaultProviders": {
     "agent": "none",
     "workflow": "none",
@@ -45,5 +49,17 @@
     "miniapp": false,
     "mobile": false,
     "desktop": false
-  }
+  },
+  "compatibility": {
+    "cli": {
+      "min": "0.2.0",
+      "max": null
+    },
+    "registryProtocol": {
+      "min": "1.0.0",
+      "max": null
+    },
+    "hosts": []
+  },
+  "assetInstall": null
 }

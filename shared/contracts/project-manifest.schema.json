@@ -27,11 +27,29 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "templateKind", "templateRole", "targetPath", "installedAt"],
+        "required": [
+          "id",
+          "version",
+          "templateKind",
+          "templateRole",
+          "runtimeMode",
+          "registry",
+          "source",
+          "bundleDigest",
+          "templateDigest",
+          "targetPath",
+          "installedAt"
+        ],
         "properties": {
           "id": { "type": "string" },
+          "version": { "type": "string" },
           "templateKind": { "type": "string" },
           "templateRole": { "type": "string" },
+          "runtimeMode": { "type": "string" },
+          "registry": { "type": "string" },
+          "source": { "enum": ["local", "remote"] },
+          "bundleDigest": { "type": ["string", "null"] },
+          "templateDigest": { "type": ["string", "null"] },
           "targetPath": { "type": "string" },
           "installedAt": { "type": "string" }
         }

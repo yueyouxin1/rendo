@@ -6,11 +6,11 @@
 - `rendo.project.json`
 - `docs/*`
 
-## Surface core surface
+## `Surface` core surface
 
 - `surface/README.md`
-- future slot, layout, or shell assets introduced by a base template
+- future files introduced by a base template that inherits this core
 
 ## Rule
 
-The core layer should define how a surface grows, not which concrete shell it already ships with.
+The core layer should define how a `surface templates` grows, not what product or vendor it becomes.

@@ -6,11 +6,11 @@
 - `rendo.project.json`
 - `docs/*`
 
-## Provider core surface
+## `Provider` core surface
 
 - `provider/README.md`
-- future adapter or binding assets introduced by a base template
+- future files introduced by a base template that inherits this core
 
 ## Rule
 
-The core layer should define how a provider template grows, not which specific vendor is already chosen.
+The core layer should define how a `provider templates` grows, not what product or vendor it becomes.

@@ -4,15 +4,15 @@ This project was initialized from the Rendo `surface-core-template`.
 
 ## What it is
 
-- The core contract for surface templates
+- The core contract for `surface templates`
 - A minimal, agent-readable workspace
-- A stable substrate for building surface base templates
+- A stable substrate for building `surface templates` base templates
 
 ## What it is not
 
-- Not a concrete surface implementation
-- Not a UI choice
-- Not a hard dependency on a specific platform backend
+- Not a concrete product starter
+- Not a vendor binding
+- Not a hidden runtime
 
 ## Commands
 
@@ -24,4 +24,4 @@ npm run check
 
 ## Next step
 
-Use this template to author a surface base template, then let derived surface templates grow from that base.
+Use this template to author a `surface templates` base template, then let derived assets grow from that base.

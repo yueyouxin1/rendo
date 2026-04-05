@@ -6,12 +6,11 @@
 - `rendo.project.json`
 - `docs/*`
 
-## Starter core surface
+## `Starter` core surface
 
 - `starter/README.md`
-- future app or package folders introduced by a base template
+- future files introduced by a base template that inherits this core
 
 ## Rule
 
-The core layer should define how a starter grows, not what product it becomes.
-
+The core layer should define how a `starter templates` grows, not what product or vendor it becomes.

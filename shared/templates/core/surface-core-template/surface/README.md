@@ -1,4 +1,3 @@
 # Surface Core Notes
 
-This directory documents the canonical surface boundary: slot contracts, shell ownership, supported surfaces, and host integration expectations should stay explicit.
-
+This directory documents the canonical surface boundary: keep contracts, extension points, and runtime modes explicit before any base or derived opinion is layered on top.

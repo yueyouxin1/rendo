@@ -1,7 +1,8 @@
 {
+  "schemaVersion": "1.0.0",
   "id": "llm-provider-base-template",
   "name": "LLM Provider Base Template",
-  "version": "__RENDO_TEMPLATE_VERSION__",
+  "version": "0.2.0",
   "type": "template",
   "templateKind": "provider-template",
   "templateRole": "base",
@@ -9,9 +10,14 @@
   "title": "Rendo LLM Provider Base Template",
   "description": "Official LLM provider base template for model routing, credentials, and adapter contracts.",
   "uiMode": "none",
-  "domainTags": ["llm-provider"],
+  "domainTags": [
+    "llm-provider"
+  ],
   "scenarioTags": [],
-  "runtimeModes": ["source", "hybrid"],
+  "runtimeModes": [
+    "source",
+    "hybrid"
+  ],
   "defaultProviders": {
     "agent": "none",
     "workflow": "none",
@@ -20,7 +26,9 @@
     "cache": "none"
   },
   "recommendedPacks": [],
-  "requiredEnv": ["LLM_API_KEY"],
+  "requiredEnv": [
+    "LLM_API_KEY"
+  ],
   "toolchains": [
     {
       "name": "node",
@@ -40,6 +48,87 @@
     "miniapp": false,
     "mobile": false,
     "desktop": false
+  },
+  "compatibility": {
+    "cli": {
+      "min": "0.2.0",
+      "max": null
+    },
+    "registryProtocol": {
+      "min": "1.0.0",
+      "max": null
+    },
+    "hosts": [
+      {
+        "templateId": "application-base-starter",
+        "templateKind": "starter-template",
+        "minVersion": "0.2.0",
+        "maxVersion": null
+      },
+      {
+        "templateId": "rendo-saas-starter",
+        "templateKind": "starter-template",
+        "minVersion": "0.2.0",
+        "maxVersion": null
+      }
+    ]
+  },
+  "assetInstall": {
+    "previewSummary": "Install the LLM provider under providers/llm-provider-base-template and append provider credential env placeholders.",
+    "supportedHostKinds": [
+      "starter-template"
+    ],
+    "supportedHostTemplates": [
+      "application-base-starter",
+      "rendo-saas-starter"
+    ],
+    "modes": [
+      {
+        "runtimeMode": "source",
+        "targetRoot": "providers",
+        "conflictStrategy": "fail",
+        "rollbackStrategy": "safe-abort",
+        "install": {
+          "addsFiles": [
+            "providers/llm-provider-base-template/**"
+          ],
+          "updatesFiles": [],
+          "deletesFiles": [],
+          "addsEnv": [
+            "LLM_API_KEY"
+          ],
+          "addsRoutes": [],
+          "addsPages": [],
+          "addsComponents": [],
+          "addsMigrations": false,
+          "addsWorkerTasks": false,
+          "addsAdminModules": false,
+          "requiresManualSetup": false
+        }
+      },
+      {
+        "runtimeMode": "hybrid",
+        "targetRoot": "providers",
+        "conflictStrategy": "fail",
+        "rollbackStrategy": "safe-abort",
+        "install": {
+          "addsFiles": [
+            "providers/llm-provider-base-template/**"
+          ],
+          "updatesFiles": [],
+          "deletesFiles": [],
+          "addsEnv": [
+            "LLM_API_KEY"
+          ],
+          "addsRoutes": [],
+          "addsPages": [],
+          "addsComponents": [],
+          "addsMigrations": false,
+          "addsWorkerTasks": false,
+          "addsAdminModules": false,
+          "requiresManualSetup": false
+        }
+      }
+    ]
   }
 }
-

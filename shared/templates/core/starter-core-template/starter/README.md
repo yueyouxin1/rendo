@@ -1,4 +1,3 @@
 # Starter Core Notes
 
-This directory exists so base starter templates have a canonical, documented place to explain how they layer product-facing structure on top of the starter core.
-
+This directory documents the canonical starter boundary: keep contracts, extension points, and runtime modes explicit before any base or derived opinion is layered on top.

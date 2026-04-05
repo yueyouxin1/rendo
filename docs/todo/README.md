@@ -40,9 +40,8 @@
 
 ### 当前必须继续推进的工作
 
-- [ ] 把 CLI 从“本地 registry 读取器”升级为“local + remote provider”
+- [x] 把 CLI 从“本地 registry 读取器”升级为“local + remote provider”
 - [ ] 建立 headless Rendo runtime
 - [ ] 建立远程模板 registry、制品存储和版本解析
-- [ ] 做出一个能承载 Rendo 自身 runtime 的 derived SaaS starter
+- [x] 做出一个能承载 Rendo 自身 runtime 的 derived SaaS starter
 - [ ] 用 Rendo 自己吃这套模板和 CLI 的狗粮
-

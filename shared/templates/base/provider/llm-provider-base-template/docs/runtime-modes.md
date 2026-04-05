@@ -1,10 +1,9 @@
 # Runtime Modes
 
-Core templates declare supported runtime modes up front so base and derived templates can inherit them intentionally.
+`provider-core-template` inherits runtime-mode truth from the template manifest.
 
-Current default:
+## How to use this file
 
-- `source`
-- `managed`
-- `hybrid`
-
+- Keep the manifest as the machine-readable source of truth.
+- Use this file to explain why `source / managed / hybrid` are allowed or intentionally constrained for `provider templates`.
+- Push vendor-specific operational detail into base or derived templates.

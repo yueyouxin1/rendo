@@ -2,17 +2,17 @@
 
 ## Mission
 
-This workspace is a Rendo `capability` core template instance.
+This workspace is a Rendo `capability templates` core template instance.
 
 It exists to:
 
 - keep the core layer contract-first and agent-readable
 - avoid product-shape assumptions before base or derived templates exist
-- provide a stable substrate for building capability base templates
+- provide a stable substrate for building `capability templates` base templates
 
 ## Rules
 
-- Keep this template install-surface-neutral and provider-neutral.
+- Keep this template shape-neutral and vendor-neutral.
 - Prefer explicit files over hidden state.
 - Document extension points before adding convenience wrappers.
 
@@ -22,4 +22,6 @@ It exists to:
 - `rendo.project.json`
 - `docs/structure.md`
 - `docs/extension-points.md`
+- `docs/inheritance-boundaries.md`
+- `docs/compatibility.md`
 - `capability/README.md`

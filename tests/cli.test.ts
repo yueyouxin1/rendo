@@ -1,11 +1,13 @@
 import { createHash } from "node:crypto";
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { mkdtemp, mkdir, readFile, readdir, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import test from "node:test";
 import assert from "node:assert/strict";
+import { createTemplateBundle, serializeTemplateBundle, computeBundleDigest } from "../cli/node/src/bundle.js";
 
 const repoRoot = process.cwd();
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
@@ -47,7 +49,7 @@ async function ensureGeneratedAssets() {
         "base/feature/dashboard/dashboard-feature-base-template",
         "base/capability/storage/storage-capability-base-template",
         "base/provider/llm/llm-provider-base-template",
-        "base/surface/admin/admin-surface-base-template",
+        "base/surface/admin/admin-surface-base-template"
       ];
       for (const profile of profiles) {
         const generated = run(npmCommand, ["run", "generate:template", "--", profile], repoRoot);
@@ -58,11 +60,14 @@ async function ensureGeneratedAssets() {
   await generatedAssetsPromise;
 }
 
-async function withTempDir(name: string, fn: (dir: string) => Promise<void>) {
+async function withTempDir(name: string, fn: (dir: string) => Promise<void>, options?: { cleanup?: boolean }) {
   const dir = await mkdtemp(path.join(os.tmpdir(), `${name}-`));
   try {
     await fn(dir);
   } finally {
+    if (options?.cleanup === false) {
+      return;
+    }
     for (let attempt = 0; attempt < 5; attempt += 1) {
       try {
         await rm(dir, { recursive: true, force: true });
@@ -99,13 +104,18 @@ async function collectDirectoryHashes(rootDir: string) {
   return result;
 }
 
-async function waitForHttp(url: string, matcher?: (text: string) => boolean, timeoutMs = 120_000) {
+async function waitForHttp(
+  url: string,
+  matcher?: (text: string) => boolean,
+  timeoutMs = 120_000,
+  init?: RequestInit,
+) {
   const startedAt = Date.now();
   let lastError = "request did not complete";
 
   while (Date.now() - startedAt < timeoutMs) {
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, init);
       const text = await response.text();
       if (response.ok && (!matcher || matcher(text))) {
         return text;
@@ -188,6 +198,159 @@ async function runLocallyWebOnlyTemplate(templateDir: string, webPort: number, t
   } finally {
     await stopProcess(webProcess.child);
   }
+}
+
+async function startFixtureRegistryServer(tamperDigest = false) {
+  const registryRaw = JSON.parse(await readFile(path.join(repoRoot, "shared", "registry", "templates.json"), "utf8")) as {
+    templates: Array<{ id: string; ref: string; aliases: string[]; official: boolean; templateKind: string; templateRole: string; templatePath: string }>;
+  };
+  const bundles = new Map<string, { entry: (typeof registryRaw.templates)[number]; bundle: Awaited<ReturnType<typeof createTemplateBundle>>; raw: Buffer; digest: ReturnType<typeof computeBundleDigest> }>();
+  for (const entry of registryRaw.templates.filter((item) => item.official)) {
+    const templateDir = path.join(repoRoot, entry.templatePath);
+    const bundle = await createTemplateBundle(templateDir);
+    const raw = serializeTemplateBundle(bundle);
+    bundles.set(entry.id, {
+      entry,
+      bundle,
+      raw,
+      digest: computeBundleDigest(raw),
+    });
+  }
+
+  const server = createServer(async (request: IncomingMessage, response: ServerResponse) => {
+    const url = new URL(request.url ?? "/", "http://127.0.0.1");
+    const registryId = tamperDigest ? "tampered-registry" : "fixture-registry";
+    if (url.pathname === "/.well-known/rendo-registry.json") {
+      response.setHeader("content-type", "application/json; charset=utf-8");
+      response.end(
+        JSON.stringify({
+          schemaVersion: "1.0.0",
+          protocolVersion: "1.0.0",
+          registryId,
+          registryTitle: tamperDigest ? "Tampered Registry" : "Fixture Registry",
+          apiBaseUrl: "http://127.0.0.1",
+          auth: {
+            type: "none",
+            header: "Authorization",
+            scheme: null,
+          },
+          cliCompatibility: {
+            min: "0.2.0",
+            max: null,
+          },
+          bundleFormat: "rendo-bundle.v1",
+          digestAlgorithm: "sha256",
+        }),
+      );
+      return;
+    }
+
+    if (url.pathname === "/v1/search") {
+      response.setHeader("content-type", "application/json; charset=utf-8");
+      response.end(
+        JSON.stringify({
+          registry: {
+            id: registryId,
+            protocolVersion: "1.0.0",
+          },
+          results: [...bundles.values()].map(({ bundle }) => ({
+            kind: bundle.manifest.templateKind,
+            id: bundle.manifest.id,
+            title: bundle.manifest.title,
+            version: bundle.manifest.version,
+            category: bundle.manifest.category,
+            templateKind: bundle.manifest.templateKind,
+            templateRole: bundle.manifest.templateRole,
+            official: true,
+          })),
+        }),
+      );
+      return;
+    }
+
+    if (url.pathname === "/v1/inspect") {
+      const ref = url.searchParams.get("ref")?.toLowerCase() ?? "";
+      const matched = [...bundles.values()].find(({ entry }) =>
+        [entry.id, entry.ref, ...entry.aliases].some((candidate) => candidate.toLowerCase() === ref),
+      );
+      if (!matched) {
+        response.statusCode = 404;
+        response.end(JSON.stringify({ error: `template not found: ${ref}` }));
+        return;
+      }
+      response.setHeader("content-type", "application/json; charset=utf-8");
+      response.end(
+        JSON.stringify({
+          registry: {
+            id: registryId,
+            protocolVersion: "1.0.0",
+          },
+          payload: {
+            kind: matched.bundle.manifest.templateKind,
+            id: matched.bundle.manifest.id,
+            title: matched.bundle.manifest.title,
+            version: matched.bundle.manifest.version,
+            type: matched.bundle.manifest.type,
+            templateKind: matched.bundle.manifest.templateKind,
+            templateRole: matched.bundle.manifest.templateRole,
+            description: matched.bundle.manifest.description,
+            category: matched.bundle.manifest.category,
+            uiMode: matched.bundle.manifest.uiMode,
+            domainTags: matched.bundle.manifest.domainTags,
+            scenarioTags: matched.bundle.manifest.scenarioTags,
+            toolchains: matched.bundle.manifest.toolchains,
+            surfaceCapabilities: matched.bundle.manifest.surfaceCapabilities,
+            defaultSurfaces: matched.bundle.manifest.defaultSurfaces,
+            runtimeModes: matched.bundle.manifest.runtimeModes,
+            requiredEnv: matched.bundle.manifest.requiredEnv,
+            dependencies: matched.bundle.manifest.recommendedPacks,
+            official: true,
+            compatibility: matched.bundle.manifest.compatibility,
+            assetInstall: matched.bundle.manifest.assetInstall,
+          },
+          manifest: matched.bundle.manifest,
+          bundle: {
+            url: `/v1/bundles/${matched.entry.id}`,
+            digest: {
+              algorithm: "sha256",
+              value: tamperDigest ? `${matched.digest.value.slice(0, -1)}0` : matched.digest.value,
+            },
+            templateDigest: matched.bundle.templateDigest,
+            bundleFormat: "rendo-bundle.v1",
+          },
+        }),
+      );
+      return;
+    }
+
+    if (url.pathname.startsWith("/v1/bundles/")) {
+      const templateId = url.pathname.split("/").pop() ?? "";
+      const matched = bundles.get(templateId);
+      if (!matched) {
+        response.statusCode = 404;
+        response.end("not found");
+        return;
+      }
+      response.setHeader("content-type", "application/json; charset=utf-8");
+      response.end(matched.raw);
+      return;
+    }
+
+    response.statusCode = 404;
+    response.end("not found");
+  });
+
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const address = server.address();
+  assert.ok(address && typeof address === "object");
+
+  return {
+    server,
+    baseUrl: `http://127.0.0.1:${address.port}`,
+    close: async () => {
+      await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+    },
+  };
 }
 
 test("node and python CLIs expose identical template search results", async () => {
@@ -281,6 +444,11 @@ test("template authoring pipeline generates application base starter from profil
   assert.equal(templateManifest.templateKind, "starter-template");
   assert.equal(templateManifest.templateRole, "base");
   assert.equal(templateManifest.category, "application");
+});
+
+test("core templates stay aligned with the shared skeleton", async () => {
+  const checked = run("node", ["--import", "tsx", "scripts/sync-core-templates.ts", "--check"], repoRoot);
+  assert.equal(checked.status, 0, checked.stderr || checked.stdout);
 });
 
 test("rendo init creates runnable core templates for every template kind", async () => {
@@ -420,4 +588,83 @@ test("node and python CLIs pull identical provider template assets with --output
     const pythonHashes = await collectDirectoryHashes(pythonTarget);
     assert.deepEqual([...nodeHashes.entries()].sort(), [...pythonHashes.entries()].sort());
   });
+});
+
+test("node and python CLIs consume identical remote registry output from the fixture server", async () => {
+  await ensureGeneratedAssets();
+  const registry = await startFixtureRegistryServer();
+  try {
+    const createdAt = "2026-04-04T00:00:00.000Z";
+    await withTempDir("rendo-remote-fixture", async (dir) => {
+      const nodeSearch = runNodeCli(["search", "--type", "all", "--registry", registry.baseUrl, "--json"], repoRoot);
+      const pythonSearch = runPythonCli(["search", "--type", "all", "--registry", registry.baseUrl, "--json"], repoRoot);
+      assert.equal(nodeSearch.status, 0, nodeSearch.stderr);
+      assert.equal(pythonSearch.status, 0, pythonSearch.stderr);
+      assert.deepEqual(JSON.parse(nodeSearch.stdout), JSON.parse(pythonSearch.stdout));
+
+      const nodeInspect = runNodeCli(["inspect", "application-base-starter", "--registry", registry.baseUrl, "--json"], repoRoot);
+      const pythonInspect = runPythonCli(["inspect", "application-base-starter", "--registry", registry.baseUrl, "--json"], repoRoot);
+      assert.equal(nodeInspect.status, 0, nodeInspect.stderr);
+      assert.equal(pythonInspect.status, 0, pythonInspect.stderr);
+      assert.deepEqual(JSON.parse(nodeInspect.stdout), JSON.parse(pythonInspect.stdout));
+
+      const nodeApp = path.join(dir, "node-app");
+      const pythonApp = path.join(dir, "python-app");
+      const nodeCreate = runNodeCli(
+        ["create", "application-base-starter", "--registry", registry.baseUrl, "--output", nodeApp, "--surfaces", "web", "--json"],
+        repoRoot,
+        { RENDO_CREATED_AT_OVERRIDE: createdAt },
+      );
+      const pythonCreate = runPythonCli(
+        ["create", "application-base-starter", "--registry", registry.baseUrl, "--output", pythonApp, "--surfaces", "web", "--json"],
+        repoRoot,
+        { RENDO_CREATED_AT_OVERRIDE: createdAt },
+      );
+      assert.equal(nodeCreate.status, 0, nodeCreate.stderr);
+      assert.equal(pythonCreate.status, 0, pythonCreate.stderr);
+
+      const nodeAdd = runNodeCli(
+        ["add", "llm-provider-base-template", "--registry", registry.baseUrl, "--json"],
+        nodeApp,
+        { RENDO_INSTALLED_AT_OVERRIDE: "2026-04-04T00:00:00.000Z" },
+      );
+      const pythonAdd = runPythonCli(
+        ["add", "llm-provider-base-template", "--registry", registry.baseUrl, "--json"],
+        pythonApp,
+        { RENDO_INSTALLED_AT_OVERRIDE: "2026-04-04T00:00:00.000Z" },
+      );
+      assert.equal(nodeAdd.status, 0, nodeAdd.stderr);
+      assert.equal(pythonAdd.status, 0, pythonAdd.stderr);
+
+      const nodeHashes = await collectDirectoryHashes(nodeApp);
+      const pythonHashes = await collectDirectoryHashes(pythonApp);
+      assert.deepEqual([...nodeHashes.entries()].sort(), [...pythonHashes.entries()].sort());
+    });
+  } finally {
+    await registry.close();
+  }
+});
+
+test("remote pull fails when registry advertises a wrong bundle digest", async () => {
+  await ensureGeneratedAssets();
+  const registry = await startFixtureRegistryServer(true);
+  try {
+    await withTempDir("rendo-remote-digest", async (dir) => {
+      const nodePull = runNodeCli(
+        ["pull", "application-base-starter", "--registry", registry.baseUrl, "--output", path.join(dir, "node"), "--json"],
+        repoRoot,
+      );
+      const pythonPull = runPythonCli(
+        ["pull", "application-base-starter", "--registry", registry.baseUrl, "--output", path.join(dir, "python"), "--json"],
+        repoRoot,
+      );
+
+      assert.notEqual(nodePull.status, 0);
+      assert.match(nodePull.stderr, /digest mismatch/);
+      assert.notEqual(pythonPull.status, 0);
+      assert.match(pythonPull.stderr, /digest mismatch/);
+    });
+  } finally {
+    await registry.close();
+  }
 });

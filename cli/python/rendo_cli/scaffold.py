@@ -6,8 +6,7 @@ from pathlib import Path
 import shutil
 
 from .contracts import validate_project_manifest
-from .fs import REPO_ROOT, copy_tree_with_replacements, ensure_missing_or_empty_dir, read_json, slugify, write_json
-from .registry import load_template_manifest
+from .fs import copy_tree_with_replacements, ensure_missing_or_empty_dir, read_json, slugify, write_json
 
 
 def resolve_selected_surfaces(manifest: dict, requested_surfaces: list[str] | None) -> list[str]:
@@ -44,11 +43,11 @@ def persist_project_surfaces(target: Path, selected_surfaces: list[str]) -> None
     write_json(target / "rendo.project.json", payload)
 
 
-def scaffold_template(entry: dict, target_dir: str, runtime_mode: str | None = None, requested_surfaces: list[str] | None = None) -> dict:
+def scaffold_template(source: dict, target_dir: str, runtime_mode: str | None = None, requested_surfaces: list[str] | None = None) -> dict:
     target = Path(target_dir).resolve()
     ensure_missing_or_empty_dir(target)
 
-    manifest = load_template_manifest(entry)
+    manifest = source["manifest"]
     selected_runtime = runtime_mode or manifest["runtimeModes"][0]
     selected_surfaces = resolve_selected_surfaces(manifest, requested_surfaces)
     project_name = target.name
@@ -65,7 +64,7 @@ def scaffold_template(entry: dict, target_dir: str, runtime_mode: str | None = N
         "__RENDO_CREATED_AT__": created_at,
         "__RENDO_SELECTED_SURFACES__": ", ".join(selected_surfaces) if selected_surfaces else "none",
     }
-    copied = copy_tree_with_replacements(REPO_ROOT / entry["templatePath"], target, replacements)
+    copied = copy_tree_with_replacements(source["templateDir"], target, replacements)
     prune_unselected_surfaces(target, manifest, selected_surfaces)
     persist_project_surfaces(target, selected_surfaces)
     return {

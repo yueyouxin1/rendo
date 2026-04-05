@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rendo.dev/contracts/template-bundle.schema.json",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "bundleFormat",
+    "templateId",
+    "version",
+    "templateDigest",
+    "manifest",
+    "files"
+  ],
+  "properties": {
+    "schemaVersion": { "type": "string", "minLength": 1 },
+    "bundleFormat": { "const": "rendo-bundle.v1" },
+    "templateId": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "minLength": 1 },
+    "templateDigest": {
+      "type": "object",
+      "required": ["algorithm", "value"],
+      "properties": {
+        "algorithm": { "const": "sha256" },
+        "value": { "type": "string", "minLength": 1 }
+      }
+    },
+    "manifest": {
+      "$ref": "https://rendo.dev/contracts/template-manifest.schema.json"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "encoding", "sha256", "content"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "encoding": { "const": "base64" },
+          "sha256": { "type": "string", "minLength": 1 },
+          "content": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

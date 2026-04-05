@@ -2,6 +2,6 @@
 
 ## Working model
 
-- Treat this workspace as the canonical `feature` core contract.
+- Treat this workspace as the canonical `feature templates` core contract.
 - Keep the root files minimal and stable.
-- Push concrete feature opinions into base or derived feature templates.
+- Push concrete product or vendor opinions into base or derived templates.

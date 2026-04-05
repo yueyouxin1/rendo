@@ -1,7 +1,8 @@
 {
+  "schemaVersion": "1.0.0",
   "id": "admin-surface-base-template",
   "name": "Admin Surface Base Template",
-  "version": "__RENDO_TEMPLATE_VERSION__",
+  "version": "0.2.0",
   "type": "template",
   "templateKind": "surface-template",
   "templateRole": "base",
@@ -9,9 +10,14 @@
   "title": "Rendo Admin Surface Base Template",
   "description": "Official admin surface base template for operator shells, navigation, and lightweight control panels.",
   "uiMode": "web",
-  "domainTags": ["admin-surface"],
+  "domainTags": [
+    "admin-surface"
+  ],
   "scenarioTags": [],
-  "runtimeModes": ["source", "hybrid"],
+  "runtimeModes": [
+    "source",
+    "hybrid"
+  ],
   "defaultProviders": {
     "agent": "none",
     "workflow": "none",
@@ -32,16 +38,107 @@
     "coreTemplate": "surface-core-template",
     "baseTemplate": null
   },
-  "surfaceCapabilities": ["web"],
-  "defaultSurfaces": ["web"],
+  "surfaceCapabilities": [
+    "web"
+  ],
+  "defaultSurfaces": [
+    "web"
+  ],
   "surfacePaths": {
-    "web": ["surface"]
+    "web": [
+      "surface"
+    ]
   },
   "supports": {
     "web": true,
     "miniapp": false,
     "mobile": false,
     "desktop": false
+  },
+  "compatibility": {
+    "cli": {
+      "min": "0.2.0",
+      "max": null
+    },
+    "registryProtocol": {
+      "min": "1.0.0",
+      "max": null
+    },
+    "hosts": [
+      {
+        "templateId": "application-base-starter",
+        "templateKind": "starter-template",
+        "minVersion": "0.2.0",
+        "maxVersion": null
+      },
+      {
+        "templateId": "rendo-saas-starter",
+        "templateKind": "starter-template",
+        "minVersion": "0.2.0",
+        "maxVersion": null
+      }
+    ]
+  },
+  "assetInstall": {
+    "previewSummary": "Install the admin surface under surfaces/admin-surface-base-template and expose slots for host dashboards and settings pages.",
+    "supportedHostKinds": [
+      "starter-template"
+    ],
+    "supportedHostTemplates": [
+      "application-base-starter",
+      "rendo-saas-starter"
+    ],
+    "modes": [
+      {
+        "runtimeMode": "source",
+        "targetRoot": "surfaces",
+        "conflictStrategy": "fail",
+        "rollbackStrategy": "safe-abort",
+        "install": {
+          "addsFiles": [
+            "surfaces/admin-surface-base-template/**"
+          ],
+          "updatesFiles": [],
+          "deletesFiles": [],
+          "addsEnv": [],
+          "addsRoutes": [],
+          "addsPages": [
+            "surfaces/admin-surface-base-template/surface/README.md"
+          ],
+          "addsComponents": [
+            "surfaces/admin-surface-base-template/surface/slots.json"
+          ],
+          "addsMigrations": false,
+          "addsWorkerTasks": false,
+          "addsAdminModules": true,
+          "requiresManualSetup": false
+        }
+      },
+      {
+        "runtimeMode": "hybrid",
+        "targetRoot": "surfaces",
+        "conflictStrategy": "fail",
+        "rollbackStrategy": "safe-abort",
+        "install": {
+          "addsFiles": [
+            "surfaces/admin-surface-base-template/**"
+          ],
+          "updatesFiles": [],
+          "deletesFiles": [],
+          "addsEnv": [],
+          "addsRoutes": [],
+          "addsPages": [
+            "surfaces/admin-surface-base-template/surface/README.md"
+          ],
+          "addsComponents": [
+            "surfaces/admin-surface-base-template/surface/slots.json"
+          ],
+          "addsMigrations": false,
+          "addsWorkerTasks": false,
+          "addsAdminModules": true,
+          "requiresManualSetup": false
+        }
+      }
+    ]
   }
 }
-

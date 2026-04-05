@@ -14,18 +14,17 @@
 
 ## 仍需完成
 
-- [ ] 抽象 `local registry provider` 与 `remote registry provider`
-- [ ] 支持真正的远程模板搜索、检查与拉取
-- [ ] 支持制品下载后的 digest 校验
-- [ ] 支持远程版本解析与升级建议
+- [x] 抽象 `local registry provider` 与 `remote registry provider`
+- [x] 支持真正的远程模板搜索、检查与拉取
+- [x] 支持制品下载后的 digest 校验
+- [x] 支持远程版本解析与升级建议
 - [ ] 支持更严格的非交互模式和错误码约定
-- [ ] 支持 CLI 自身版本与 registry 协议版本协商
-- [ ] 输出正式 CLI compatibility policy
+- [x] 支持 CLI 自身版本与 registry 协议版本协商
+- [x] 输出正式 CLI compatibility policy
 - [ ] 设计 CLI 安装、发布和升级策略
 
 ## 完成标准
 
-- [ ] CLI 可以在不依赖当前仓库源码的情况下消费远程模板
-- [ ] CLI 对 local / remote 两种 provider 的用户语义保持一致
-- [ ] Node / Python 两个实现的关键输出继续保持一致
-
+- [x] CLI 可以在不依赖当前仓库源码的情况下消费远程模板
+- [x] CLI 对 local / remote 两种 provider 的用户语义保持一致
+- [x] Node / Python 两个实现的关键输出继续保持一致

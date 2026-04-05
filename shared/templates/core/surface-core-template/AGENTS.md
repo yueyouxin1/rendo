@@ -2,17 +2,17 @@
 
 ## Mission
 
-This workspace is a Rendo `surface` core template instance.
+This workspace is a Rendo `surface templates` core template instance.
 
 It exists to:
 
 - keep the core layer contract-first and agent-readable
 - avoid product-shape assumptions before base or derived templates exist
-- provide a stable substrate for building surface base templates
+- provide a stable substrate for building `surface templates` base templates
 
 ## Rules
 
-- Keep this template shell-neutral and surface-slot-neutral.
+- Keep this template shape-neutral and vendor-neutral.
 - Prefer explicit files over hidden state.
 - Document extension points before adding convenience wrappers.
 
@@ -22,4 +22,6 @@ It exists to:
 - `rendo.project.json`
 - `docs/structure.md`
 - `docs/extension-points.md`
+- `docs/inheritance-boundaries.md`
+- `docs/compatibility.md`
 - `surface/README.md`

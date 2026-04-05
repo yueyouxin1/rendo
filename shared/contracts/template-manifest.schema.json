@@ -3,6 +3,7 @@
   "$id": "https://rendo.dev/contracts/template-manifest.schema.json",
   "type": "object",
   "required": [
+    "schemaVersion",
     "id",
     "name",
     "version",
@@ -24,9 +25,12 @@
     "surfaceCapabilities",
     "defaultSurfaces",
     "surfacePaths",
-    "supports"
+    "supports",
+    "compatibility",
+    "assetInstall"
   ],
   "properties": {
+    "schemaVersion": { "type": "string", "minLength": 1 },
     "id": { "type": "string", "minLength": 1 },
     "name": { "type": "string", "minLength": 1 },
     "version": { "type": "string", "minLength": 1 },
@@ -108,6 +112,114 @@
         "miniapp": { "type": "boolean" },
         "mobile": { "type": "boolean" },
         "desktop": { "type": "boolean" }
+      }
+    },
+    "compatibility": {
+      "type": "object",
+      "required": ["cli", "registryProtocol", "hosts"],
+      "properties": {
+        "cli": {
+          "type": "object",
+          "required": ["min", "max"],
+          "properties": {
+            "min": { "type": ["string", "null"] },
+            "max": { "type": ["string", "null"] }
+          }
+        },
+        "registryProtocol": {
+          "type": "object",
+          "required": ["min", "max"],
+          "properties": {
+            "min": { "type": ["string", "null"] },
+            "max": { "type": ["string", "null"] }
+          }
+        },
+        "hosts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["templateId", "templateKind", "minVersion", "maxVersion"],
+            "properties": {
+              "templateId": { "type": "string", "minLength": 1 },
+              "templateKind": {
+                "enum": [
+                  "starter-template",
+                  "feature-template",
+                  "capability-template",
+                  "provider-template",
+                  "surface-template"
+                ]
+              },
+              "minVersion": { "type": ["string", "null"] },
+              "maxVersion": { "type": ["string", "null"] }
+            }
+          }
+        }
+      }
+    },
+    "assetInstall": {
+      "type": ["object", "null"],
+      "required": ["previewSummary", "supportedHostKinds", "supportedHostTemplates", "modes"],
+      "properties": {
+        "previewSummary": { "type": "string", "minLength": 1 },
+        "supportedHostKinds": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "starter-template",
+              "feature-template",
+              "capability-template",
+              "provider-template",
+              "surface-template"
+            ]
+          }
+        },
+        "supportedHostTemplates": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "modes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["runtimeMode", "targetRoot", "conflictStrategy", "rollbackStrategy", "install"],
+            "properties": {
+              "runtimeMode": { "enum": ["source", "managed", "hybrid"] },
+              "targetRoot": { "type": "string", "minLength": 1 },
+              "conflictStrategy": { "enum": ["fail", "overwrite", "skip"] },
+              "rollbackStrategy": { "enum": ["safe-abort", "manual"] },
+              "install": {
+                "type": "object",
+                "required": [
+                  "addsFiles",
+                  "updatesFiles",
+                  "deletesFiles",
+                  "addsEnv",
+                  "addsRoutes",
+                  "addsPages",
+                  "addsComponents",
+                  "addsMigrations",
+                  "addsWorkerTasks",
+                  "addsAdminModules",
+                  "requiresManualSetup"
+                ],
+                "properties": {
+                  "addsFiles": { "type": "array", "items": { "type": "string" } },
+                  "updatesFiles": { "type": "array", "items": { "type": "string" } },
+                  "deletesFiles": { "type": "array", "items": { "type": "string" } },
+                  "addsEnv": { "type": "array", "items": { "type": "string" } },
+                  "addsRoutes": { "type": "array", "items": { "type": "string" } },
+                  "addsPages": { "type": "array", "items": { "type": "string" } },
+                  "addsComponents": { "type": "array", "items": { "type": "string" } },
+                  "addsMigrations": { "type": "boolean" },
+                  "addsWorkerTasks": { "type": "boolean" },
+                  "addsAdminModules": { "type": "boolean" },
+                  "requiresManualSetup": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

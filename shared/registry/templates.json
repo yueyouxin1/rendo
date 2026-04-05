@@ -99,7 +99,16 @@
       "templateRole": "base",
       "manifestPath": "shared/templates/base/surface/admin-surface-base-template/rendo.template.json",
       "templatePath": "shared/templates/base/surface/admin-surface-base-template"
+    },
+    {
+      "id": "rendo-saas-starter",
+      "ref": "rendo:rendo-saas-starter",
+      "aliases": ["rendo-saas", "rendo-runtime"],
+      "official": true,
+      "templateKind": "starter-template",
+      "templateRole": "derived",
+      "manifestPath": "shared/templates/derived/starter/rendo-saas-starter/rendo.template.json",
+      "templatePath": "shared/templates/derived/starter/rendo-saas-starter"
     }
   ]
 }
-

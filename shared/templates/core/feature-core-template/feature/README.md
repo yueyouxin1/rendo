@@ -1,4 +1,3 @@
 # Feature Core Notes
 
-This directory documents the canonical scope boundary for feature templates: they should remain composable, host-friendly, and explicit about integration surfaces.
-
+This directory documents the canonical feature boundary: keep contracts, extension points, and runtime modes explicit before any base or derived opinion is layered on top.

@@ -2,6 +2,6 @@
 
 ## Working model
 
-- Treat this workspace as the canonical `capability` core contract.
+- Treat this workspace as the canonical `capability templates` core contract.
 - Keep the root files minimal and stable.
-- Push concrete capability implementations into base or derived capability templates.
+- Push concrete product or vendor opinions into base or derived templates.

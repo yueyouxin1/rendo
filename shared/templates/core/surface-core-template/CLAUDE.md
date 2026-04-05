@@ -2,6 +2,6 @@
 
 ## Working model
 
-- Treat this workspace as the canonical `surface` core contract.
+- Treat this workspace as the canonical `surface templates` core contract.
 - Keep the root files minimal and stable.
-- Push concrete shell or interaction opinions into base or derived surface templates.
+- Push concrete product or vendor opinions into base or derived templates.

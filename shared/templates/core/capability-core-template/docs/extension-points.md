@@ -6,11 +6,11 @@
 - `rendo.project.json`
 - `docs/*`
 
-## Capability core surface
+## `Capability` core surface
 
 - `capability/README.md`
-- future install or runtime assets introduced by a base template
+- future files introduced by a base template that inherits this core
 
 ## Rule
 
-The core layer should define how a capability grows, not which provider or platform it binds to.
+The core layer should define how a `capability templates` grows, not what product or vendor it becomes.

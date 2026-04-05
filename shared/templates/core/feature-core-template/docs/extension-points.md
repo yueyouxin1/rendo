@@ -6,11 +6,11 @@
 - `rendo.project.json`
 - `docs/*`
 
-## Feature core surface
+## `Feature` core surface
 
 - `feature/README.md`
-- future integration or UI folders introduced by a base template
+- future files introduced by a base template that inherits this core
 
 ## Rule
 
-The core layer should define how a feature grows, not what it implements inside a host template.
+The core layer should define how a `feature templates` grows, not what product or vendor it becomes.

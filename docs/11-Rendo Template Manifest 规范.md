@@ -8,6 +8,7 @@
 
 当前模板 manifest 最小字段如下：
 
+- `schemaVersion`
 - `id`
 - `name`
 - `version`
@@ -30,6 +31,8 @@
 - `defaultSurfaces`
 - `surfacePaths`
 - `supports`
+- `compatibility`
+- `assetInstall`
 
 ## 关键语义
 
@@ -77,4 +80,5 @@ manifest 必须：
 - 对 Agent 可读
 - 能明确表达模板分层与模板类型
 - 能支撑 `search / inspect / init / create / add / pull`
-
+- 能表达 CLI / registry / host compatibility
+- 能表达非 starter 模板的 install plan 元数据

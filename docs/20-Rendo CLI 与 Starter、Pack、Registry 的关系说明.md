@@ -55,3 +55,11 @@ pack 更偏向：
 - 能力补充
 - 生命周期操作
 
+当前阶段的官方最小生命周期优先落在：
+
+- 非 starter `template asset`
+
+也就是说：
+
+- capability / provider / surface 的安装、拉取、升级优先由 `template manifest + assetInstall` 驱动
+- pack 作为并行兼容语义存在，但不是当前主干的唯一扩展模型

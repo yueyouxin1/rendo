@@ -1,0 +1,19 @@
+{
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "db:setup": "npx tsx lib/db/setup.ts",
+    "db:seed": "npx tsx lib/db/seed.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "docker:dev": "docker开发版启动",
+    "docker:release": "docker生产版启动",
+    "docker:run": "docker运行",
+    "docker:stop": "docker停止",
+    "docker:down": "docker删除",
+    "docker:restart": "docker重启"
+  }
+}

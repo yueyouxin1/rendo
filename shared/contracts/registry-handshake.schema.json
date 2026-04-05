@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rendo.dev/contracts/registry-handshake.schema.json",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "protocolVersion",
+    "registryId",
+    "registryTitle",
+    "apiBaseUrl",
+    "auth",
+    "cliCompatibility",
+    "bundleFormat",
+    "digestAlgorithm"
+  ],
+  "properties": {
+    "schemaVersion": { "type": "string", "minLength": 1 },
+    "protocolVersion": { "type": "string", "minLength": 1 },
+    "registryId": { "type": "string", "minLength": 1 },
+    "registryTitle": { "type": "string", "minLength": 1 },
+    "apiBaseUrl": { "type": "string", "minLength": 1 },
+    "auth": {
+      "type": "object",
+      "required": ["type", "header", "scheme"],
+      "properties": {
+        "type": { "enum": ["none", "bearer-token"] },
+        "header": { "type": "string", "minLength": 1 },
+        "scheme": { "type": ["string", "null"] }
+      }
+    },
+    "cliCompatibility": {
+      "type": "object",
+      "required": ["min", "max"],
+      "properties": {
+        "min": { "type": ["string", "null"] },
+        "max": { "type": ["string", "null"] }
+      }
+    },
+    "bundleFormat": { "const": "rendo-bundle.v1" },
+    "digestAlgorithm": { "const": "sha256" }
+  }
+}

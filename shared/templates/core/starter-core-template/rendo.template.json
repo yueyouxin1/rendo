@@ -1,7 +1,8 @@
 {
+  "schemaVersion": "1.0.0",
   "id": "starter-core-template",
   "name": "Starter Core Template",
-  "version": "__RENDO_TEMPLATE_VERSION__",
+  "version": "0.2.0",
   "type": "template",
   "templateKind": "starter-template",
   "templateRole": "core",
@@ -49,6 +50,17 @@
     "miniapp": false,
     "mobile": false,
     "desktop": false
-  }
+  },
+  "compatibility": {
+    "cli": {
+      "min": "0.2.0",
+      "max": null
+    },
+    "registryProtocol": {
+      "min": "1.0.0",
+      "max": null
+    },
+    "hosts": []
+  },
+  "assetInstall": null
 }
-

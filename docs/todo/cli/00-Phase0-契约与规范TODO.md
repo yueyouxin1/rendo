@@ -21,18 +21,17 @@
 
 ## 仍需完成
 
-- [ ] 明确远程 registry API 契约
-- [ ] 明确模板制品 bundle 格式
-- [ ] 明确制品 digest / 签名 / 完整性校验规则
+- [x] 明确远程 registry API 契约
+- [x] 明确模板制品 bundle 格式
+- [x] 明确制品 digest / 签名 / 完整性校验规则
 - [ ] 明确 `install / pull / upgrade / doctor` 的远程返回结构
-- [ ] 明确模板版本兼容矩阵表达方式
-- [ ] 明确 template 与 pack 的关系边界，避免双重语义
-- [ ] 明确 CLI 与 runtime 间的鉴权方式
-- [ ] 输出正式术语表，冻结一版命名
+- [x] 明确模板版本兼容矩阵表达方式
+- [x] 明确 template 与 pack 的关系边界，避免双重语义
+- [x] 明确 CLI 与 runtime 间的鉴权方式
+- [x] 输出正式术语表，冻结一版命名
 
 ## 完成标准
 
-- [ ] 新增一个 remote registry provider 时，不需要推翻现有 manifest 结构
-- [ ] CLI 与 runtime 的请求/响应可以直接结构化消费
-- [ ] Agent 不需要猜测“某类模板是否是附属物”
-
+- [x] 新增一个 remote registry provider 时，不需要推翻现有 manifest 结构
+- [x] CLI 与 runtime 的请求/响应可以直接结构化消费
+- [x] Agent 不需要猜测“某类模板是否是附属物”

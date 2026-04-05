@@ -40,6 +40,12 @@ export const toolchainSchema = z.object({
   role: z.string().min(1),
 });
 
+export const versionSelectorSchema = z.object({
+  min: z.string().min(1).nullable(),
+  max: z.string().min(1).nullable(),
+});
+export type VersionSelector = z.infer<typeof versionSelectorSchema>;
+
 export const lineageSchema = z.object({
   coreTemplate: z.string().nullable(),
   baseTemplate: z.string().nullable(),
@@ -47,7 +53,23 @@ export const lineageSchema = z.object({
 
 export const surfacePathsSchema = z.record(z.string(), z.array(z.string()));
 
+export const hostCompatibilitySchema = z.object({
+  templateId: z.string().min(1),
+  templateKind: templateKindSchema,
+  minVersion: z.string().min(1).nullable(),
+  maxVersion: z.string().min(1).nullable(),
+});
+export type HostCompatibility = z.infer<typeof hostCompatibilitySchema>;
+
+export const templateCompatibilitySchema = z.object({
+  cli: versionSelectorSchema,
+  registryProtocol: versionSelectorSchema,
+  hosts: z.array(hostCompatibilitySchema).default([]),
+});
+export type TemplateCompatibility = z.infer<typeof templateCompatibilitySchema>;
+
 export const templateManifestSchema = z.object({
+  schemaVersion: z.string().min(1),
   id: z.string().min(1),
   name: z.string().min(1),
   version: z.string().min(1),
@@ -70,6 +92,35 @@ export const templateManifestSchema = z.object({
   defaultSurfaces: z.array(surfaceSchema).default([]),
   surfacePaths: surfacePathsSchema.default({}),
   supports: supportMatrixSchema,
+  compatibility: templateCompatibilitySchema,
+  assetInstall: z
+    .object({
+      previewSummary: z.string().min(1),
+      supportedHostKinds: z.array(templateKindSchema).default([]),
+      supportedHostTemplates: z.array(z.string()).default([]),
+      modes: z.array(
+        z.object({
+          runtimeMode: runtimeModeSchema,
+          targetRoot: z.string().min(1),
+          conflictStrategy: z.enum(["fail", "overwrite", "skip"]),
+          rollbackStrategy: z.enum(["safe-abort", "manual"]),
+          install: z.object({
+            addsFiles: z.array(z.string()),
+            updatesFiles: z.array(z.string()),
+            deletesFiles: z.array(z.string()),
+            addsEnv: z.array(z.string()),
+            addsRoutes: z.array(z.string()),
+            addsPages: z.array(z.string()),
+            addsComponents: z.array(z.string()),
+            addsMigrations: z.boolean(),
+            addsWorkerTasks: z.boolean(),
+            addsAdminModules: z.boolean(),
+            requiresManualSetup: z.boolean(),
+          }),
+        }),
+      ),
+    })
+    .nullable(),
 });
 export type TemplateManifest = z.infer<typeof templateManifestSchema>;
 
@@ -128,8 +179,14 @@ export const installedPackSchema = z.object({
 
 export const installedTemplateSchema = z.object({
   id: z.string(),
+  version: z.string(),
   templateKind: templateKindSchema,
   templateRole: templateRoleSchema,
+  runtimeMode: runtimeModeSchema,
+  registry: z.string(),
+  source: z.enum(["local", "remote"]),
+  bundleDigest: z.string().nullable(),
+  templateDigest: z.string().nullable(),
   targetPath: z.string(),
   installedAt: z.string(),
 });
@@ -205,5 +262,91 @@ export const inspectPayloadSchema = z.object({
   dependencies: z.array(z.string()),
   official: z.boolean(),
   install: installPlanSchema.optional(),
+  compatibility: templateCompatibilitySchema.optional(),
+  assetInstall: templateManifestSchema.shape.assetInstall.optional(),
 });
 export type InspectPayload = z.infer<typeof inspectPayloadSchema>;
+
+export const digestSchema = z.object({
+  algorithm: z.literal("sha256"),
+  value: z.string().min(1),
+});
+export type Digest = z.infer<typeof digestSchema>;
+
+export const templateBundleFileSchema = z.object({
+  path: z.string().min(1),
+  encoding: z.literal("base64"),
+  sha256: z.string().min(1),
+  content: z.string().min(1),
+});
+export type TemplateBundleFile = z.infer<typeof templateBundleFileSchema>;
+
+export const templateBundleSchema = z.object({
+  schemaVersion: z.string().min(1),
+  bundleFormat: z.literal("rendo-bundle.v1"),
+  templateId: z.string().min(1),
+  version: z.string().min(1),
+  templateDigest: digestSchema,
+  manifest: templateManifestSchema,
+  files: z.array(templateBundleFileSchema),
+});
+export type TemplateBundle = z.infer<typeof templateBundleSchema>;
+
+export const registryAuthSchema = z.object({
+  type: z.enum(["none", "bearer-token"]),
+  header: z.string().min(1),
+  scheme: z.string().min(1).nullable(),
+});
+export type RegistryAuth = z.infer<typeof registryAuthSchema>;
+
+export const registryHandshakeSchema = z.object({
+  schemaVersion: z.string().min(1),
+  protocolVersion: z.string().min(1),
+  registryId: z.string().min(1),
+  registryTitle: z.string().min(1),
+  apiBaseUrl: z.string().min(1),
+  auth: registryAuthSchema,
+  cliCompatibility: versionSelectorSchema,
+  bundleFormat: z.literal("rendo-bundle.v1"),
+  digestAlgorithm: z.literal("sha256"),
+});
+export type RegistryHandshake = z.infer<typeof registryHandshakeSchema>;
+
+export const remoteSearchEntrySchema = z.object({
+  kind: z.string().min(1),
+  id: z.string().min(1),
+  title: z.string().min(1),
+  version: z.string().min(1),
+  category: z.string().min(1),
+  templateKind: templateKindSchema.optional(),
+  templateRole: templateRoleSchema.optional(),
+  official: z.boolean(),
+});
+export type RemoteSearchEntry = z.infer<typeof remoteSearchEntrySchema>;
+
+export const remoteSearchResponseSchema = z.object({
+  registry: z.object({
+    id: z.string().min(1),
+    protocolVersion: z.string().min(1),
+  }),
+  results: z.array(remoteSearchEntrySchema),
+});
+export type RemoteSearchResponse = z.infer<typeof remoteSearchResponseSchema>;
+
+export const remoteInspectResponseSchema = z.object({
+  registry: z.object({
+    id: z.string().min(1),
+    protocolVersion: z.string().min(1),
+  }),
+  payload: inspectPayloadSchema,
+  manifest: templateManifestSchema.optional(),
+  bundle: z
+    .object({
+      url: z.string().min(1),
+      digest: digestSchema,
+      templateDigest: digestSchema,
+      bundleFormat: z.literal("rendo-bundle.v1"),
+    })
+    .optional(),
+});
+export type RemoteInspectResponse = z.infer<typeof remoteInspectResponseSchema>;
