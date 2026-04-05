@@ -1,4 +1,0 @@
-packages:
-  - db
-  - apps/*
-  - packages/*
