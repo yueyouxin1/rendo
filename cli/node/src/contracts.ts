@@ -3,7 +3,7 @@ import { z } from "zod";
 export const runtimeModeSchema = z.enum(["source", "managed", "hybrid"]);
 export type RuntimeMode = z.infer<typeof runtimeModeSchema>;
 
-export const templateTypeSchema = z.enum(["core-starter", "domain-starter", "template-asset"]);
+export const templateTypeSchema = z.enum(["template"]);
 export const templateKindSchema = z.enum([
   "starter-template",
   "feature-template",
@@ -41,7 +41,7 @@ export const toolchainSchema = z.object({
 });
 
 export const lineageSchema = z.object({
-  coreStarter: z.string().nullable(),
+  coreTemplate: z.string().nullable(),
   baseTemplate: z.string().nullable(),
 });
 
@@ -138,8 +138,10 @@ export const projectManifestSchema = z.object({
   schemaVersion: z.string(),
   projectName: z.string(),
   surfaces: z.array(surfaceSchema).default([]),
-  starter: z.object({
+  template: z.object({
     id: z.string(),
+    templateKind: templateKindSchema,
+    templateRole: templateRoleSchema,
     version: z.string(),
     runtimeMode: runtimeModeSchema,
     createdFrom: z.string(),

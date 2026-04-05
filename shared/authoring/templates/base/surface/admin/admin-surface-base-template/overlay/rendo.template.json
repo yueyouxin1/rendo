@@ -1,0 +1,47 @@
+{
+  "id": "admin-surface-base-template",
+  "name": "Admin Surface Base Template",
+  "version": "__RENDO_TEMPLATE_VERSION__",
+  "type": "template",
+  "templateKind": "surface-template",
+  "templateRole": "base",
+  "category": "admin",
+  "title": "Rendo Admin Surface Base Template",
+  "description": "Official admin surface base template for operator shells, navigation, and lightweight control panels.",
+  "uiMode": "web",
+  "domainTags": ["admin-surface"],
+  "scenarioTags": [],
+  "runtimeModes": ["source", "hybrid"],
+  "defaultProviders": {
+    "agent": "none",
+    "workflow": "none",
+    "auth": "none",
+    "db": "none",
+    "cache": "none"
+  },
+  "recommendedPacks": [],
+  "requiredEnv": [],
+  "toolchains": [
+    {
+      "name": "node",
+      "version": "22",
+      "role": "build"
+    }
+  ],
+  "lineage": {
+    "coreTemplate": "surface-core-template",
+    "baseTemplate": null
+  },
+  "surfaceCapabilities": ["web"],
+  "defaultSurfaces": ["web"],
+  "surfacePaths": {
+    "web": ["surface"]
+  },
+  "supports": {
+    "web": true,
+    "miniapp": false,
+    "mobile": false,
+    "desktop": false
+  }
+}
+

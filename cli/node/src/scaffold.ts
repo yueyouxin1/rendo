@@ -7,7 +7,7 @@ import { promises as fs } from "node:fs";
 
 export type ScaffoldResult = {
   targetDir: string;
-  starterId: string;
+  templateId: string;
   copiedFiles: string[];
   selectedSurfaces: string[];
   nextSteps: string[];
@@ -63,7 +63,7 @@ async function persistProjectSurfaces(targetDir: string, selectedSurfaces: strin
   await writeJsonFile(manifestPath, payload);
 }
 
-export async function scaffoldStarter(
+export async function scaffoldTemplate(
   entry: TemplateRegistryEntry,
   requestedTargetDir: string,
   runtimeMode?: string,
@@ -83,8 +83,10 @@ export async function scaffoldStarter(
     {
       "__RENDO_PROJECT_NAME__": projectName,
       "__RENDO_PROJECT_SLUG__": projectSlug,
-      "__RENDO_STARTER_ID__": manifest.id,
-      "__RENDO_STARTER_TITLE__": manifest.title,
+      "__RENDO_TEMPLATE_ID__": manifest.id,
+      "__RENDO_TEMPLATE_TITLE__": manifest.title,
+      "__RENDO_TEMPLATE_KIND__": manifest.templateKind,
+      "__RENDO_TEMPLATE_ROLE__": manifest.templateRole,
       "__RENDO_TEMPLATE_VERSION__": manifest.version,
       "__RENDO_RUNTIME_MODE__": selectedRuntimeMode,
       "__RENDO_CREATED_AT__": createdAt,
@@ -102,7 +104,7 @@ export async function scaffoldStarter(
 
   return {
     targetDir,
-    starterId: manifest.id,
+    templateId: manifest.id,
     copiedFiles,
     selectedSurfaces,
     nextSteps,

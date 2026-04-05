@@ -1,17 +1,17 @@
 # Authoring
 
-This directory holds author-side starter generation assets.
+This directory holds author-side template generation assets.
 
 ## Goal
 
-Keep Domain Starter generation sustainable by separating:
+Keep template generation sustainable by separating:
 
 - shared generation pipeline
-- domain classification
-- starter-specific overlays
+- template kind classification
+- template-specific overlays
 
 ## Current shape
 
-- `starter-templates/`: authoring assets for starter templates, organized by role and category
+- `templates/`: authoring assets for all template kinds, organized by role, kind, and category
 
 The generated template output lives under `shared/templates/`, because that is what both CLI implementations consume.

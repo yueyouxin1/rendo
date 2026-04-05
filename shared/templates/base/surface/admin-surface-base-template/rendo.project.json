@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectName": "__RENDO_PROJECT_NAME__",
+  "surfaces": ["web"],
+  "template": {
+    "id": "__RENDO_TEMPLATE_ID__",
+    "templateKind": "__RENDO_TEMPLATE_KIND__",
+    "templateRole": "__RENDO_TEMPLATE_ROLE__",
+    "version": "__RENDO_TEMPLATE_VERSION__",
+    "runtimeMode": "__RENDO_RUNTIME_MODE__",
+    "createdFrom": "rendo:admin-surface-base-template",
+    "createdAt": "__RENDO_CREATED_AT__"
+  },
+  "installedTemplates": [],
+  "installedPacks": []
+}
+

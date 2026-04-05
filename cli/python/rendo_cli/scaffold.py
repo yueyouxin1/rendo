@@ -44,7 +44,7 @@ def persist_project_surfaces(target: Path, selected_surfaces: list[str]) -> None
     write_json(target / "rendo.project.json", payload)
 
 
-def scaffold_starter(entry: dict, target_dir: str, runtime_mode: str | None = None, requested_surfaces: list[str] | None = None) -> dict:
+def scaffold_template(entry: dict, target_dir: str, runtime_mode: str | None = None, requested_surfaces: list[str] | None = None) -> dict:
     target = Path(target_dir).resolve()
     ensure_missing_or_empty_dir(target)
 
@@ -56,8 +56,10 @@ def scaffold_starter(entry: dict, target_dir: str, runtime_mode: str | None = No
     replacements = {
         "__RENDO_PROJECT_NAME__": project_name,
         "__RENDO_PROJECT_SLUG__": slugify(project_name),
-        "__RENDO_STARTER_ID__": manifest["id"],
-        "__RENDO_STARTER_TITLE__": manifest["title"],
+        "__RENDO_TEMPLATE_ID__": manifest["id"],
+        "__RENDO_TEMPLATE_TITLE__": manifest["title"],
+        "__RENDO_TEMPLATE_KIND__": manifest["templateKind"],
+        "__RENDO_TEMPLATE_ROLE__": manifest["templateRole"],
         "__RENDO_TEMPLATE_VERSION__": manifest["version"],
         "__RENDO_RUNTIME_MODE__": selected_runtime,
         "__RENDO_CREATED_AT__": created_at,
@@ -68,7 +70,7 @@ def scaffold_starter(entry: dict, target_dir: str, runtime_mode: str | None = No
     persist_project_surfaces(target, selected_surfaces)
     return {
         "targetDir": str(target),
-        "starterId": manifest["id"],
+        "templateId": manifest["id"],
         "copiedFiles": copied,
         "selectedSurfaces": selected_surfaces,
         "nextSteps": [f"cd {target}", "npm install", "npm run health"],

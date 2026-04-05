@@ -1,25 +1,30 @@
 # Rendo
 
-Rendo is currently implemented as a starter-system workspace for strong agents.
+Rendo is currently implemented as a template-system workspace for strong agents.
 
-The active architecture follows the template asset layering described in [doc/23-Rendo模板资产分层与分类体系说明.md](/D:/code/rendo/doc/23-Rendo模板资产分层与分类体系说明.md):
+The active architecture is:
 
-1. `Core Starter`
-2. `Base Template`
-3. `Derived Template`
+1. `core`
+2. `base`
+3. `derived`
 
-At this stage, the implemented template kind is `Starter Template`.
+The first-class template kinds are:
+
+- `starter-template`
+- `feature-template`
+- `capability-template`
+- `provider-template`
+- `surface-template`
 
 ## Current structure
 
 - [shared/templates](/D:/code/rendo/shared/templates)
-  - `core-starter`
-  - `base/starter/*`
-  - `derived/starter/*`
-- [shared/authoring](/D:/code/rendo/shared/authoring)
-  - `starter-templates/base/<category>/<profile>/...`
+  - `core/*-core-template`
+  - `base/<kind>/*`
+- [shared/authoring/templates](/D:/code/rendo/shared/authoring/templates)
+  - generic template authoring profiles and overlays
 - [shared/registry](/D:/code/rendo/shared/registry)
-  - language-neutral starter registry
+  - language-neutral template registry
 - [shared/contracts](/D:/code/rendo/shared/contracts)
   - language-neutral JSON schemas
 - [cli/node](/D:/code/rendo/cli/node)
@@ -27,62 +32,72 @@ At this stage, the implemented template kind is `Starter Template`.
 - [cli/python](/D:/code/rendo/cli/python)
   - Python implementation of the Rendo CLI
 
-## Starter asset semantics
+## Implemented official templates
 
-Each starter manifest now carries both:
+Core templates:
 
+- `starter-core-template`
+- `feature-core-template`
+- `capability-core-template`
+- `provider-core-template`
+- `surface-core-template`
+
+Base templates:
+
+- `application-base-starter`
+- `dashboard-feature-base-template`
+- `storage-capability-base-template`
+- `llm-provider-base-template`
+- `admin-surface-base-template`
+
+## Template semantics
+
+Every template manifest carries:
+
+- `type`
+  - always `template`
 - `templateKind`
-  - currently `starter-template`
+  - one of the five first-class template kinds
 - `templateRole`
   - `core`
   - `base`
   - `derived`
 
-This is layered on top of the existing `type` field:
-
-- `core-starter`
-- `domain-starter`
-
-So the current assets are interpreted as:
-
-- `core-starter`: `starter-template` + `core`
-- `application-base-starter`: `starter-template` + `base`
-- `ai-web-next-fastapi-starter`: `starter-template` + `derived`
-
-Each starter also carries:
-
-- `domainTags`: multi-select domain classification
-- `scenarioTags`: optional multi-select scenario classification
-- `surfaceCapabilities`: explicit surface capability attributes
+Projects created from a template record their origin in `rendo.project.json` under `template`.
 
 ## CLI usage
 
 Node CLI:
 
 ```bash
-node --import tsx cli/node/src/bin.ts search --type starter --json
-node --import tsx cli/node/src/bin.ts init --output my-core
+node --import tsx cli/node/src/bin.ts search --type all --json
+node --import tsx cli/node/src/bin.ts init starter --output my-starter-core
+node --import tsx cli/node/src/bin.ts init capability --output my-capability-core
 node --import tsx cli/node/src/bin.ts create application --surfaces web,miniapp --output my-app
 ```
 
 Python CLI:
 
 ```bash
-python cli/python/rendo.py search --type starter --json
-python cli/python/rendo.py inspect application-base-starter --json
+python cli/python/rendo.py search --type all --json
+python cli/python/rendo.py inspect llm-provider-base-template --json
+python cli/python/rendo.py init provider --output my-provider-core
 python cli/python/rendo.py create application --surfaces web --output my-app
 ```
 
 ## Authoring usage
 
-Generate a base starter template from `Core Starter` through the generic pipeline:
+Generate official base templates from their core layer through the generic profile pipeline:
 
 ```bash
-npm run generate:domain-starter -- base/application/application-base
-npm run generate:domain-starter -- derived/ai-webapp/next-fastapi-landing
+npm run generate:template -- base/starter/application/application-base-starter
+npm run generate:template -- base/feature/dashboard/dashboard-feature-base-template
+npm run generate:template -- base/capability/storage/storage-capability-base-template
+npm run generate:template -- base/provider/llm/llm-provider-base-template
+npm run generate:template -- base/surface/admin/admin-surface-base-template
 ```
 
-The generated starter outputs are written into [shared/templates](/D:/code/rendo/shared/templates).
+The generated outputs are written into [shared/templates](/D:/code/rendo/shared/templates).
 
 ## Validation status
 
@@ -90,12 +105,9 @@ Implemented and tested:
 
 - Node CLI and Python CLI produce identical `search` results
 - Node CLI and Python CLI produce identical `inspect` payloads
-- `rendo init` creates a runnable `Core Starter`
+- `rendo init <kind>` creates runnable core templates
 - `rendo create application --surfaces ...` creates runnable application base projects
-- Node and Python CLIs generate byte-identical source trees for `ai-web-next-fastapi-starter`
-- The generated `ai-web-next-fastapi-starter` runs successfully with:
-  - Next.js web app
-  - FastAPI mock LLM service
+- Node and Python CLIs add and pull provider base templates identically
 
 ## Commands
 
@@ -106,3 +118,4 @@ npm run build
 npm test
 python -m compileall cli/python
 ```
+

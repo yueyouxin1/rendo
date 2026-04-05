@@ -1,0 +1,45 @@
+{
+  "id": "storage-capability-base-template",
+  "name": "Storage Capability Base Template",
+  "version": "__RENDO_TEMPLATE_VERSION__",
+  "type": "template",
+  "templateKind": "capability-template",
+  "templateRole": "base",
+  "category": "storage",
+  "title": "Rendo Storage Capability Base Template",
+  "description": "Official storage capability base template for blobs, documents, and retention-aware data pipelines.",
+  "uiMode": "none",
+  "domainTags": ["storage"],
+  "scenarioTags": [],
+  "runtimeModes": ["source", "managed", "hybrid"],
+  "defaultProviders": {
+    "agent": "none",
+    "workflow": "none",
+    "auth": "none",
+    "db": "none",
+    "cache": "none"
+  },
+  "recommendedPacks": [],
+  "requiredEnv": ["STORAGE_DRIVER"],
+  "toolchains": [
+    {
+      "name": "node",
+      "version": "22",
+      "role": "build"
+    }
+  ],
+  "lineage": {
+    "coreTemplate": "capability-core-template",
+    "baseTemplate": null
+  },
+  "surfaceCapabilities": [],
+  "defaultSurfaces": [],
+  "surfacePaths": {},
+  "supports": {
+    "web": false,
+    "miniapp": false,
+    "mobile": false,
+    "desktop": false
+  }
+}
+

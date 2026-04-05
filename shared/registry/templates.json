@@ -1,16 +1,105 @@
 {
   "templates": [
     {
-      "id": "core-starter",
-      "ref": "rendo:core-starter",
-      "aliases": [
-        "core-starter"
-      ],
+      "id": "starter-core-template",
+      "ref": "rendo:starter-core-template",
+      "aliases": ["core/starter", "starter-core"],
       "official": true,
       "templateKind": "starter-template",
       "templateRole": "core",
-      "manifestPath": "shared/templates/core-starter/rendo.template.json",
-      "templatePath": "shared/templates/core-starter"
+      "manifestPath": "shared/templates/core/starter-core-template/rendo.template.json",
+      "templatePath": "shared/templates/core/starter-core-template"
+    },
+    {
+      "id": "feature-core-template",
+      "ref": "rendo:feature-core-template",
+      "aliases": ["core/feature", "feature-core"],
+      "official": true,
+      "templateKind": "feature-template",
+      "templateRole": "core",
+      "manifestPath": "shared/templates/core/feature-core-template/rendo.template.json",
+      "templatePath": "shared/templates/core/feature-core-template"
+    },
+    {
+      "id": "capability-core-template",
+      "ref": "rendo:capability-core-template",
+      "aliases": ["core/capability", "capability-core"],
+      "official": true,
+      "templateKind": "capability-template",
+      "templateRole": "core",
+      "manifestPath": "shared/templates/core/capability-core-template/rendo.template.json",
+      "templatePath": "shared/templates/core/capability-core-template"
+    },
+    {
+      "id": "provider-core-template",
+      "ref": "rendo:provider-core-template",
+      "aliases": ["core/provider", "provider-core"],
+      "official": true,
+      "templateKind": "provider-template",
+      "templateRole": "core",
+      "manifestPath": "shared/templates/core/provider-core-template/rendo.template.json",
+      "templatePath": "shared/templates/core/provider-core-template"
+    },
+    {
+      "id": "surface-core-template",
+      "ref": "rendo:surface-core-template",
+      "aliases": ["core/surface", "surface-core"],
+      "official": true,
+      "templateKind": "surface-template",
+      "templateRole": "core",
+      "manifestPath": "shared/templates/core/surface-core-template/rendo.template.json",
+      "templatePath": "shared/templates/core/surface-core-template"
+    },
+    {
+      "id": "application-base-starter",
+      "ref": "rendo:application-base-starter",
+      "aliases": ["application", "application-base"],
+      "official": true,
+      "templateKind": "starter-template",
+      "templateRole": "base",
+      "manifestPath": "shared/templates/base/starter/application-base-starter/rendo.template.json",
+      "templatePath": "shared/templates/base/starter/application-base-starter"
+    },
+    {
+      "id": "dashboard-feature-base-template",
+      "ref": "rendo:dashboard-feature-base-template",
+      "aliases": ["dashboard-feature"],
+      "official": true,
+      "templateKind": "feature-template",
+      "templateRole": "base",
+      "manifestPath": "shared/templates/base/feature/dashboard-feature-base-template/rendo.template.json",
+      "templatePath": "shared/templates/base/feature/dashboard-feature-base-template"
+    },
+    {
+      "id": "storage-capability-base-template",
+      "ref": "rendo:storage-capability-base-template",
+      "aliases": ["storage-capability", "storage"],
+      "official": true,
+      "templateKind": "capability-template",
+      "templateRole": "base",
+      "manifestPath": "shared/templates/base/capability/storage-capability-base-template/rendo.template.json",
+      "templatePath": "shared/templates/base/capability/storage-capability-base-template"
+    },
+    {
+      "id": "llm-provider-base-template",
+      "ref": "rendo:llm-provider-base-template",
+      "aliases": ["llm-provider"],
+      "official": true,
+      "templateKind": "provider-template",
+      "templateRole": "base",
+      "manifestPath": "shared/templates/base/provider/llm-provider-base-template/rendo.template.json",
+      "templatePath": "shared/templates/base/provider/llm-provider-base-template"
+    },
+    {
+      "id": "admin-surface-base-template",
+      "ref": "rendo:admin-surface-base-template",
+      "aliases": ["admin-surface"],
+      "official": true,
+      "templateKind": "surface-template",
+      "templateRole": "base",
+      "manifestPath": "shared/templates/base/surface/admin-surface-base-template/rendo.template.json",
+      "templatePath": "shared/templates/base/surface/admin-surface-base-template"
     }
   ]
 }
+

@@ -1,0 +1,14 @@
+.git
+.tmp
+.tmp-template-source
+.devcontainer
+node_modules
+**/node_modules
+apps/**/node_modules
+apps/**/.next
+**/.next
+**/.turbo
+**/coverage
+**/.DS_Store
+**/*.log
+vercel.json

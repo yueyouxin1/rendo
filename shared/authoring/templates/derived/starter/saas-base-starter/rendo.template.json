@@ -1,0 +1,83 @@
+{
+  "name": "Rendo Starter",
+  "slug": "rendo-starter",
+  "version": "0.1.0",
+  "description": "A Docker-first AI-native, web-first starter based on the Vercel AI Chatbot template and normalized around a unified agent concept.",
+  "baseTemplate": "vercel/ai-chatbot",
+  "entrypoints": {
+    "web": "apps/web",
+    "miniapp": "apps/miniapp",
+    "mobile": "apps/mobile",
+    "desktop": "apps/desktop",
+    "agentDocs": "agents/AGENTS.md",
+    "claudeDocs": "agents/CLAUDE.md",
+    "copilotDocs": ".github/copilot-instructions.md"
+  },
+  "defaultStack": [
+    "Next.js App Router",
+    "TypeScript",
+    "Tailwind CSS v4",
+    "shadcn/ui",
+    "Better Auth",
+    "PostgreSQL",
+    "Drizzle ORM",
+    "Redis",
+    "pgvector",
+    "Vercel AI SDK",
+    "Trigger.dev",
+    "Stripe Billing",
+    "Docker Compose"
+  ],
+  "defaultCapabilities": [
+    "agent",
+    "auth",
+    "rbac",
+    "billing",
+    "knowledge-base",
+    "agent",
+    "workflow",
+    "admin"
+  ],
+  "shells": [
+    "web",
+    "miniapp",
+    "mobile",
+    "desktop"
+  ],
+  "initialization": {
+    "commands": [
+      "pnpm rendo create my-rendo-app",
+      "pnpm create:rendo my-rendo-app",
+      "rendo create",
+      "npm create rendo@latest",
+      "pnpm create rendo@latest"
+    ],
+    "steps": [
+      "Select a template",
+      "Select a default provider combination",
+      "Generate environment files",
+      "Install dependencies",
+      "Initialize compose services",
+      "Run migrations and seed",
+      "Print startup instructions"
+    ]
+  },
+  "scope": {
+    "include": [
+      "apps/web",
+      "apps/miniapp",
+      "apps/mobile",
+      "apps/desktop",
+      "packages",
+      "db",
+      "cache",
+      "docs",
+      "agents"
+    ],
+    "exclude": [
+      "template marketplace",
+      "generic workflow runtime",
+      "generic agent runtime"
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "widgets": [
+    "summary-card",
+    "metric-strip",
+    "activity-feed"
+  ]
+}
+

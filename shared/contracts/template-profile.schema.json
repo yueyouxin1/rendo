@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rendo.dev/contracts/template-profile.schema.json",
+  "type": "object",
+  "required": [
+    "profileId",
+    "templateId",
+    "templateKind",
+    "templateRole",
+    "category",
+    "title",
+    "description",
+    "baseTemplatePath",
+    "outputTemplatePath",
+    "overlayPath",
+    "removePaths"
+  ],
+  "properties": {
+    "profileId": { "type": "string", "minLength": 1 },
+    "templateId": { "type": "string", "minLength": 1 },
+    "templateKind": {
+      "enum": [
+        "starter-template",
+        "feature-template",
+        "capability-template",
+        "provider-template",
+        "surface-template"
+      ]
+    },
+    "templateRole": { "enum": ["base", "derived"] },
+    "category": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "description": { "type": "string", "minLength": 1 },
+    "baseTemplatePath": { "type": "string", "minLength": 1 },
+    "outputTemplatePath": { "type": "string", "minLength": 1 },
+    "overlayPath": { "type": "string", "minLength": 1 },
+    "removePaths": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}
+

@@ -4,12 +4,27 @@ import {
   packRegistrySchema,
   templateRegistrySchema,
   templateManifestSchema,
+  templateKindSchema,
   type PackManifest,
   type PackRegistryEntry,
+  type RuntimeMode,
   type TemplateRegistryEntry,
   type TemplateManifest,
 } from "./contracts.js";
 import { readJsonFile, repoRoot } from "./fs.js";
+
+const templateKindAliases = new Map<string, string>([
+  ["starter", "starter-template"],
+  ["starter-template", "starter-template"],
+  ["feature", "feature-template"],
+  ["feature-template", "feature-template"],
+  ["capability", "capability-template"],
+  ["capability-template", "capability-template"],
+  ["provider", "provider-template"],
+  ["provider-template", "provider-template"],
+  ["surface", "surface-template"],
+  ["surface-template", "surface-template"],
+]);
 
 async function loadRegistryFile<T>(relativePath: string): Promise<T> {
   return readJsonFile<T>(path.join(repoRoot, relativePath));
@@ -68,6 +83,27 @@ export async function resolveStarterRef(ref: string): Promise<TemplateRegistryEn
   return resolved;
 }
 
+export function resolveTemplateKindAlias(value: string): string | null {
+  const normalized = value.trim().toLowerCase();
+  const kind = templateKindAliases.get(normalized);
+  return kind ? templateKindSchema.parse(kind) : null;
+}
+
+export async function resolveCoreTemplateRef(refOrKind: string): Promise<TemplateRegistryEntry | null> {
+  const resolved = await resolveTemplateRef(refOrKind);
+  if (resolved) {
+    return resolved.templateRole === "core" ? resolved : null;
+  }
+
+  const kind = resolveTemplateKindAlias(refOrKind);
+  if (!kind) {
+    return null;
+  }
+
+  const registry = await loadTemplateRegistry();
+  return registry.find((item) => item.templateKind === kind && item.templateRole === "core") ?? null;
+}
+
 export async function resolvePackRef(ref: string): Promise<PackRegistryEntry | null> {
   const registry = await loadPackRegistry();
   const normalizedRef = normalizeRef(ref);
@@ -87,20 +123,12 @@ export async function searchRegistry(
   const normalized = keyword.trim().toLowerCase();
   const results: Array<Record<string, string | boolean>> = [];
   const normalizedType = type.toLowerCase();
-  const templateTypeAliases = new Map<string, string>([
-    ["starter", "starter-template"],
-    ["starter-template", "starter-template"],
-    ["feature-template", "feature-template"],
-    ["capability-template", "capability-template"],
-    ["provider-template", "provider-template"],
-    ["surface-template", "surface-template"],
-  ]);
 
   if (normalizedType !== "pack") {
     for (const entry of await loadTemplateRegistry()) {
       const manifest = await loadTemplateManifest(entry);
       if (normalizedType !== "all") {
-        const expectedKind = templateTypeAliases.get(normalizedType);
+        const expectedKind = resolveTemplateKindAlias(normalizedType);
         if (!expectedKind || manifest.templateKind !== expectedKind) {
           continue;
         }

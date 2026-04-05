@@ -1,0 +1,53 @@
+{
+  "id": "capability-core-template",
+  "name": "Capability Core Template",
+  "version": "__RENDO_TEMPLATE_VERSION__",
+  "type": "template",
+  "templateKind": "capability-template",
+  "templateRole": "core",
+  "category": "core",
+  "title": "Rendo Capability Core Template",
+  "description": "Canonical core substrate for capability templates before any base or derived installable capability is introduced.",
+  "uiMode": "none",
+  "domainTags": [],
+  "scenarioTags": [],
+  "runtimeModes": [
+    "source",
+    "managed",
+    "hybrid"
+  ],
+  "defaultProviders": {
+    "agent": "none",
+    "workflow": "none",
+    "auth": "none",
+    "db": "none",
+    "cache": "none"
+  },
+  "recommendedPacks": [],
+  "requiredEnv": [],
+  "toolchains": [
+    {
+      "name": "node",
+      "version": "22",
+      "role": "runtime"
+    },
+    {
+      "name": "npm",
+      "version": "11",
+      "role": "package-manager"
+    }
+  ],
+  "lineage": {
+    "coreTemplate": null,
+    "baseTemplate": null
+  },
+  "surfaceCapabilities": [],
+  "defaultSurfaces": [],
+  "surfacePaths": {},
+  "supports": {
+    "web": false,
+    "miniapp": false,
+    "mobile": false,
+    "desktop": false
+  }
+}

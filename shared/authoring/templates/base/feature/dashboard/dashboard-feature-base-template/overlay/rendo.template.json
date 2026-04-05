@@ -1,0 +1,47 @@
+{
+  "id": "dashboard-feature-base-template",
+  "name": "Dashboard Feature Base Template",
+  "version": "__RENDO_TEMPLATE_VERSION__",
+  "type": "template",
+  "templateKind": "feature-template",
+  "templateRole": "base",
+  "category": "dashboard",
+  "title": "Rendo Dashboard Feature Base Template",
+  "description": "Official dashboard feature base template for cards, metrics, and host-level composition.",
+  "uiMode": "web",
+  "domainTags": ["dashboard", "analytics"],
+  "scenarioTags": [],
+  "runtimeModes": ["source", "hybrid"],
+  "defaultProviders": {
+    "agent": "none",
+    "workflow": "none",
+    "auth": "none",
+    "db": "none",
+    "cache": "none"
+  },
+  "recommendedPacks": [],
+  "requiredEnv": [],
+  "toolchains": [
+    {
+      "name": "node",
+      "version": "22",
+      "role": "build"
+    }
+  ],
+  "lineage": {
+    "coreTemplate": "feature-core-template",
+    "baseTemplate": null
+  },
+  "surfaceCapabilities": ["web"],
+  "defaultSurfaces": ["web"],
+  "surfacePaths": {
+    "web": ["feature"]
+  },
+  "supports": {
+    "web": true,
+    "miniapp": false,
+    "mobile": false,
+    "desktop": false
+  }
+}
+

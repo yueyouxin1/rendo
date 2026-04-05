@@ -30,7 +30,7 @@
     "id": { "type": "string", "minLength": 1 },
     "name": { "type": "string", "minLength": 1 },
     "version": { "type": "string", "minLength": 1 },
-    "type": { "enum": ["core-starter", "domain-starter", "template-asset"] },
+    "type": { "enum": ["template"] },
     "templateKind": {
       "enum": [
         "starter-template",
@@ -79,9 +79,9 @@
     },
     "lineage": {
       "type": "object",
-      "required": ["coreStarter", "baseTemplate"],
+      "required": ["coreTemplate", "baseTemplate"],
       "properties": {
-        "coreStarter": { "type": ["string", "null"] },
+        "coreTemplate": { "type": ["string", "null"] },
         "baseTemplate": { "type": ["string", "null"] }
       }
     },

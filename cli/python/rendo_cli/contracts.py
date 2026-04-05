@@ -2,7 +2,7 @@ from __future__ import annotations
 
 
 RUNTIME_MODES = {"source", "managed", "hybrid"}
-TEMPLATE_TYPES = {"core-starter", "domain-starter", "template-asset"}
+TEMPLATE_TYPES = {"template"}
 TEMPLATE_KINDS = {"starter-template", "feature-template", "capability-template", "provider-template", "surface-template"}
 TEMPLATE_ROLES = {"core", "base", "derived"}
 SURFACES = {"web", "miniapp", "mobile", "desktop"}
@@ -59,8 +59,12 @@ def validate_template_manifest(payload: dict) -> dict:
 
 
 def validate_project_manifest(payload: dict) -> dict:
-    require_keys(payload, ["schemaVersion", "projectName", "surfaces", "starter", "installedTemplates", "installedPacks"], "project manifest")
-    require_keys(payload["starter"], ["id", "version", "runtimeMode", "createdFrom", "createdAt"], "project starter")
+    require_keys(payload, ["schemaVersion", "projectName", "surfaces", "template", "installedTemplates", "installedPacks"], "project manifest")
+    require_keys(
+        payload["template"],
+        ["id", "templateKind", "templateRole", "version", "runtimeMode", "createdFrom", "createdAt"],
+        "project template",
+    )
     return payload
 
 

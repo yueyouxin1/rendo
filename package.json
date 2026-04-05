@@ -7,7 +7,7 @@
     "build": "tsc -p tsconfig.json",
     "check": "tsc -p tsconfig.json --noEmit",
     "dev": "tsx cli/node/src/bin.ts",
-    "generate:domain-starter": "tsx scripts/generate-domain-starter.ts",
+    "generate:template": "tsx scripts/generate-template.ts",
     "test": "node --import tsx --test tests/cli.test.ts"
   },
   "dependencies": {

@@ -1,0 +1,6 @@
+{
+  "endpoint": "https://api.example.com/v1",
+  "model": "base-model",
+  "timeoutMs": 15000
+}
+

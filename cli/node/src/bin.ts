@@ -12,12 +12,13 @@ import { installTemplateAsset } from "./template-assets.js";
 import {
   loadPackManifest,
   loadTemplateManifest,
+  resolveCoreTemplateRef,
   resolvePackRef,
   resolveStarterRef,
   resolveTemplateRef,
   searchRegistry,
 } from "./registry.js";
-import { scaffoldStarter } from "./scaffold.js";
+import { scaffoldTemplate } from "./scaffold.js";
 
 function print(value: unknown, json = false): void {
   if (json) {
@@ -252,7 +253,8 @@ async function main(): Promise<void> {
       [
         "",
         "Examples:",
-        "  rendo init --output my-core",
+        "  rendo init starter --output my-starter-core",
+        "  rendo init capability --output my-capability-core",
         "  rendo create application --surfaces web,miniapp --output my-app",
         "  rendo inspect llm-provider-base-template --json",
         "  rendo pull admin-surface-base-template --output ./admin-surface",
@@ -261,20 +263,21 @@ async function main(): Promise<void> {
 
   program
     .command("init")
-    .description("Initialize the Core Starter in a target directory")
+    .description("Initialize a core template in a target directory")
+    .argument("<kind>", "starter, feature, capability, provider, or surface")
     .argument("[targetDir]")
     .option("--output <dir>", "output directory")
     .option("--json", "emit structured output")
     .option("--runtime <mode>", "requested runtime mode", "source")
-    .action(async (targetDir: string | undefined, options: { json?: boolean; runtime: string; output?: string }) => {
-      const starterEntry = await resolveStarterRef("core-starter");
-      if (!starterEntry) {
-        throw new Error("core starter is missing from registry");
+    .action(async (kind: string, targetDir: string | undefined, options: { json?: boolean; runtime: string; output?: string }) => {
+      const templateEntry = await resolveCoreTemplateRef(kind);
+      if (!templateEntry) {
+        throw new Error(`core template is missing from registry for ${kind}`);
       }
 
       const requestedTarget = options.output ?? targetDir ?? ".";
 
-      const result = await scaffoldStarter(starterEntry, requestedTarget, options.runtime);
+      const result = await scaffoldTemplate(templateEntry, requestedTarget, options.runtime);
       print(result, Boolean(options.json));
     });
 
@@ -298,11 +301,14 @@ async function main(): Promise<void> {
         const ref = options.from ?? options.starter;
         const { starterEntry, targetDir } = await resolveCreateArgs(first, second, ref, options.output);
         const manifest = await loadTemplateManifest(starterEntry);
-        if (manifest.type !== "domain-starter" || manifest.templateKind !== "starter-template" || manifest.templateRole === "core") {
-          throw new Error(`rendo create only accepts Domain Starters. Use rendo init for ${manifest.id}.`);
+        if (manifest.templateKind !== "starter-template") {
+          throw new Error(`rendo create only accepts starter templates. Use rendo add or rendo pull for ${manifest.id}.`);
+        }
+        if (manifest.templateRole === "core") {
+          throw new Error(`rendo create does not accept core starter templates. Use rendo init starter for ${manifest.id}.`);
         }
         const selectedSurfaces = options.surfaces?.split(",").map((item) => item.trim()).filter(Boolean);
-        const result = await scaffoldStarter(starterEntry, targetDir, options.runtime, selectedSurfaces);
+        const result = await scaffoldTemplate(starterEntry, targetDir, options.runtime, selectedSurfaces);
         print(result, Boolean(options.json));
       },
     );

@@ -1,0 +1,45 @@
+{
+  "id": "llm-provider-base-template",
+  "name": "LLM Provider Base Template",
+  "version": "__RENDO_TEMPLATE_VERSION__",
+  "type": "template",
+  "templateKind": "provider-template",
+  "templateRole": "base",
+  "category": "llm-provider",
+  "title": "Rendo LLM Provider Base Template",
+  "description": "Official LLM provider base template for model routing, credentials, and adapter contracts.",
+  "uiMode": "none",
+  "domainTags": ["llm-provider"],
+  "scenarioTags": [],
+  "runtimeModes": ["source", "hybrid"],
+  "defaultProviders": {
+    "agent": "none",
+    "workflow": "none",
+    "auth": "none",
+    "db": "none",
+    "cache": "none"
+  },
+  "recommendedPacks": [],
+  "requiredEnv": ["LLM_API_KEY"],
+  "toolchains": [
+    {
+      "name": "node",
+      "version": "22",
+      "role": "build"
+    }
+  ],
+  "lineage": {
+    "coreTemplate": "provider-core-template",
+    "baseTemplate": null
+  },
+  "surfaceCapabilities": [],
+  "defaultSurfaces": [],
+  "surfacePaths": {},
+  "supports": {
+    "web": false,
+    "miniapp": false,
+    "mobile": false,
+    "desktop": false
+  }
+}
+

@@ -1,0 +1,14 @@
+{
+  "profileId": "base/provider/llm/llm-provider-base-template",
+  "templateId": "llm-provider-base-template",
+  "templateKind": "provider-template",
+  "templateRole": "base",
+  "category": "llm-provider",
+  "title": "LLM Provider Base Template",
+  "description": "Official canonical base template for LLM provider integrations.",
+  "baseTemplatePath": "shared/templates/core/provider-core-template",
+  "outputTemplatePath": "shared/templates/base/provider/llm-provider-base-template",
+  "overlayPath": "shared/authoring/templates/base/provider/llm/llm-provider-base-template/overlay",
+  "removePaths": []
+}
+

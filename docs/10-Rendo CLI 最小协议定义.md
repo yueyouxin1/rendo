@@ -1,0 +1,89 @@
+# Rendo CLI 最小协议定义
+
+## 1. CLI 的角色
+
+`rendo cli` 是模板资产系统的统一入口，不是某个 starter 内部脚本。
+
+它要让人类和强 Agent 都能通过同一组命令理解：
+
+- 这是什么模板
+- 它属于哪一类
+- 它处于 `core / base / derived` 的哪一层
+- 它该如何初始化、创建、安装、拉取、升级和诊断
+
+## 2. 核心命令
+
+### `rendo init <kind>`
+
+用途：
+
+- 初始化某一模板类型的 `core` 模板
+
+当前支持：
+
+- `starter`
+- `feature`
+- `capability`
+- `provider`
+- `surface`
+
+示例：
+
+```bash
+rendo init starter --output my-starter-core
+rendo init capability --output my-capability-core
+```
+
+### `rendo create`
+
+用途：
+
+- 从 `starter-template` 的 `base` 或 `derived` 模板创建可运行项目
+
+约束：
+
+- 不接受 `core` 模板
+- 不接受非 starter 模板
+
+### `rendo search`
+
+用途：
+
+- 搜索模板与 pack
+
+### `rendo inspect`
+
+用途：
+
+- 查看 manifest 与结构化元信息
+
+### `rendo add`
+
+用途：
+
+- 向当前项目添加非 starter 模板或 pack
+
+### `rendo pull`
+
+用途：
+
+- 把模板或 pack 拉到本地目录进行查看、对比或二次加工
+
+### `rendo upgrade`
+
+用途：
+
+- 升级已安装 pack
+
+### `rendo doctor`
+
+用途：
+
+- 诊断当前环境与项目状态
+
+## 3. 语义边界
+
+- `init` 负责 `core`
+- `create` 负责 starter 的项目实例化
+- `add / pull` 负责非 starter 模板与 pack 的消费
+

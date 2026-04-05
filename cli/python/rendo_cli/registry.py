@@ -5,6 +5,19 @@ from pathlib import Path
 from .contracts import validate_pack_manifest, validate_template_manifest
 from .fs import REPO_ROOT, read_json
 
+TEMPLATE_KIND_ALIASES = {
+    "starter": "starter-template",
+    "starter-template": "starter-template",
+    "feature": "feature-template",
+    "feature-template": "feature-template",
+    "capability": "capability-template",
+    "capability-template": "capability-template",
+    "provider": "provider-template",
+    "provider-template": "provider-template",
+    "surface": "surface-template",
+    "surface-template": "surface-template",
+}
+
 
 def _load_registry(relative_path: str) -> dict:
     return read_json(REPO_ROOT / relative_path)
@@ -51,6 +64,25 @@ def resolve_starter_ref(ref: str) -> dict | None:
     return resolved
 
 
+def resolve_template_kind_alias(value: str) -> str | None:
+    return TEMPLATE_KIND_ALIASES.get(value.strip().lower())
+
+
+def resolve_core_template_ref(ref_or_kind: str) -> dict | None:
+    resolved = resolve_template_ref(ref_or_kind)
+    if resolved is not None:
+        return resolved if resolved["templateRole"] == "core" else None
+
+    kind = resolve_template_kind_alias(ref_or_kind)
+    if kind is None:
+        return None
+
+    for item in load_template_registry():
+        if item["templateKind"] == kind and item["templateRole"] == "core":
+            return item
+    return None
+
+
 def resolve_pack_ref(ref: str) -> dict | None:
     normalized = _normalize_ref(ref).lower()
     for item in load_pack_registry():
@@ -64,20 +96,12 @@ def search_registry(kind: str, keyword: str) -> list[dict]:
     text = keyword.strip().lower()
     results: list[dict] = []
     normalized_kind = kind.lower()
-    template_type_aliases = {
-        "starter": "starter-template",
-        "starter-template": "starter-template",
-        "feature-template": "feature-template",
-        "capability-template": "capability-template",
-        "provider-template": "provider-template",
-        "surface-template": "surface-template",
-    }
 
     if normalized_kind != "pack":
         for entry in load_template_registry():
             manifest = load_template_manifest(entry)
             if normalized_kind != "all":
-                expected_kind = template_type_aliases.get(normalized_kind)
+                expected_kind = resolve_template_kind_alias(normalized_kind)
                 if expected_kind is None or manifest["templateKind"] != expected_kind:
                     continue
             haystack = " ".join(

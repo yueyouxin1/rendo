@@ -42,10 +42,17 @@ function runPythonCli(args: string[], cwd = repoRoot, extraEnv: Record<string, s
 async function ensureGeneratedAssets() {
   if (!generatedAssetsPromise) {
     generatedAssetsPromise = (async () => {
-      const application = run(npmCommand, ["run", "generate:domain-starter", "--", "base/application/application-base"], repoRoot);
-      assert.equal(application.status, 0, application.stderr || application.stdout);
-      const aiWeb = run(npmCommand, ["run", "generate:domain-starter", "--", "derived/ai-webapp/next-fastapi-landing"], repoRoot);
-      assert.equal(aiWeb.status, 0, aiWeb.stderr || aiWeb.stdout);
+      const profiles = [
+        "base/starter/application/application-base-starter",
+        "base/feature/dashboard/dashboard-feature-base-template",
+        "base/capability/storage/storage-capability-base-template",
+        "base/provider/llm/llm-provider-base-template",
+        "base/surface/admin/admin-surface-base-template",
+      ];
+      for (const profile of profiles) {
+        const generated = run(npmCommand, ["run", "generate:template", "--", profile], repoRoot);
+        assert.equal(generated.status, 0, generated.stderr || generated.stdout);
+      }
     })();
   }
   await generatedAssetsPromise;
@@ -183,54 +190,6 @@ async function runLocallyWebOnlyTemplate(templateDir: string, webPort: number, t
   }
 }
 
-async function runLocallyAiWebTemplate(templateDir: string, apiPort: number, webPort: number) {
-  const webDir = path.join(templateDir, "apps", "web");
-  const apiDir = path.join(templateDir, "services", "mock-llm");
-
-  const dockerConfig = run("docker", ["compose", "config"], templateDir);
-  assert.equal(dockerConfig.status, 0, dockerConfig.stderr || dockerConfig.stdout);
-
-  const webInstall = run(npmCommand, ["install"], webDir);
-  assert.equal(webInstall.status, 0, webInstall.stderr || webInstall.stdout);
-
-  const apiInstall = run("python", ["-m", "pip", "install", "--disable-pip-version-check", "-r", "requirements.txt"], apiDir);
-  assert.equal(apiInstall.status, 0, apiInstall.stderr || apiInstall.stdout);
-
-  const apiProcess = startProcess("python", ["-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", String(apiPort)], apiDir);
-  const webProcess = startProcess(
-    npxCommand,
-    ["next", "dev", "--hostname", "127.0.0.1", "--port", String(webPort)],
-    webDir,
-    { NEXT_PUBLIC_LLM_API_BASE_URL: `http://127.0.0.1:${apiPort}` },
-  );
-
-  try {
-    const apiHealth = await waitForHttp(`http://127.0.0.1:${apiPort}/health`, (text) => text.includes("python-fastapi"));
-    const webHealth = await waitForHttp(`http://127.0.0.1:${webPort}/api/health`, (text) => text.includes("next-web"));
-    const homePage = await waitForHttp(
-      `http://127.0.0.1:${webPort}`,
-      (text) => text.includes("Next.js landing page, FastAPI mock LLM, one starter identity."),
-    );
-    const mockResponse = await fetch(`http://127.0.0.1:${apiPort}/api/mock-llm`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({ prompt: "test from integration" }),
-    });
-    const mockPayload = await mockResponse.json();
-
-    assert.match(apiHealth, /python-fastapi/);
-    assert.match(webHealth, /next-web/);
-    assert.match(homePage, /Rendo AI Web Starter/);
-    assert.equal(mockPayload.runtime, "python-fastapi");
-    assert.match(mockPayload.completion, /test from integration/);
-  } finally {
-    await stopProcess(webProcess.child);
-    await stopProcess(apiProcess.child);
-  }
-}
-
 test("node and python CLIs expose identical template search results", async () => {
   await ensureGeneratedAssets();
   const nodeSearch = runNodeCli(["search", "--type", "all", "--json"]);
@@ -241,6 +200,9 @@ test("node and python CLIs expose identical template search results", async () =
 
   assert.deepEqual(JSON.parse(nodeSearch.stdout), JSON.parse(pythonSearch.stdout));
   const payload = JSON.parse(nodeSearch.stdout) as Array<{ id: string; templateKind: string; templateRole: string }>;
+  const starterCore = payload.find((item) => item.id === "starter-core-template");
+  assert.equal(starterCore?.templateKind, "starter-template");
+  assert.equal(starterCore?.templateRole, "core");
   const application = payload.find((item) => item.id === "application-base-starter");
   assert.equal(application?.templateKind, "starter-template");
   assert.equal(application?.templateRole, "base");
@@ -256,9 +218,6 @@ test("node and python CLIs expose identical template search results", async () =
   const surface = payload.find((item) => item.id === "admin-surface-base-template");
   assert.equal(surface?.templateKind, "surface-template");
   assert.equal(surface?.templateRole, "base");
-  const aiWeb = payload.find((item) => item.id === "ai-web-next-fastapi-starter");
-  assert.equal(aiWeb?.templateKind, "starter-template");
-  assert.equal(aiWeb?.templateRole, "derived");
 });
 
 test("node and python CLIs expose identical inspect payload for application base starter", async () => {
@@ -301,55 +260,62 @@ test("node and python CLIs expose identical inspect payload for provider base te
   assert.deepEqual(payload.domainTags, ["llm-provider"]);
 });
 
-test("domain starter authoring pipeline generates application base starter from profile", async () => {
+test("template authoring pipeline generates application base starter from profile", async () => {
   await ensureGeneratedAssets();
   const generated = run(
     "node",
-    ["--import", "tsx", "scripts/generate-domain-starter.ts", "base/application/application-base"],
+    ["--import", "tsx", "scripts/generate-template.ts", "base/starter/application/application-base-starter"],
     repoRoot,
   );
   assert.equal(generated.status, 0, generated.stderr);
 
-  const generatedPayload = JSON.parse(generated.stdout) as { profileId: string; starterId: string };
-  assert.equal(generatedPayload.profileId, "base/application/application-base");
-  assert.equal(generatedPayload.starterId, "application-base-starter");
+  const generatedPayload = JSON.parse(generated.stdout) as { profileId: string; templateId: string };
+  assert.equal(generatedPayload.profileId, "base/starter/application/application-base-starter");
+  assert.equal(generatedPayload.templateId, "application-base-starter");
 
   const templateManifest = JSON.parse(
     await readFile(path.join(repoRoot, "shared", "templates", "base", "starter", "application-base-starter", "rendo.template.json"), "utf8"),
   ) as { id: string; type: string; category: string; templateKind: string; templateRole: string };
   assert.equal(templateManifest.id, "application-base-starter");
-  assert.equal(templateManifest.type, "domain-starter");
+  assert.equal(templateManifest.type, "template");
   assert.equal(templateManifest.templateKind, "starter-template");
   assert.equal(templateManifest.templateRole, "base");
   assert.equal(templateManifest.category, "application");
 });
 
-test("rendo init creates a runnable core starter", async () => {
+test("rendo init creates runnable core templates for every template kind", async () => {
   await ensureGeneratedAssets();
   await withTempDir("rendo-core", async (dir) => {
-    const target = path.join(dir, "core-authoring");
-    await mkdir(target);
-    const init = runNodeCli(["init", "--output", target, "--json"], repoRoot);
-    assert.equal(init.status, 0, init.stderr);
+    const kinds = ["starter", "feature", "capability", "provider", "surface"] as const;
+    for (const kind of kinds) {
+      const target = path.join(dir, `${kind}-core`);
+      const init = runNodeCli(["init", kind, "--output", target, "--json"], repoRoot);
+      assert.equal(init.status, 0, init.stderr);
 
-    const templateManifest = JSON.parse(await readFile(path.join(target, "rendo.template.json"), "utf8")) as { id: string; type: string };
-    assert.equal(templateManifest.id, "core-starter");
-    assert.equal(templateManifest.type, "core-starter");
+      const templateManifest = JSON.parse(await readFile(path.join(target, "rendo.template.json"), "utf8")) as {
+        id: string;
+        type: string;
+        templateRole: string;
+      };
+      assert.equal(templateManifest.id, `${kind}-core-template`);
+      assert.equal(templateManifest.type, "template");
+      assert.equal(templateManifest.templateRole, "core");
 
-    const install = run(npmCommand, ["install"], target);
-    assert.equal(install.status, 0, install.stderr);
+      const install = run(npmCommand, ["install"], target);
+      assert.equal(install.status, 0, install.stderr);
 
-    const health = run(npmCommand, ["run", "health"], target);
-    assert.equal(health.status, 0, health.stderr);
-    assert.match(health.stdout, /"starterId": "core-starter"/);
+      const health = run(npmCommand, ["run", "health"], target);
+      assert.equal(health.status, 0, health.stderr);
+      assert.match(health.stdout, new RegExp(`"templateId": "${kind}-core-template"`));
+    }
   });
 });
 
 test("rendo create rejects core starter and creates identical multi-surface application projects", async () => {
   await ensureGeneratedAssets();
-  const rejected = runNodeCli(["create", "core-starter", "ignored-dir"], repoRoot);
+  const rejected = runNodeCli(["create", "starter-core-template", "ignored-dir"], repoRoot);
   assert.notEqual(rejected.status, 0);
-  assert.match(rejected.stderr, /Use rendo init/);
+  assert.match(rejected.stderr, /rendo init starter/);
 
   await withTempDir("rendo-application", async (dir) => {
     const createdAt = "2026-04-04T00:00:00.000Z";
@@ -374,11 +340,15 @@ test("rendo create rejects core starter and creates identical multi-surface appl
       templateRole: string;
     };
     assert.equal(templateManifest.id, "application-base-starter");
-    assert.equal(templateManifest.type, "domain-starter");
+    assert.equal(templateManifest.type, "template");
     assert.equal(templateManifest.templateRole, "base");
 
-    const projectManifest = JSON.parse(await readFile(path.join(nodeTarget, "rendo.project.json"), "utf8")) as { surfaces: string[] };
+    const projectManifest = JSON.parse(await readFile(path.join(nodeTarget, "rendo.project.json"), "utf8")) as {
+      surfaces: string[];
+      template: { id: string };
+    };
     assert.deepEqual(projectManifest.surfaces, ["web", "miniapp"]);
+    assert.equal(projectManifest.template.id, "application-base-starter");
     assert.ok(run("cmd", ["/c", "if exist apps\\miniapp (exit 0) else (exit 1)"], nodeTarget).status === 0);
     assert.ok(run("cmd", ["/c", "if exist apps\\mobile (exit 0) else (exit 1)"], nodeTarget).status !== 0);
 
@@ -387,59 +357,6 @@ test("rendo create rejects core starter and creates identical multi-surface appl
     assert.deepEqual([...nodeHashes.entries()].sort(), [...pythonHashes.entries()].sort());
 
     await runLocallyWebOnlyTemplate(nodeTarget, 3200, /Multi-surface hello world, one canonical application base/);
-  });
-});
-
-test("node and python CLIs create identical ai-web starter source trees", async () => {
-  await ensureGeneratedAssets();
-  await withTempDir("rendo-ai-web", async (dir) => {
-    const createdAt = "2026-04-04T00:00:00.000Z";
-    const nodeTarget = path.join(dir, "node", "ai-web-app");
-    const pythonTarget = path.join(dir, "python", "ai-web-app");
-
-    const nodeCreate = runNodeCli(
-      ["create", "ai-web-next-fastapi-starter", "--output", nodeTarget, "--json"],
-      repoRoot,
-      { RENDO_CREATED_AT_OVERRIDE: createdAt },
-    );
-    const pythonCreate = runPythonCli(
-      ["create", "ai-web-next-fastapi-starter", "--output", pythonTarget, "--json"],
-      repoRoot,
-      { RENDO_CREATED_AT_OVERRIDE: createdAt },
-    );
-
-    assert.equal(nodeCreate.status, 0, nodeCreate.stderr);
-    assert.equal(pythonCreate.status, 0, pythonCreate.stderr);
-
-    const nodeHashes = await collectDirectoryHashes(nodeTarget);
-    const pythonHashes = await collectDirectoryHashes(pythonTarget);
-    assert.deepEqual([...nodeHashes.entries()].sort(), [...pythonHashes.entries()].sort());
-  });
-});
-
-test("node and python generated ai-web starters both run successfully", async () => {
-  await ensureGeneratedAssets();
-  await withTempDir("rendo-ai-web-run", async (dir) => {
-    const createdAt = "2026-04-04T00:00:00.000Z";
-    const nodeTarget = path.join(dir, "node", "ai-web-app");
-    const pythonTarget = path.join(dir, "python", "ai-web-app");
-
-    const nodeCreate = runNodeCli(
-      ["create", "ai-web-next-fastapi-starter", "--output", nodeTarget, "--json"],
-      repoRoot,
-      { RENDO_CREATED_AT_OVERRIDE: createdAt },
-    );
-    const pythonCreate = runPythonCli(
-      ["create", "ai-web-next-fastapi-starter", "--output", pythonTarget, "--json"],
-      repoRoot,
-      { RENDO_CREATED_AT_OVERRIDE: createdAt },
-    );
-
-    assert.equal(nodeCreate.status, 0, nodeCreate.stderr);
-    assert.equal(pythonCreate.status, 0, pythonCreate.stderr);
-
-    await runLocallyAiWebTemplate(nodeTarget, 8000, 3000);
-    await runLocallyAiWebTemplate(pythonTarget, 8100, 3100);
   });
 });
 

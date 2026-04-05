@@ -10,12 +10,13 @@ from .project import find_project_root, load_project_state
 from .registry import (
     load_pack_manifest,
     load_template_manifest,
+    resolve_core_template_ref,
     resolve_pack_ref,
     resolve_starter_ref,
     resolve_template_ref,
     search_registry,
 )
-from .scaffold import scaffold_starter
+from .scaffold import scaffold_template
 from .fs import REPO_ROOT, copy_template_asset
 from .template_assets import install_template_asset
 
@@ -105,7 +106,8 @@ def main() -> None:
         epilog="\n".join(
             [
                 "Examples:",
-                "  rendo-python init --output my-core",
+                "  rendo-python init starter --output my-starter-core",
+                "  rendo-python init capability --output my-capability-core",
                 "  rendo-python create application --surfaces web,miniapp --output my-app",
                 "  rendo-python inspect llm-provider-base-template --json",
                 "  rendo-python pull admin-surface-base-template --output ./admin-surface",
@@ -118,7 +120,8 @@ def main() -> None:
     help_parser = subparsers.add_parser("help", help="Show CLI help or command help")
     help_parser.add_argument("topic", nargs="?")
 
-    init_parser = subparsers.add_parser("init", help="Initialize the Core Starter in a target directory")
+    init_parser = subparsers.add_parser("init", help="Initialize a core template in a target directory")
+    init_parser.add_argument("kind")
     init_parser.add_argument("target_dir", nargs="?")
     init_parser.add_argument("--output")
     init_parser.add_argument("--runtime", default="source")
@@ -170,20 +173,22 @@ def main() -> None:
             return
 
         if args.command == "init":
-            starter = resolve_starter_ref("core-starter")
+            starter = resolve_core_template_ref(args.kind)
             if starter is None:
-                raise RuntimeError("core starter is missing from registry")
+                raise RuntimeError(f"core template is missing from registry for {args.kind}")
             target_dir = args.output or args.target_dir or "."
-            _emit(scaffold_starter(starter, target_dir, args.runtime), args.json)
+            _emit(scaffold_template(starter, target_dir, args.runtime), args.json)
             return
 
         if args.command == "create":
             starter, target_dir = _resolve_create_args(args)
             manifest = load_template_manifest(starter)
-            if manifest["type"] != "domain-starter" or manifest["templateKind"] != "starter-template" or manifest["templateRole"] == "core":
-                raise RuntimeError(f"rendo create only accepts Domain Starters. Use rendo init for {manifest['id']}.")
+            if manifest["templateKind"] != "starter-template":
+                raise RuntimeError(f"rendo create only accepts starter templates. Use rendo add or rendo pull for {manifest['id']}.")
+            if manifest["templateRole"] == "core":
+                raise RuntimeError(f"rendo create does not accept core starter templates. Use rendo init starter for {manifest['id']}.")
             selected_surfaces = [item.strip() for item in args.surfaces.split(",") if item.strip()] if args.surfaces else None
-            _emit(scaffold_starter(starter, target_dir, args.runtime, selected_surfaces), args.json)
+            _emit(scaffold_template(starter, target_dir, args.runtime, selected_surfaces), args.json)
             return
 
         if args.command == "search":
