@@ -20,9 +20,9 @@
 
 1. [V1-发布门槛清单与交付成功定义.md](/D:/code/rendo/doc/todo/V1-发布门槛清单与交付成功定义.md)
 2. [cli/00-Phase0-契约与规范TODO.md](/D:/code/rendo/doc/todo/cli/00-Phase0-契约与规范TODO.md)
-3. [cli/01-Phase1-CoreStarter实现TODO.md](/D:/code/rendo/doc/todo/cli/01-Phase1-CoreStarter实现TODO.md)
+3. [cli/01-Phase1-Core 模板层实现TODO.md](/D:/code/rendo/doc/todo/cli/01-Phase1-Core 模板层实现TODO.md)
 4. [cli/02-Phase2-RendoCLI实现TODO.md](/D:/code/rendo/doc/todo/cli/02-Phase2-RendoCLI实现TODO.md)
-5. [cli/03-Phase3-第一个DomainStarter实现TODO.md](/D:/code/rendo/doc/todo/cli/03-Phase3-第一个DomainStarter实现TODO.md)
+5. [cli/03-Phase3-第一个SaasStarter实现TODO.md](/D:/code/rendo/doc/todo/cli/03-Phase3-第一个SaasStarter实现TODO.md)
 6. [cli/04-Phase4-Pack机制实现TODO.md](/D:/code/rendo/doc/todo/cli/04-Phase4-Pack机制实现TODO.md)
 7. [rendo-platform/10-Phase5-最小真实Rendo能力接入TODO.md](/D:/code/rendo/doc/todo/rendo-platform/10-Phase5-最小真实Rendo能力接入TODO.md)
 8. [rendo-platform/11-Phase6-双模式与多端准备TODO.md](/D:/code/rendo/doc/todo/rendo-platform/11-Phase6-双模式与多端准备TODO.md)

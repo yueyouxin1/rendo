@@ -1,8 +1,8 @@
-# Core Template 最小契约定义
+# Rendo 服务基座 Core Template 最小契约定义
 
 ## 1. 角色
 
-`core` 模板不是最终模板，也不是产品模板。
+`core` 模板不是最终模板，也不是最终服务基座产品。
 
 它的职责是：
 
@@ -28,13 +28,33 @@
 - `rendo.project.json`
 - `README.md`
 - `AGENTS.md`
+- `.agent/instructions.md`
+- `.agent/capabilities.yaml`
+- `.agent/review_checklist.md`
 - `docs/structure.md`
 - `docs/extension-points.md`
 - `docs/inheritance-boundaries.md`
 - `docs/secondary-development.md`
+- `docs/modules/README.md`
+- `api/README.md`
+- `mcp/README.md`
+- `skills/README.md`
 - 一个最小可执行或可校验的健康检查入口
 
 其中 `rendo.template.json` 应显式提供 `documentation` 字段，指向这些规范文件，方便 CLI、人类和强 Agent 从 manifest 直接找到正确入口。
+
+如果是 `starter-core-template`，则应进一步提供：
+
+- `api/openapi.yaml`
+- `mcp/server.yaml`
+- `skills/skill_manifest.json`
+
+如果是非 starter `core` 模板，则至少应提供：
+
+- 它如何扩展宿主 starter 的 `api/`
+- 它如何扩展宿主 starter 的 `mcp/`
+- 它如何扩展宿主 starter 的 `skills/`
+- 它如何补充宿主 starter 的 `docs/modules/`
 
 ## 4. 必须满足
 
@@ -46,6 +66,7 @@
 - 不提前绑定具体业务
 - 不提前绑定具体厂商
 - 不把平台依赖做成硬前置
+- 把 Agent 可调用相关入口保留成显式契约
 
 ## 5. 明确不包含
 

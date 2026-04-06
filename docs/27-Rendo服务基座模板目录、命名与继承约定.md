@@ -1,8 +1,8 @@
-# Rendo 模板目录、命名与继承约定
+# Rendo 服务基座模板目录、命名与继承约定
 
 ## 目标
 
-把模板系统收敛成一套可被人类和强 Agent 共同稳定理解的规则。
+把服务基座模板系统收敛成一套可被人类和强 Agent 共同稳定理解的规则。
 
 ---
 
@@ -16,6 +16,11 @@
 4. `id`
 
 目录、命名、manifest 都应服务于这四个维度。
+
+补充要求：
+
+- starter 还应让 Agent 明确知道它是服务基座根模板
+- 非 starter 还应让 Agent 明确知道它装配到宿主的哪个层面
 
 ---
 
@@ -61,6 +66,7 @@ shared/templates/derived/<kind>/<category>/<template-id>/
 
 - Base 可以增加目录和观点
 - 但不能抹掉 core 的控制面
+- Starter base 应开始把 `.agent`、`api`、`mcp`、`skills`、`docs/modules` 的宿主结构具体化
 
 ### Base 到 Derived
 
@@ -74,10 +80,20 @@ shared/templates/derived/<kind>/<category>/<template-id>/
 遇到任意模板时，推荐先读：
 
 1. `rendo.template.json`
-2. `README.md`
-3. `docs/structure.md`
-4. `docs/extension-points.md`
-5. `docs/inheritance-boundaries.md`
-6. `docs/secondary-development.md`
+2. `.agent/instructions.md`
+3. `.agent/capabilities.yaml`
+4. `README.md`
+5. `docs/structure.md`
+6. `docs/extension-points.md`
+7. `docs/inheritance-boundaries.md`
+8. `docs/secondary-development.md`
+9. `docs/modules/*`
+10. `api/openapi.yaml`
+11. `mcp/server.yaml`
+12. `skills/skill_manifest.json`
+
+如果某个模板不是 starter，以上顺序中的后几项可以替换为：
+
+- 它对宿主中对应文件的扩展说明
 
 如果一个模板不能支持这套读取顺序，说明它对 Agent 还不够友好。

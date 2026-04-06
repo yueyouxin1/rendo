@@ -1,14 +1,14 @@
-# Capability Template Manifest 最小规范
+# Rendo Capability Template Manifest 最小规范
 
 ## 文档目标
 
-定义 `Capability Template` 的最小 manifest 结构与语义，使 starter、CLI、平台和强 Agent 都能以统一方式理解和操作该类模板资产。
+定义 `Capability Template` 的最小 manifest 结构与语义，使 starter 服务基座、CLI、平台和强 Agent 都能以统一方式理解和操作该类模板资产。
 
 ---
 
 ## 1. 设计原则
 
-Pack manifest 必须满足：
+Capability template manifest 必须满足：
 
 1. 人和 Agent 都能理解
 2. 能清晰描述安装影响面
@@ -97,20 +97,21 @@ Pack manifest 必须满足：
 
 强 Agent 在 `search / inspect / add / upgrade` 时，至少必须能看到：
 
-- 包的名字与描述
-- 包的类型
+- 模板的名字与描述
+- 模板的类型
 - 运行模式
 - 依赖
 - 需要的环境变量
 - 安装会影响哪些文件
 - 是否会修改数据库
 - 是否是官方 provider
+- 是否会影响宿主中的 `.agent` / `api` / `mcp` / `skills`
 
 ---
 
 ## 5. 与 CLI 的关系
 
-Pack manifest 必须直接驱动：
+Capability template manifest 必须直接驱动：
 
 - `rendo inspect`
 - `rendo add`
@@ -125,8 +126,8 @@ Pack manifest 必须直接驱动：
 
 ## 6. 最终结论
 
-Pack manifest 必须足够小、足够明确、足够结构化。
+Capability template manifest 必须足够小、足够明确、足够结构化。
 
 一句话结论：
 
-**Pack 如果没有统一 manifest，就不可能形成自然可扩展的能力包生态。**
+**Capability template 如果没有统一 manifest，就不可能形成自然可扩展的能力包生态。**

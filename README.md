@@ -1,20 +1,56 @@
 # Rendo
 
-Rendo is currently implemented as a template-system workspace for strong agents.
+Rendo is currently building the first template-and-contract workspace for agent-oriented service foundations.
 
-The active backbone is:
+Its active backbone is:
 
 1. `core`
 2. `base`
 3. `derived`
 
-The first-class template kinds are:
+Its first-class template kinds are:
 
 - `starter-template`
 - `feature-template`
 - `capability-template`
 - `provider-template`
 - `surface-template`
+
+## Current position
+
+Rendo is no longer described as a generic template shelf or a starter-only asset set.
+
+The current normative position is:
+
+- `starter-template` is the root template for a runnable service foundation
+- `feature-template` / `capability-template` / `provider-template` / `surface-template` are attachable service units around that foundation
+- `rendo cli` is the default entrypoint for initializing, creating, searching, inspecting, and installing these assets
+- the current repository still focuses only on contracts, core templates, CLI, official bases, and the minimum capability-template lifecycle
+
+Rendo is not currently trying to ship:
+
+- a full SaaS platform
+- a marketplace UI
+- registry management surfaces
+- giant all-in-one starters
+
+## Service foundation baseline
+
+The new product narrative is "agent-oriented service foundation", but the implementation path is still template-first.
+
+That means the repository is standardizing how a service foundation should be described before trying to build the larger platform around it.
+
+For a runnable starter foundation, the long-term baseline is:
+
+- `.agent/instructions.md`
+- `.agent/capabilities.yaml`
+- `.agent/review_checklist.md`
+- `api/openapi.yaml`
+- `mcp/server.yaml`
+- `skills/skill_manifest.json`
+- `docs/modules/*`
+
+Current docs formalize this target contract. Not every generated template in this workspace already exposes the full surface yet.
 
 ## Current structure
 
@@ -28,7 +64,7 @@ The first-class template kinds are:
   - generic authoring overlays for `base` and future `derived`
   - shared skeleton for `core` synchronization
 - [shared/registry](/D:/code/rendo/shared/registry)
-  - language-neutral template registry
+  - language-neutral registry for service-foundation templates and attachable units
 - [shared/contracts](/D:/code/rendo/shared/contracts)
   - manifest, project, remote-registry handshake, remote API, and bundle schemas
 - [cli/node](/D:/code/rendo/cli/node)
@@ -59,29 +95,20 @@ Derived templates:
 - directory and contract conventions are defined
 - no official generated `derived` template is published in the local registry yet
 
-## Template semantics
+## Manifest semantics
 
-Every template manifest carries:
+Every template manifest is expected to tell humans and strong agents:
 
-- `schemaVersion`
-- `type`
-  - always `template`
-- `templateKind`
-  - one of the five first-class template kinds
-- `templateRole`
-  - `core`
-  - `base`
-  - `derived`
-- `documentation`
-  - overview, structure, extension points, inheritance boundaries, and secondary-development entrypoints
-- `compatibility`
-  - CLI range, registry protocol range, host compatibility
-- `assetInstall`
-  - structured non-starter install plans
+- what kind of template this is
+- whether it is `core`, `base`, or `derived`
+- whether it creates the foundation root or attaches into an existing foundation
+- which agent-facing artifacts and interfaces it provides or extends
+- which documents should be read first
+- how it can be installed, hosted, upgraded, and verified
 
-Projects created from a template record their origin in `rendo.project.json` under `template`.
+Projects created from a starter template record their origin in `rendo.project.json` under `template`.
 
-Installed non-starter template assets record:
+Installed non-starter templates record:
 
 - version
 - runtime mode
@@ -144,8 +171,8 @@ Verified in this workspace:
 - `rendo init <kind>` creates runnable core templates
 - `rendo create application --surfaces ...` creates runnable application base projects
 - Node and Python CLIs add and pull provider base templates identically
-- Core templates stay aligned with the shared skeleton via `scripts/sync-core-templates.ts --check`
-- Local fixture-based remote registry responses are supported by both CLIs with digest-verified bundle downloads
+- core templates stay aligned with the shared skeleton via `scripts/sync-core-templates.ts --check`
+- local fixture-based remote registry responses are supported by both CLIs with digest-verified bundle downloads
 
 ## Commands
 

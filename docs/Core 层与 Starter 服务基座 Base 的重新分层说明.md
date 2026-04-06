@@ -1,10 +1,8 @@
-# Core 层与 Starter Base 的重新分层说明
+# Core 层与 Starter 服务基座 Base 的重新分层说明
 
-> 本文件保留原路径名，但内容已更新为新架构。
+> 本文件内容已更新为服务基座新架构下的 starter 分层说明。
 
 ## 结论
-
-不再使用“唯一 Core Starter -> Domain Starter”的旧分层。
 
 新的 starter 相关分层应理解为：
 
@@ -36,6 +34,7 @@
 
 - starter 类型的官方标准示范层
 - 第一个可运行的 starter best practice
+- 第一个标准服务基座宿主
 
 ### derived starter
 
@@ -44,4 +43,3 @@
 - 具体业务场景
 - 具体技术绑定
 - 具体形态策略
-
