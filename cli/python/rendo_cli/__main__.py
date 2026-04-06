@@ -5,11 +5,13 @@ import json
 import sys
 from pathlib import Path
 
+from .bundle import compute_bundle_digest, create_template_bundle, serialize_template_bundle
 from .doctor import run_doctor
 from .packs import install_pack, preview_pack, upgrade_packs
 from .project import find_project_root
 from .registry_client import (
     get_registry_handshake,
+    get_registry_snapshot,
     inspect_registry_ref,
     load_pack_manifest,
     prepare_core_template_source,
@@ -20,7 +22,7 @@ from .registry_client import (
 )
 from .scaffold import scaffold_template
 from .fs import copy_template_asset
-from .template_assets import install_template_asset, preview_template_asset_install, upgrade_template_assets
+from .template_assets import integrate_template_asset, preview_template_asset_integration, upgrade_template_assets
 from .version import CLI_VERSION
 
 
@@ -57,12 +59,39 @@ def _print_inspect(payload: dict, as_json: bool) -> None:
             "toolchains: "
             + ", ".join(f"{item['name']}@{item['version']} ({item['role']})" for item in payload["toolchains"])
         )
+    if payload.get("lineage"):
+        print(f"lineage core template: {payload['lineage']['coreTemplate'] or '(none)'}")
+        print(f"lineage base template: {payload['lineage']['baseTemplate'] or '(none)'}")
+        print(f"lineage parent template: {payload['lineage']['parentTemplate'] or '(none)'}")
     if payload.get("documentation"):
         print(f"docs overview: {payload['documentation']['overview']}")
         print(f"docs structure: {payload['documentation']['structure']}")
         print(f"docs extension points: {payload['documentation']['extensionPoints']}")
         print(f"docs inheritance: {payload['documentation']['inheritanceBoundaries']}")
         print(f"docs secondary development: {payload['documentation']['secondaryDevelopment']}")
+    if payload.get("architecture"):
+        print(f"architecture standard: {payload['architecture']['standard']}")
+        print(f"architecture host model: {payload['architecture']['hostModel']}")
+        print(f"architecture runtime class: {payload['architecture']['runtimeClass']}")
+        print(
+            "architecture agent entrypoints: "
+            + (", ".join(payload["architecture"]["rootPaths"]["agentEntrypoints"]) or "(none)")
+        )
+        print(
+            "architecture interface roots: "
+            + (", ".join(payload["architecture"]["rootPaths"]["interfaces"]) or "(none)")
+        )
+        print(
+            "architecture implementation roots: "
+            + (", ".join(payload["architecture"]["rootPaths"]["implementation"]) or "(none)")
+        )
+        print("architecture test roots: " + (", ".join(payload["architecture"]["rootPaths"]["tests"]) or "(none)"))
+        print("architecture integration roots: " + (", ".join(payload["architecture"]["rootPaths"]["integration"]) or "(none)"))
+        print(
+            "architecture operations roots: "
+            + (", ".join(payload["architecture"]["rootPaths"]["operations"]) or "(none)")
+        )
+        print("architecture mount roots: " + (", ".join(payload["architecture"]["rootPaths"]["mounts"]) or "(none)"))
     if payload.get("surfaceCapabilities"):
         print(f"surface capabilities: {', '.join(payload['surfaceCapabilities'])}")
     if payload.get("defaultSurfaces"):
@@ -82,13 +111,13 @@ def _print_inspect(payload: dict, as_json: bool) -> None:
             f"cli {payload['compatibility']['cli']['min'] or '*'}..{payload['compatibility']['cli']['max'] or '*'}, "
             f"registry {payload['compatibility']['registryProtocol']['min'] or '*'}..{payload['compatibility']['registryProtocol']['max'] or '*'}"
         )
-    if payload.get("assetInstall"):
-        print(f"install summary: {payload['assetInstall']['previewSummary']}")
-        hosts = payload["assetInstall"]["supportedHostTemplates"]
-        host_kinds = payload["assetInstall"]["supportedHostKinds"]
+    if payload.get("assetIntegration"):
+        print(f"asset integration summary: {payload['assetIntegration']['previewSummary']}")
+        hosts = payload["assetIntegration"]["supportedHostTemplates"]
+        host_kinds = payload["assetIntegration"]["supportedHostKinds"]
         supported_hosts = ", ".join(hosts) if hosts else ", ".join(host_kinds) if host_kinds else "(any)"
         print(f"supported hosts: {supported_hosts}")
-        for mode in payload["assetInstall"]["modes"]:
+        for mode in payload["assetIntegration"]["modes"]:
             print(
                 f"  mode {mode['runtimeMode']}: target {mode['targetRoot']}, "
                 f"conflict {mode['conflictStrategy']}, rollback {mode['rollbackStrategy']}"
@@ -150,6 +179,40 @@ def _pull_template_ref(ref: str, output_dir: str | None, as_json: bool, registry
     raise RuntimeError(f"unable to resolve ref: {ref}")
 
 
+def _resolve_bundle_output_path(output_file: str | None, template_id: str, version: str) -> Path:
+    return Path(output_file or f"{template_id}-{version}.rendo-bundle.json").resolve()
+
+
+def _export_template_bundle_ref(ref: str, output_file: str | None, as_json: bool, registry_options: dict) -> None:
+    source = prepare_template_source(ref, registry_options)
+    if source is None:
+        raise RuntimeError(f"unable to resolve template ref: {ref}")
+
+    try:
+        bundle = create_template_bundle(source["templateDir"])
+        raw_bundle = serialize_template_bundle(bundle)
+        bundle_digest = compute_bundle_digest(raw_bundle)
+        target = _resolve_bundle_output_path(output_file, bundle["templateId"], bundle["version"])
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(raw_bundle)
+        _emit(
+            {
+                "kind": "template-bundle",
+                "templateId": bundle["templateId"],
+                "version": bundle["version"],
+                "outputPath": str(target),
+                "bundleFormat": bundle["bundleFormat"],
+                "bundleDigest": bundle_digest,
+                "templateDigest": bundle["templateDigest"],
+                "registry": source["registry"],
+                "source": source["source"],
+            },
+            as_json,
+        )
+    finally:
+        source["cleanup"]()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="rendo-python",
@@ -207,6 +270,13 @@ def main() -> None:
     pull_parser.add_argument("--registry", default="local")
     pull_parser.add_argument("--registry-token")
     pull_parser.add_argument("--json", action="store_true")
+
+    bundle_parser = subparsers.add_parser("bundle", help="Export a template as a local bundle artifact")
+    bundle_parser.add_argument("ref")
+    bundle_parser.add_argument("--output")
+    bundle_parser.add_argument("--registry", default="local")
+    bundle_parser.add_argument("--registry-token")
+    bundle_parser.add_argument("--json", action="store_true")
 
     upgrade_parser = subparsers.add_parser("upgrade", help="Upgrade installed template assets or packs in the current project")
     upgrade_parser.add_argument("ref", nargs="?")
@@ -268,11 +338,11 @@ def main() -> None:
                     project_root = find_project_root(Path.cwd())
                     if not project_root:
                         raise RuntimeError("current directory is not inside a rendo project")
-                    preview = preview_template_asset_install(source, project_root)
+                    preview = preview_template_asset_integration(source, project_root)
                     if args.preview:
                         _emit({"applied": False, "preview": preview}, args.json)
                         return
-                    _emit({"applied": True, "preview": preview, **install_template_asset(source, project_root)}, args.json)
+                    _emit({"applied": True, "preview": preview, **integrate_template_asset(source, project_root)}, args.json)
                     return
                 finally:
                     source["cleanup"]()
@@ -293,6 +363,10 @@ def main() -> None:
 
         if args.command == "pull":
             _pull_template_ref(args.ref, args.output, args.json, _registry_options(args))
+            return
+
+        if args.command == "bundle":
+            _export_template_bundle_ref(args.ref, args.output, args.json, _registry_options(args))
             return
 
         if args.command == "upgrade":
@@ -316,7 +390,24 @@ def main() -> None:
             return
 
         if args.command == "doctor":
-            _emit({**run_doctor(Path.cwd()), "registry": get_registry_handshake(_registry_options(args))}, args.json)
+            registry_options = _registry_options(args)
+            registry = get_registry_handshake(registry_options)
+            registry_snapshot = get_registry_snapshot(registry_options)
+            _emit(
+                {
+                    **run_doctor(Path.cwd()),
+                    "registry": registry,
+                    "registrySnapshot": {
+                        "url": registry_snapshot["url"],
+                        "digest": registry_snapshot["digest"],
+                        "entryCount": len(registry_snapshot["snapshot"]["entries"]),
+                        "registryId": registry_snapshot["snapshot"]["registry"]["id"],
+                    }
+                    if registry_snapshot
+                    else None,
+                },
+                args.json,
+            )
             return
     except Exception as exc:  # noqa: BLE001
         print(f"rendo error: {exc}", file=sys.stderr)

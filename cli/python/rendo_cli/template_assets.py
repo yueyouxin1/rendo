@@ -32,43 +32,43 @@ def _assert_compatible_host(manifest: dict, host_template: dict) -> None:
         raise RuntimeError(f"template {manifest['id']} requires host {compatibility_target} <= {matched['maxVersion']}")
 
 
-def _resolve_install_mode(manifest: dict, runtime_mode: str) -> dict:
-    if manifest["assetInstall"] is None:
-        raise RuntimeError(f"template {manifest['id']} does not expose install metadata")
+def _resolve_integration_mode(manifest: dict, runtime_mode: str) -> dict:
+    if manifest["assetIntegration"] is None:
+        raise RuntimeError(f"template {manifest['id']} does not expose integration metadata")
     return next(
         (
             item
-            for item in manifest["assetInstall"]["modes"]
+            for item in manifest["assetIntegration"]["modes"]
             if item["runtimeMode"] == runtime_mode
         ),
-        next((item for item in manifest["assetInstall"]["modes"] if item["runtimeMode"] == "source"), None),
+        next((item for item in manifest["assetIntegration"]["modes"] if item["runtimeMode"] == "source"), None),
     )
 
 
-def preview_template_asset_install(source: dict, project_root: Path) -> dict:
+def preview_template_asset_integration(source: dict, project_root: Path) -> dict:
     manifest = source["manifest"]
     if manifest["templateKind"] == "starter-template":
         raise RuntimeError(f"use rendo create for starter templates: {manifest['id']}")
     project, _ = load_project_state(project_root)
     _assert_compatible_host(manifest, project["template"])
-    install_mode = _resolve_install_mode(manifest, project["template"]["runtimeMode"])
-    if install_mode is None:
+    integration_mode = _resolve_integration_mode(manifest, project["template"]["runtimeMode"])
+    if integration_mode is None:
         raise RuntimeError(f"template {manifest['id']} does not support host runtime mode {project['template']['runtimeMode']}")
-    target_path = project_root / install_mode["targetRoot"] / manifest["id"]
+    target_path = project_root / integration_mode["targetRoot"] / manifest["id"]
     conflicts = []
     if target_path.exists():
-        if install_mode["conflictStrategy"] == "overwrite":
+        if integration_mode["conflictStrategy"] == "overwrite":
             conflicts.append("target directory already exists and will be overwritten")
-        elif install_mode["conflictStrategy"] == "fail":
+        elif integration_mode["conflictStrategy"] == "fail":
             conflicts.append("target directory already exists")
     return {
         "templateId": manifest["id"],
         "templateKind": manifest["templateKind"],
         "templateRole": manifest["templateRole"],
-        "runtimeMode": install_mode["runtimeMode"],
+        "runtimeMode": integration_mode["runtimeMode"],
         "targetPath": str(target_path),
-        "targetRoot": install_mode["targetRoot"],
-        "installPlan": install_mode["install"],
+        "targetRoot": integration_mode["targetRoot"],
+        "integrationPlan": integration_mode["changes"],
         "conflicts": conflicts,
         "registry": source["registry"],
         "source": source["source"],
@@ -77,19 +77,19 @@ def preview_template_asset_install(source: dict, project_root: Path) -> dict:
     }
 
 
-def install_template_asset(source: dict, project_root: Path) -> dict:
+def integrate_template_asset(source: dict, project_root: Path) -> dict:
     manifest = source["manifest"]
-    preview = preview_template_asset_install(source, project_root)
-    install_mode = _resolve_install_mode(manifest, preview["runtimeMode"])
+    preview = preview_template_asset_integration(source, project_root)
+    integration_mode = _resolve_integration_mode(manifest, preview["runtimeMode"])
     target_path = Path(preview["targetPath"])
-    if preview["conflicts"] and install_mode["conflictStrategy"] == "fail":
-        raise RuntimeError(f"template install conflicts: {'; '.join(preview['conflicts'])}")
+    if preview["conflicts"] and integration_mode["conflictStrategy"] == "fail":
+        raise RuntimeError(f"template integration conflicts: {'; '.join(preview['conflicts'])}")
     if target_path.exists():
-        if install_mode["conflictStrategy"] == "overwrite":
+        if integration_mode["conflictStrategy"] == "overwrite":
             import shutil
 
             shutil.rmtree(target_path, ignore_errors=True)
-        elif install_mode["conflictStrategy"] == "skip":
+        elif integration_mode["conflictStrategy"] == "skip":
             return {
                 "templateId": manifest["id"],
                 "templateKind": manifest["templateKind"],
@@ -97,12 +97,12 @@ def install_template_asset(source: dict, project_root: Path) -> dict:
                 "targetPath": str(target_path),
                 "copiedFiles": [],
                 "addedEnv": [],
-                "installPlan": preview["installPlan"],
+                "integrationPlan": preview["integrationPlan"],
                 "skipped": True,
             }
 
     copied_files = copy_template_asset(source["templateDir"], target_path)
-    added_env = append_missing_env(project_root / ".env.example", preview["installPlan"]["addsEnv"])
+    added_env = append_missing_env(project_root / ".env.example", preview["integrationPlan"]["addsEnv"])
 
     project, _ = load_project_state(project_root)
     record = {
@@ -131,7 +131,7 @@ def install_template_asset(source: dict, project_root: Path) -> dict:
         "targetPath": str(target_path),
         "copiedFiles": copied_files,
         "addedEnv": added_env,
-        "installPlan": preview["installPlan"],
+        "integrationPlan": preview["integrationPlan"],
     }
 
 
@@ -163,7 +163,7 @@ def upgrade_template_assets(project_root: Path, options: dict | None = None) -> 
                 )
                 continue
 
-            preview = preview_template_asset_install(source, project_root)
+            preview = preview_template_asset_integration(source, project_root)
             same_version = compare_versions(installed["version"], source["manifest"]["version"]) >= 0
             same_digest = installed["templateDigest"] and source["templateDigest"] and installed["templateDigest"] == source["templateDigest"]
             if same_version and same_digest:
@@ -184,7 +184,7 @@ def upgrade_template_assets(project_root: Path, options: dict | None = None) -> 
                         "currentVersion": installed["version"],
                         "latestVersion": source["manifest"]["version"],
                         "status": "preview",
-                        "installPlan": preview["installPlan"],
+                        "integrationPlan": preview["integrationPlan"],
                     }
                 )
                 continue
@@ -193,14 +193,14 @@ def upgrade_template_assets(project_root: Path, options: dict | None = None) -> 
                 import shutil
 
                 shutil.rmtree(target_path, ignore_errors=True)
-            applied = install_template_asset(source, project_root)
+            applied = integrate_template_asset(source, project_root)
             results.append(
                 {
                     "templateId": installed["id"],
                     "currentVersion": installed["version"],
                     "latestVersion": source["manifest"]["version"],
                     "status": "upgraded",
-                    "installPlan": applied["installPlan"],
+                    "integrationPlan": applied["integrationPlan"],
                 }
             )
         finally:

@@ -39,7 +39,7 @@
 - CLI 最小语义
 - runtime mode 边界
 - agent 可读的最小文件结构
-- `AGENTS.md`、`CLAUDE.md`、`.agents/`、`interfaces/`、`src/`、`tests/`、`install/` 的最小接入边界
+- `AGENTS.md`、`CLAUDE.md`、`.agents/`、`interfaces/`、`src/`、`tests/`、`integration/` 的最小接入边界
 - 对下一层的稳定继承点
 
 ### 2.2 `base`
@@ -174,7 +174,7 @@ shared/templates/derived/<kind>/<category>/<template-id>/
 ├── src/
 ├── tests/
 ├── scripts/
-└── install/
+└── integration/
 ```
 
 其中：
@@ -182,14 +182,16 @@ shared/templates/derived/<kind>/<category>/<template-id>/
 - `AGENTS.md / CLAUDE.md / .agents/` 是 Agent 入口
 - `interfaces/` 是接口描述面
 - `src/` 是实现根
-- `tests/`、`scripts/`、`install/` 是验证与装配面
+- `tests/`、`scripts/`、`integration/` 是验证与装配说明面（历史 `install/` 接入说明语义已统一更名为 `integration/`；物理安装根由 manifest `assetIntegration.modes[].targetRoot` 决定）
 
-只有 starter 宿主才额外保留：
+只有 starter 宿主才额外冻结这些 `src/` 槽位：
 
-- `features/`
-- `capabilities/`
-- `providers/`
-- `surfaces/`
+- `src/apps/`
+- `src/packages/`
+- `src/features/`
+- `src/capabilities/`
+- `src/providers/`
+- `src/surfaces/`（保留 `src/surfaces/desktop/`）
 - `ops/`
 
 ---
@@ -239,14 +241,16 @@ Rendo 当前明确区分两类运行形态：
 
 ## 10. 非 starter 模板的宿主规则
 
-当前阶段，feature / capability / provider / surface 等非 starter 模板，应优先通过 manifest 驱动的 install plan 装入 starter 宿主。
+当前阶段，feature / capability / provider / surface 等非 starter 模板，应优先通过 manifest `assetIntegration` 驱动的 integration plan 装入 starter 宿主。
 
-推荐宿主根目录应保持显式：
+推荐宿主在 `src/` 下保持显式槽位：
 
-- `features/`
-- `capabilities/`
-- `providers/`
-- `surfaces/`
+- `src/apps/`
+- `src/packages/`
+- `src/features/`
+- `src/capabilities/`
+- `src/providers/`
+- `src/surfaces/`（含保留槽位 `src/surfaces/desktop/`）
 
 同时还应清晰说明它会如何触达宿主中的：
 
@@ -255,8 +259,13 @@ Rendo 当前明确区分两类运行形态：
 - `interfaces/openapi/`
 - `interfaces/mcp/`
 - `interfaces/skills/`
-- `install/`
+- `integration/`
 - `ops/`（仅当宿主属于 `standalone-runnable`）
+
+并且必须区分：
+
+- `assetIntegration.modes[].targetRoot`：机器可读、可执行的物理安装根
+- `integration/`：人类与 Agent 可读的接入与宿主影响说明
 
 ---
 
@@ -275,7 +284,7 @@ Rendo 当前明确区分两类运行形态：
 - `documentation`
 - `lineage`
 - `compatibility`
-- `assetInstall`
+- `assetIntegration`
 - 固定 Agent 入口和接口描述面目录
 
 ---
@@ -296,4 +305,4 @@ Rendo 当前模板体系的正确主干不是：
 - `feature / capability / provider / surface` 是服务基座装配模板
 - `shared/authoring/templates` 是 authoring 源
 - `shared/templates` 是正式模板产物层
-- 目录、命名、manifest 和 install 语义都应服务于“让强 Agent 无歧义理解服务基座模板系统”
+- 目录、命名、manifest、`assetIntegration` 与 `integration` 语义都应服务于“让强 Agent 无歧义理解服务基座模板系统”

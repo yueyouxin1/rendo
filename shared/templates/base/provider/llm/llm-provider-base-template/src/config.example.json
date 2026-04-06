@@ -1,0 +1,5 @@
+{
+  "providerId": "llm-provider-base-template",
+  "credentialEnvKey": "LLM_API_KEY",
+  "endpoint": "https://api.example.com/v1"
+}

@@ -1,6 +1,6 @@
 # Rendo 服务基座首日架构与目录标准
 
-- 文档版本：v2.1
+- 文档版本：v2.2
 - 日期：2026-04-06
 - 文档性质：首日架构与目录冻结文档
 - 目标：在第一天就冻结 `core -> base -> derived` 的统一工程语义，确保所有模板都为“面向 Agent 的服务”而生
@@ -59,7 +59,7 @@ Rendo 要解决的不是“再做一套模板”，而是：
 
 `src/` 的职责是表达“实现根”，不是表达模板类型。
 
-因此默认禁止把模板类型名称再作为 `src` 下一级标准目录，例如：
+因此默认禁止把模板类型名称再作为 `src` 下一级标准目录（该禁止规则不适用于 starter 的宿主挂载槽目录，如 `src/features/`、`src/providers/`），例如：
 
 - 不把 `src/provider` 作为 provider-template 的默认标准结构
 - 不把 `src/feature` 作为 feature-template 的默认标准结构
@@ -75,12 +75,15 @@ Rendo 要解决的不是“再做一套模板”，而是：
 
 ### 2.3 宿主根表达“装配到哪里”
 
-只有宿主 starter 项目根目录，才负责表达装配挂载位，例如：
+只有宿主 starter 才负责表达装配挂载位，但这些挂载位也属于实现层，必须落在 `src/` 下，例如：
 
-- `features/`
-- `capabilities/`
-- `providers/`
-- `surfaces/`
+- `src/apps/`
+- `src/packages/`
+- `src/features/`
+- `src/capabilities/`
+- `src/providers/`
+- `src/surfaces/`
+- `src/surfaces/desktop/`（保留槽位，可先占位）
 
 这些目录表达的是：
 
@@ -186,18 +189,26 @@ Rendo 统一把目录语义拆成五层：
 
 ### 3.4 验证与装配面
 
-负责测试、脚本和安装/集成行为：
+负责测试、脚本和模板级集成说明：
 
 - `tests/`
 - `scripts/`
-- `install/`
+- `integration/`
 
-对于 starter 宿主，还包括装配挂载位：
+对于 starter 宿主，装配槽位也在 `src/` 内统一表达：
 
-- `features/`
-- `capabilities/`
-- `providers/`
-- `surfaces/`
+- `src/apps/`
+- `src/packages/`
+- `src/features/`
+- `src/capabilities/`
+- `src/providers/`
+- `src/surfaces/`
+- `src/surfaces/desktop/`（保留槽位，可先占位）
+
+需要强调：
+
+- `integration/` 只表达人类/Agent 可读的接入说明与宿主影响，不是物理集成根目录
+- 物理集成根目录由 manifest `assetIntegration.modes[].targetRoot` 机器可读声明
 
 ### 3.5 运行与交付面
 
@@ -245,7 +256,7 @@ Rendo 统一把目录语义拆成五层：
 ├── src/
 ├── tests/
 ├── scripts/
-└── install/
+└── integration/
 ```
 
 ### 4.2 通用条件扩展目录
@@ -362,9 +373,15 @@ Rendo 统一把目录语义拆成五层：
 
 承载校验、同步、生成、检查等脚本入口。
 
-#### `install/`
+#### `integration/`
 
-承载安装计划、接入说明、文件变更规则、宿主影响说明。
+承载模板级集成说明、接入步骤、文件变更规则、宿主影响说明。
+
+注意：
+
+- 历史模板内 `install/` 接入说明语义统一更名为 `integration/`
+- `integration/` 不是物理集成根目录
+- 物理集成根目录必须由 manifest `assetIntegration.modes[].targetRoot` 定义
 
 #### `ops/`
 
@@ -402,33 +419,48 @@ Rendo 统一把目录语义拆成五层：
 │   ├── mcp/
 │   └── skills/
 ├── src/
+│   ├── apps/
+│   ├── packages/
+│   ├── features/
+│   ├── capabilities/
+│   ├── providers/
+│   └── surfaces/
+│       └── desktop/
 ├── tests/
 ├── scripts/
-├── install/
-├── features/
-├── capabilities/
-├── providers/
-├── surfaces/
+├── integration/
 └── ops/
 ```
 
 ### 5.2 Starter 各目录的职责
 
-#### `features/`
+#### `src/apps/`
 
-宿主中业务特性模板的挂载位。
+宿主应用实现的标准目录，承载 starter 内可运行应用入口。
 
-#### `capabilities/`
+#### `src/packages/`
 
-宿主中通用能力模板的挂载位。
+宿主共享包、跨端共享库和可复用模块的标准目录。
 
-#### `providers/`
+#### `src/features/`
 
-宿主中供应商接入模板的挂载位。
+宿主中业务特性模板的标准挂载位。
 
-#### `surfaces/`
+#### `src/capabilities/`
 
-宿主中面向人类交互端或 UI 端的挂载位。
+宿主中通用能力模板的标准挂载位。
+
+#### `src/providers/`
+
+宿主中供应商接入模板的标准挂载位。
+
+#### `src/surfaces/`
+
+宿主中面向人类交互端或 UI 端的标准挂载位。
+
+#### `src/surfaces/desktop/`
+
+保留的 desktop surface 槽位。当前官方 starter `base` 可先使用占位实现，但目录语义必须从首日冻结。
 
 #### `ops/`
 
@@ -460,6 +492,12 @@ src/
 
 禁止把以下结构定义为 starter 的标准：
 
+- 根目录 `apps/`
+- 根目录 `packages/`
+- 根目录 `features/`
+- 根目录 `capabilities/`
+- 根目录 `providers/`
+- 根目录 `surfaces/`
 - `src/starter/`
 - `src/provider/`
 - `src/feature/`
@@ -489,12 +527,12 @@ src/
 ├── src/
 ├── tests/
 ├── scripts/
-└── install/
+└── integration/
 ```
 
 ### 6.2 非 starter 模板必须说明的内容
 
-每个非 starter 模板必须在 `install/` 和 `docs/` 中写清楚：
+每个非 starter 模板必须在 `integration/` 和 `docs/` 中写清楚：
 
 1. 它安装到宿主的哪个挂载位
 2. 它会改动宿主的哪些标准目录
@@ -502,6 +540,11 @@ src/
 4. 它会新增或更新哪些 `interfaces/*` 描述
 5. 它会新增哪些测试与验证入口
 6. 它会新增哪些环境变量、运行依赖或运维要求
+
+并且：
+
+- manifest `assetIntegration.modes[].targetRoot` 负责机器可读的物理集成根目录
+- `integration/` 负责人类与 Agent 可读的接入与宿主影响说明
 
 ### 6.3 非 starter 模板不能做的事
 
@@ -635,14 +678,17 @@ src/
 - `interfaces/`
 - `src/`
 - `tests/`
-- `install/`
+- `integration/`
 
 对于 starter 的 `base`，还不得破坏：
 
-- `features/`
-- `capabilities/`
-- `providers/`
-- `surfaces/`
+- `src/apps/`
+- `src/packages/`
+- `src/features/`
+- `src/capabilities/`
+- `src/providers/`
+- `src/surfaces/`
+- `src/surfaces/desktop/`（保留槽位）
 - `ops/`
 
 ### 8.3 `derived`
@@ -683,7 +729,7 @@ Rendo 的首日标准不是“以后补测试”，而是从 `core` 起就预留
 - `AGENTS.md` 与 `CLAUDE.md` 存在且同源
 - `.agents/` 存在且包含最小 Agent 资产
 - `interfaces/openapi/`、`interfaces/mcp/`、`interfaces/skills/` 存在并可校验
-- 非 starter 模板的 `install/` 能清晰说明宿主影响
+- 非 starter 模板的 `integration/` 能清晰说明宿主影响，并与 `assetIntegration.modes[].targetRoot` 一致
 - 若模板是 `standalone-runnable`，则其启动、smoke、健康检查或等价心跳机制可验证
 
 ### 9.3 `derived` 必须补充的验证
@@ -768,7 +814,7 @@ shared/templates/core/provider/provider-core-template/provider/
 1. 五类模板都共享同一套通用根骨架。
 2. 每个 core 模板都具备 `AGENTS.md`、`CLAUDE.md`、`.agents/`。
 3. 模板内部统一使用 `src/` 作为实现根，而不是重复模板类型目录。
-4. starter 宿主独占 `features/ capabilities/ providers/ surfaces/` 作为挂载位语义。
+4. starter 宿主把挂载位统一冻结在 `src/apps/ src/packages/ src/features/ src/capabilities/ src/providers/ src/surfaces/`，并保留 `src/surfaces/desktop/`。
 5. `interfaces/` 与 `src/` 的职责边界清晰，不混放核心业务逻辑。
 6. `starter-template` 与所有 `standalone-runnable` 模板具备明确的 `ops/` 语义；如提供容器方案，则落在 `ops/docker/`。
 7. 所有模板都可验证，但只有 `standalone-runnable` 模板被要求可独立运行并提供健康检查或等价心跳机制。

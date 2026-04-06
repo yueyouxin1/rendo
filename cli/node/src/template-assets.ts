@@ -5,14 +5,14 @@ import { appendMissingEnv, compareVersions, copyTemplateAsset, pathExists } from
 import { loadProjectState, saveProjectManifest } from "./project.js";
 import { prepareTemplateSource, type PreparedTemplateSource, type RegistryOptions } from "./registry-client.js";
 
-export type TemplateInstallPreview = {
+export type TemplateIntegrationPreview = {
   templateId: string;
   templateKind: string;
   templateRole: string;
   runtimeMode: string;
   targetPath: string;
   targetRoot: string;
-  installPlan: {
+  integrationPlan: {
     addsFiles: string[];
     updatesFiles: string[];
     deletesFiles: string[];
@@ -56,13 +56,13 @@ function assertCompatibleHost(
   }
 }
 
-function resolveInstallMode(manifest: PreparedTemplateSource["manifest"], runtimeMode: string) {
-  if (!manifest.assetInstall) {
-    throw new Error(`template ${manifest.id} does not expose install metadata`);
+function resolveIntegrationMode(manifest: PreparedTemplateSource["manifest"], runtimeMode: string) {
+  if (!manifest.assetIntegration) {
+    throw new Error(`template ${manifest.id} does not expose integration metadata`);
   }
 
-  const mode = manifest.assetInstall.modes.find((item) => item.runtimeMode === runtimeMode)
-    ?? manifest.assetInstall.modes.find((item) => item.runtimeMode === "source");
+  const mode = manifest.assetIntegration.modes.find((item) => item.runtimeMode === runtimeMode)
+    ?? manifest.assetIntegration.modes.find((item) => item.runtimeMode === "source");
   if (!mode) {
     throw new Error(`template ${manifest.id} does not support host runtime mode ${runtimeMode}`);
   }
@@ -82,7 +82,10 @@ async function listConflicts(targetPath: string, conflictStrategy: string): Prom
   return ["target directory already exists"];
 }
 
-export async function previewTemplateAssetInstall(source: PreparedTemplateSource, projectRoot: string): Promise<TemplateInstallPreview> {
+export async function previewTemplateAssetIntegration(
+  source: PreparedTemplateSource,
+  projectRoot: string,
+): Promise<TemplateIntegrationPreview> {
   const manifest = source.manifest;
   if (manifest.templateKind === "starter-template") {
     throw new Error(`use rendo create for starter templates: ${manifest.id}`);
@@ -90,18 +93,18 @@ export async function previewTemplateAssetInstall(source: PreparedTemplateSource
 
   const { project } = await loadProjectState(projectRoot);
   assertCompatibleHost(manifest, project.template);
-  const installMode = resolveInstallMode(manifest, project.template.runtimeMode);
-  const targetPath = path.join(projectRoot, installMode.targetRoot, manifest.id);
+  const integrationMode = resolveIntegrationMode(manifest, project.template.runtimeMode);
+  const targetPath = path.join(projectRoot, integrationMode.targetRoot, manifest.id);
 
   return {
     templateId: manifest.id,
     templateKind: manifest.templateKind,
     templateRole: manifest.templateRole,
-    runtimeMode: installMode.runtimeMode,
+    runtimeMode: integrationMode.runtimeMode,
     targetPath,
-    targetRoot: installMode.targetRoot,
-    installPlan: installMode.install,
-    conflicts: await listConflicts(targetPath, installMode.conflictStrategy),
+    targetRoot: integrationMode.targetRoot,
+    integrationPlan: integrationMode.changes,
+    conflicts: await listConflicts(targetPath, integrationMode.conflictStrategy),
     registry: source.registry,
     source: source.source,
     bundleDigest: source.bundleDigest,
@@ -109,18 +112,18 @@ export async function previewTemplateAssetInstall(source: PreparedTemplateSource
   };
 }
 
-export async function installTemplateAsset(source: PreparedTemplateSource, projectRoot: string) {
+export async function integrateTemplateAsset(source: PreparedTemplateSource, projectRoot: string) {
   const manifest = source.manifest;
-  const preview = await previewTemplateAssetInstall(source, projectRoot);
-  const installMode = resolveInstallMode(manifest, preview.runtimeMode);
-  if (preview.conflicts.length > 0 && installMode.conflictStrategy === "fail") {
-    throw new Error(`template install conflicts: ${preview.conflicts.join("; ")}`);
+  const preview = await previewTemplateAssetIntegration(source, projectRoot);
+  const integrationMode = resolveIntegrationMode(manifest, preview.runtimeMode);
+  if (preview.conflicts.length > 0 && integrationMode.conflictStrategy === "fail") {
+    throw new Error(`template integration conflicts: ${preview.conflicts.join("; ")}`);
   }
 
   if (await pathExists(preview.targetPath)) {
-    if (installMode.conflictStrategy === "overwrite") {
+    if (integrationMode.conflictStrategy === "overwrite") {
       await fs.rm(preview.targetPath, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
-    } else if (installMode.conflictStrategy === "skip") {
+    } else if (integrationMode.conflictStrategy === "skip") {
       return {
         templateId: manifest.id,
         templateKind: manifest.templateKind,
@@ -128,14 +131,14 @@ export async function installTemplateAsset(source: PreparedTemplateSource, proje
         targetPath: preview.targetPath,
         copiedFiles: [],
         addedEnv: [],
-        installPlan: preview.installPlan,
+        integrationPlan: preview.integrationPlan,
         skipped: true,
       };
     }
   }
 
   const copiedFiles = await copyTemplateAsset(source.templateDir, preview.targetPath);
-  const addedEnv = await appendMissingEnv(path.join(projectRoot, ".env.example"), preview.installPlan.addsEnv);
+  const addedEnv = await appendMissingEnv(path.join(projectRoot, ".env.example"), preview.integrationPlan.addsEnv);
 
   const { project } = await loadProjectState(projectRoot);
   const record = {
@@ -166,7 +169,7 @@ export async function installTemplateAsset(source: PreparedTemplateSource, proje
     targetPath: preview.targetPath,
     copiedFiles,
     addedEnv,
-    installPlan: preview.installPlan,
+    integrationPlan: preview.integrationPlan,
   };
 }
 
@@ -210,7 +213,7 @@ export async function upgradeTemplateAssets(
         continue;
       }
 
-      const preview = await previewTemplateAssetInstall(source, projectRoot);
+      const preview = await previewTemplateAssetIntegration(source, projectRoot);
       const sameVersion = compareVersions(installed.version, source.manifest.version) >= 0;
       const sameDigest = installed.templateDigest && source.templateDigest && installed.templateDigest === source.templateDigest;
       if (sameVersion && sameDigest) {
@@ -229,7 +232,7 @@ export async function upgradeTemplateAssets(
           currentVersion: installed.version,
           latestVersion: source.manifest.version,
           status: "preview",
-          installPlan: preview.installPlan,
+          integrationPlan: preview.integrationPlan,
         });
         continue;
       }
@@ -237,13 +240,13 @@ export async function upgradeTemplateAssets(
       if (await pathExists(targetPath)) {
         await fs.rm(targetPath, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
       }
-      const applied = await installTemplateAsset(source, projectRoot);
+      const applied = await integrateTemplateAsset(source, projectRoot);
       results.push({
         templateId: installed.id,
         currentVersion: installed.version,
         latestVersion: source.manifest.version,
         status: "upgraded",
-        installPlan: applied.installPlan,
+        integrationPlan: applied.integrationPlan,
       });
     } finally {
       await source.cleanup();

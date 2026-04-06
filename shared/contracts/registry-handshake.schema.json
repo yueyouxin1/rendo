@@ -36,6 +36,21 @@
         "max": { "type": ["string", "null"] }
       }
     },
+    "snapshot": {
+      "type": "object",
+      "required": ["url", "digest"],
+      "properties": {
+        "url": { "type": "string", "minLength": 1 },
+        "digest": {
+          "type": "object",
+          "required": ["algorithm", "value"],
+          "properties": {
+            "algorithm": { "const": "sha256" },
+            "value": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
     "bundleFormat": { "const": "rendo-bundle.v1" },
     "digestAlgorithm": { "const": "sha256" }
   }

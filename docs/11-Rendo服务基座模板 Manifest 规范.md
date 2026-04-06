@@ -7,8 +7,8 @@
 - 这是哪一类服务基座模板
 - 它属于 `core / base / derived` 哪一层
 - 它是服务基座根模板，还是可装配服务单元
-- 它如何被创建、宿主、安装、升级和校验
-- 它的正式模板产物路径与兼容边界是什么
+- 它如何被创建、宿主、集成、升级和校验
+- 它的继承、架构与兼容边界是什么
 
 ## 当前最小字段
 
@@ -34,12 +34,13 @@
 - `toolchains`
 - `lineage`
 - `documentation`
+- `architecture`
 - `surfaceCapabilities`
 - `defaultSurfaces`
 - `surfacePaths`
 - `supports`
 - `compatibility`
-- `assetInstall`
+- `assetIntegration`
 
 ## 关键语义
 
@@ -78,11 +79,19 @@
 
 - `coreTemplate`
 - `baseTemplate`
+- `parentTemplate`
 
 含义：
 
 - `coreTemplate` 指向其继承的 core 模板
 - `baseTemplate` 指向其继承的 base 模板
+- `parentTemplate` 指向当前模板的直接父模板
+
+约束：
+
+- `core` 模板通常为 `null / null / null`
+- `base` 模板通常是 `coreTemplate != null`、`baseTemplate = null`、`parentTemplate = 对应 core`
+- `derived` 模板允许 `parentTemplate` 指向某个 `base` 或另一个 `derived`
 
 ### `documentation`
 
@@ -113,7 +122,8 @@
 注意：
 
 - `runtimeModes` 不是 `standalone-runnable / host-attached` 的替代字段
-- 当前“运行等级”主要由目录标准和文档语义冻结，后续可再增强为 manifest 显式字段
+- 当前“运行等级”已经通过 `architecture.runtimeClass` 显式表达
+- 宿主根 / 宿主附着关系已经通过 `architecture.hostModel` 显式表达
 
 ### `compatibility`
 
@@ -123,15 +133,56 @@
 - 需要哪些接口或目录扩展点
 - 是否依赖宿主已存在的 `interfaces/openapi` / `interfaces/mcp` / `interfaces/skills` 结构
 
-### `assetInstall`
+### `assetIntegration`
 
 这里表达的是：
 
 - 支持哪些宿主模板
-- 以什么模式安装
-- 安装会影响哪些文件和配置
+- 以什么模式集成
+- 集成会影响哪些文件和配置
+- `assetIntegration.modes[].targetRoot` 机器可读地定义物理集成根目录
 
 它是非 starter 模板生命周期的核心控制面。
+
+补充边界：
+
+- `assetIntegration` 是机器可读合同
+- 历史模板内 `install/` 接入说明语义统一更名为 `integration/`
+- `integration/` 是人类与 Agent 可读的接入说明和宿主影响说明
+- `integration/` 不参与物理安装根决策
+
+### Runtime 前的字段边界
+
+在进入真实 runtime、持久化 registry 和官方远程发布链路之前，manifest 的强契约应优先依赖代码层可确定的数据：
+
+- 模板身份、层级和继承关系
+- 架构与目录语义
+- runtime / compatibility / surface / env / toolchain
+- `assetIntegration`
+
+而以下信息虽然有价值，但当前不应成为 CLI 或 runtime 正确性的前置依赖：
+
+- 面向发布的扩展说明性文案
+- 更细粒度的技术栈解读
+- richer 场景标签或发布说明
+
+这些信息后续可以由强 Agent 在发布前 enrich。
+
+### Runtime 前的派生制品边界
+
+当前阶段不再拆第二份“发布 manifest”。
+
+正确关系是：
+
+- `rendo.template.json` 仍是模板作者声明的 canonical manifest
+- `rendo bundle` 是由正式模板产物导出的传输制品
+- `templates.snapshot.json` 是从 manifest 和 bundle 中提取出来的 runtime-pre deterministic catalog
+
+因此：
+
+- manifest 仍保留 `title`、`description` 等对人类有价值的字段
+- runtime-pre snapshot 只保留 runtime / CLI / registry 需要稳定消费的确定性字段和制品 digest
+- richer 发布说明可在后续由强 Agent enrich，但不反向改写当前强契约
 
 ## Agent 入口如何表达
 
@@ -141,7 +192,8 @@
 
 - `documentation` 提供文档入口
 - 固定目录契约提供 `AGENTS.md`、`CLAUDE.md`、`.agents/`、`interfaces/*` 的稳定位置
-- `assetInstall` 说明非 starter 模板对这些入口的影响
+- `assetIntegration` 说明非 starter 模板对这些入口的机器可读影响
+- `integration/` 说明非 starter 模板对宿主的可读接入与变更影响
 
 后续可以继续增强为更强的显式 Agent 元数据，但当前最小 schema 先以以上三者配合成立。
 
@@ -156,4 +208,4 @@ manifest 必须：
 - 能直接暴露文档入口与二次开发入口
 - 能支撑 `search / inspect / init / create / add / pull`
 - 能表达 CLI / registry / host compatibility
-- 能表达非 starter 模板的 install plan 元数据
+- 能表达非 starter 模板的 integration metadata 与 `assetIntegration.modes[].targetRoot` 目标根

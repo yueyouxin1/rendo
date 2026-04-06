@@ -3,5 +3,5 @@
 ## Working model
 
 - Treat this workspace as the canonical `capability templates` core contract.
-- Keep the root files minimal and stable.
+- Read `AGENTS.md` first and keep this file semantically aligned with it.
 - Push concrete product or vendor opinions into base or derived templates.

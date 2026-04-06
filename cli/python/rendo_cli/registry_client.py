@@ -9,6 +9,7 @@ from .bundle import compute_bundle_digest, compute_directory_digest, create_temp
 from .contracts import (
     validate_pack_manifest,
     validate_registry_handshake,
+    validate_registry_snapshot,
     validate_remote_inspect_response,
     validate_remote_search_response,
     validate_template_manifest,
@@ -125,7 +126,9 @@ def _build_template_payload(entry: dict, manifest: dict) -> dict:
         "domainTags": manifest["domainTags"],
         "scenarioTags": manifest["scenarioTags"],
         "toolchains": manifest["toolchains"],
+        "lineage": manifest["lineage"],
         "documentation": manifest["documentation"],
+        "architecture": manifest["architecture"],
         "surfaceCapabilities": manifest["surfaceCapabilities"],
         "defaultSurfaces": manifest["defaultSurfaces"],
         "runtimeModes": manifest["runtimeModes"],
@@ -133,7 +136,7 @@ def _build_template_payload(entry: dict, manifest: dict) -> dict:
         "dependencies": manifest["recommendedPacks"],
         "official": entry["official"],
         "compatibility": manifest["compatibility"],
-        "assetInstall": manifest["assetInstall"],
+        "assetIntegration": manifest["assetIntegration"],
     }
 
 
@@ -156,6 +159,24 @@ def _build_pack_payload(entry: dict, manifest: dict) -> dict:
 
 def get_registry_handshake(options: dict | None = None) -> dict:
     return _resolve_registry(options)["handshake"]
+
+
+def get_registry_snapshot(options: dict | None = None) -> dict | None:
+    resolved = _resolve_registry(options)
+    if resolved["source"] == "local" or not resolved["handshake"].get("snapshot"):
+        return None
+
+    snapshot_url = parse.urljoin(resolved["baseUrl"] + "/", resolved["handshake"]["snapshot"]["url"])
+    raw_snapshot = _download_bytes(snapshot_url, resolved["token"])
+    actual_digest = compute_bundle_digest(raw_snapshot)
+    if actual_digest["value"] != resolved["handshake"]["snapshot"]["digest"]["value"]:
+        raise RuntimeError(f"registry snapshot digest mismatch for {resolved['handshake']['registryId']}")
+    snapshot = validate_registry_snapshot(json.loads(raw_snapshot.decode("utf-8")))
+    return {
+        "url": snapshot_url,
+        "digest": resolved["handshake"]["snapshot"]["digest"],
+        "snapshot": snapshot,
+    }
 
 
 def search_registry(type_name: str, keyword: str, options: dict | None = None) -> list[dict]:

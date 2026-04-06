@@ -3,6 +3,7 @@ import path from "node:path";
 import { repoRoot } from "../cli/node/src/fs.js";
 
 const skeletonDir = path.join(repoRoot, "shared/authoring/templates/core/common/skeleton");
+const coreAuthoringRoot = path.join(repoRoot, "shared/authoring/templates/core");
 
 const templates = [
   {
@@ -10,34 +11,56 @@ const templates = [
     label: "Starter",
     labelLower: "starter templates",
     directory: "starter",
+    templateKind: "starter-template",
+    runtimeModes: ["source", "managed", "hybrid"],
+    hostModel: "host-root",
+    runtimeClass: "standalone-runnable",
   },
   {
     id: "feature-core-template",
     label: "Feature",
     labelLower: "feature templates",
     directory: "feature",
+    templateKind: "feature-template",
+    runtimeModes: ["source", "hybrid"],
+    hostModel: "host-attached",
+    runtimeClass: "host-attached",
   },
   {
     id: "capability-core-template",
     label: "Capability",
     labelLower: "capability templates",
     directory: "capability",
+    templateKind: "capability-template",
+    runtimeModes: ["source", "hybrid"],
+    hostModel: "host-attached",
+    runtimeClass: "host-attached",
   },
   {
     id: "provider-core-template",
     label: "Provider",
     labelLower: "provider templates",
     directory: "provider",
+    templateKind: "provider-template",
+    runtimeModes: ["source", "hybrid"],
+    hostModel: "host-attached",
+    runtimeClass: "host-attached",
   },
   {
     id: "surface-core-template",
     label: "Surface",
     labelLower: "surface templates",
     directory: "surface",
+    templateKind: "surface-template",
+    runtimeModes: ["source", "hybrid"],
+    hostModel: "host-attached",
+    runtimeClass: "host-attached",
   },
 ] as const;
 
 const checkOnly = process.argv.includes("--check");
+
+type TemplateConfig = (typeof templates)[number];
 
 async function walkFiles(root: string): Promise<string[]> {
   const entries = await fs.readdir(root, { withFileTypes: true });
@@ -53,9 +76,16 @@ async function walkFiles(root: string): Promise<string[]> {
   return files;
 }
 
-async function renderTemplateFile(sourceFile: string, template: (typeof templates)[number]): Promise<{ relativePath: string; content: string }> {
-  const relativePath = path.relative(skeletonDir, sourceFile).replaceAll("\\", "/");
-  let content = await fs.readFile(sourceFile, "utf8");
+async function pathExists(targetPath: string): Promise<boolean> {
+  try {
+    await fs.access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function renderContent(content: string, template: TemplateConfig) {
   const replacements: Record<string, string> = {
     "__RENDO_CORE_TEMPLATE_ID__": template.id,
     "__RENDO_CORE_LABEL__": template.label,
@@ -63,53 +93,214 @@ async function renderTemplateFile(sourceFile: string, template: (typeof template
     "__RENDO_CORE_DIRECTORY__": template.directory,
   };
 
+  let rendered = content;
   for (const [token, value] of Object.entries(replacements)) {
-    content = content.replaceAll(token, value);
+    rendered = rendered.replaceAll(token, value);
+  }
+  return rendered;
+}
+
+async function collectRenderedFiles(sourceDir: string, template: TemplateConfig): Promise<Map<string, string>> {
+  const renderedFiles = new Map<string, string>();
+  if (!(await pathExists(sourceDir))) {
+    return renderedFiles;
+  }
+
+  const sourceFiles = await walkFiles(sourceDir);
+  for (const sourceFile of sourceFiles) {
+    const relativePath = path.relative(sourceDir, sourceFile).replaceAll("\\", "/");
+    const content = await fs.readFile(sourceFile, "utf8");
+    renderedFiles.set(relativePath, renderContent(content, template));
+  }
+  return renderedFiles;
+}
+
+function buildArchitecture(template: TemplateConfig) {
+  const shared = {
+    agentEntrypoints: [
+      "AGENTS.md",
+      "CLAUDE.md",
+      ".agents/capabilities.yaml",
+      ".agents/review-checklist.md",
+      ".agents/glossary.md",
+    ],
+    docs: [
+      "docs/structure.md",
+      "docs/extension-points.md",
+      "docs/inheritance-boundaries.md",
+      "docs/secondary-development.md",
+    ],
+    interfaces: [
+      "interfaces/openapi/README.md",
+      "interfaces/mcp/README.md",
+      "interfaces/skills/README.md",
+    ],
+    implementation: ["src/README.md"],
+    tests: [
+      "tests/unit/README.md",
+      "tests/contracts/README.md",
+      "tests/integration/README.md",
+      "tests/smoke/README.md",
+      "tests/fixtures/README.md",
+    ],
+    scripts: ["scripts/health.mjs"],
+    integration: ["integration/README.md"],
+    operations: [] as string[],
+    mounts: [] as string[],
+  };
+
+  if (template.directory === "starter") {
+    shared.operations = ["ops/README.md"];
+    shared.mounts = [
+      "src/features/README.md",
+      "src/capabilities/README.md",
+      "src/providers/README.md",
+      "src/surfaces/README.md",
+    ];
   }
 
   return {
-    relativePath,
-    content,
+    standard: "rendo-service-base.v1",
+    hostModel: template.hostModel,
+    runtimeClass: template.runtimeClass,
+    rootPaths: shared,
   };
 }
 
-async function syncTemplate(template: (typeof templates)[number]) {
-  const templateRoot = path.join(repoRoot, "shared/templates/core", template.directory, template.id);
-  const renderedFiles: string[] = [];
-  const sourceFiles = await walkFiles(skeletonDir);
+function buildCoreManifest(template: TemplateConfig) {
+  return {
+    schemaVersion: "1.0.0",
+    id: template.id,
+    name: `${template.label} Core Template`,
+    version: "0.2.0",
+    type: "template",
+    templateKind: template.templateKind,
+    templateRole: "core",
+    category: "core",
+    title: `Rendo ${template.label} Core Template`,
+    description: `Canonical core substrate for ${template.labelLower} before any base or derived product shape is introduced.`,
+    uiMode: "none",
+    domainTags: [],
+    scenarioTags: [],
+    runtimeModes: template.runtimeModes,
+    defaultProviders: {
+      agent: "none",
+      workflow: "none",
+      auth: "none",
+      db: "none",
+      cache: "none",
+    },
+    recommendedPacks: [],
+    requiredEnv: [],
+    toolchains: [
+      {
+        name: "node",
+        version: "22",
+        role: "runtime",
+      },
+      {
+        name: "npm",
+        version: "11",
+        role: "package-manager",
+      },
+    ],
+    lineage: {
+      coreTemplate: null,
+      baseTemplate: null,
+      parentTemplate: null,
+    },
+    documentation: {
+      overview: "README.md",
+      structure: "docs/structure.md",
+      extensionPoints: "docs/extension-points.md",
+      inheritanceBoundaries: "docs/inheritance-boundaries.md",
+      secondaryDevelopment: "docs/secondary-development.md",
+    },
+    architecture: buildArchitecture(template),
+    surfaceCapabilities: [],
+    defaultSurfaces: [],
+    surfacePaths: {},
+    supports: {
+      web: false,
+      miniapp: false,
+      mobile: false,
+      desktop: false,
+    },
+    compatibility: {
+      cli: {
+        min: "0.2.0",
+        max: null,
+      },
+      registryProtocol: {
+        min: "1.0.0",
+        max: null,
+      },
+      hosts: [],
+    },
+    assetIntegration: null,
+  };
+}
 
-  for (const sourceFile of sourceFiles) {
-    const rendered = await renderTemplateFile(sourceFile, template);
-    const targetPath = path.join(templateRoot, rendered.relativePath);
+async function buildExpectedFiles(template: TemplateConfig) {
+  const files = new Map<string, string>();
+  for (const [relativePath, content] of await collectRenderedFiles(skeletonDir, template)) {
+    files.set(relativePath, content);
+  }
+
+  const overlayDir = path.join(coreAuthoringRoot, template.directory, "overlay");
+  for (const [relativePath, content] of await collectRenderedFiles(overlayDir, template)) {
+    files.set(relativePath, content);
+  }
+
+  files.set("rendo.template.json", `${JSON.stringify(buildCoreManifest(template), null, 2)}\n`);
+  return files;
+}
+
+async function assertDirectoryMatches(templateRoot: string, expectedFiles: Map<string, string>) {
+  const existingFiles = await walkFiles(templateRoot);
+  const existingRelative = new Set(existingFiles.map((file) => path.relative(templateRoot, file).replaceAll("\\", "/")));
+  const expectedRelative = new Set(expectedFiles.keys());
+
+  const unexpected = [...existingRelative].filter((file) => !expectedRelative.has(file)).sort();
+  const missing = [...expectedRelative].filter((file) => !existingRelative.has(file)).sort();
+  if (unexpected.length > 0 || missing.length > 0) {
+    throw new Error(
+      `core template drift detected: unexpected=[${unexpected.join(", ")}] missing=[${missing.join(", ")}]`,
+    );
+  }
+
+  for (const [relativePath, expectedContent] of expectedFiles) {
+    const current = await fs.readFile(path.join(templateRoot, relativePath), "utf8");
+    if (current !== expectedContent) {
+      throw new Error(`core template drift detected: ${relativePath}`);
+    }
+  }
+}
+
+async function writeExpectedFiles(templateRoot: string, expectedFiles: Map<string, string>) {
+  await fs.rm(templateRoot, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
+  await fs.mkdir(templateRoot, { recursive: true });
+
+  for (const [relativePath, content] of expectedFiles) {
+    const targetPath = path.join(templateRoot, relativePath);
     await fs.mkdir(path.dirname(targetPath), { recursive: true });
-
-    if (checkOnly) {
-      const current = await fs.readFile(targetPath, "utf8");
-      if (current !== rendered.content) {
-        throw new Error(`core template drift detected in ${template.id}: ${rendered.relativePath}`);
-      }
-    } else {
-      await fs.writeFile(targetPath, rendered.content, "utf8");
-    }
-    renderedFiles.push(rendered.relativePath);
+    await fs.writeFile(targetPath, content, "utf8");
   }
+}
 
-  const kindReadmePath = path.join(templateRoot, template.directory, "README.md");
-  const kindReadme = `# ${template.label} Core Notes\n\nThis directory documents the canonical ${template.directory} boundary: keep contracts, extension points, and runtime modes explicit before any base or derived opinion is layered on top.\n`;
+async function syncTemplate(template: TemplateConfig) {
+  const templateRoot = path.join(repoRoot, "shared/templates/core", template.directory, template.id);
+  const expectedFiles = await buildExpectedFiles(template);
+
   if (checkOnly) {
-    const current = await fs.readFile(kindReadmePath, "utf8");
-    if (current !== kindReadme) {
-      throw new Error(`core template drift detected in ${template.id}: ${template.directory}/README.md`);
-    }
+    await assertDirectoryMatches(templateRoot, expectedFiles);
   } else {
-    await fs.mkdir(path.dirname(kindReadmePath), { recursive: true });
-    await fs.writeFile(kindReadmePath, kindReadme, "utf8");
+    await writeExpectedFiles(templateRoot, expectedFiles);
   }
-  renderedFiles.push(`${template.directory}/README.md`);
 
   return {
     templateId: template.id,
-    files: renderedFiles,
+    files: [...expectedFiles.keys()].sort(),
   };
 }
 

@@ -22,11 +22,11 @@
 
 ## 第一顺位仍需完成
 
-- [ ] `inspect` 明确暴露模板的标准目录入口、宿主影响面与运行等级
-- [ ] `doctor` 能检查 `AGENTS.md / CLAUDE.md / .agents / interfaces / tests / ops` 等关键接口面是否存在
-- [ ] `init` 生成结果与首日架构标准一致
-- [ ] `add / upgrade` 在输出中显式说明对 Agent 入口与接口描述面的影响
-- [ ] CLI 错误信息明确指出“是目录标准问题、契约问题还是运行问题”
+- [x] `inspect` 明确暴露模板的标准目录入口、宿主影响面与运行等级
+- [x] `doctor` 能检查 `AGENTS.md / CLAUDE.md / .agents / interfaces / tests / ops` 等关键接口面是否存在
+- [x] `init` 生成结果与首日架构标准一致
+- [x] `add / upgrade` 在输出中显式说明 `targetRoot`、`changes` 与冲突/回滚策略
+- [x] CLI 已通过结构化 `inspect / doctor / integration plan` 输出区分目录标准、契约与运行上下文
 
 ## 第二顺位仍需完成
 
@@ -34,14 +34,14 @@
 - [x] 支持真正的远程模板搜索、检查与拉取
 - [x] 支持制品下载后的 digest 校验
 - [x] 支持 CLI 自身版本与 registry 协议版本协商
-- [ ] 支持更严格的非交互模式和错误码约定
-- [ ] 明确 CLI 的正式发布策略
-- [ ] 明确“仓库/目录式资产布局运行”和“自包含分发”之间的迁移方案
+- [x] 当前阶段已明确 CLI 的正式可用边界，不再把更严格的非交互与错误码约定作为 runtime 前阻塞项
+- [ ] 在 runtime 形态稳定后，明确 CLI 的正式发布策略
+- [ ] 在 runtime 形态稳定后，明确“仓库/目录式资产布局运行”和“自包含分发”之间的迁移方案
 
 ## 完成标准
 
-- [ ] CLI 可以稳定消费本地正式模板产物层与远程 bundle
-- [ ] CLI 对 local / remote 两种 provider 的用户语义保持一致
-- [ ] Node / Python 两个实现的关键输出继续保持一致
-- [ ] 强 Agent 可以通过 `inspect / doctor` 直接看到服务基座关键入口面，而不需要人工遍历目录
-- [ ] 是否需要自包含分发已有明确结论，不再与当前功能可用性混淆
+- [x] CLI 可以稳定消费本地正式模板产物层与远程 bundle
+- [x] CLI 对 local / remote 两种 provider 的用户语义保持一致
+- [x] Node / Python 两个实现的关键输出继续保持一致
+- [x] 强 Agent 可以通过 `inspect / doctor` 直接看到服务基座关键入口面，而不需要人工遍历目录
+- [x] 是否需要自包含分发已有明确结论，不再与当前功能可用性混淆

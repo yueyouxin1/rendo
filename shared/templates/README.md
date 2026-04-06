@@ -16,10 +16,11 @@ Rendo template assets are laid out as generated runtime artifacts, not authoring
 - `core/provider/provider-core-template`
 - `core/surface/surface-core-template`
 - `base/starter/application/application-base-starter`
-- `base/feature/dashboard/dashboard-feature-base-template`
-- `base/capability/storage/storage-capability-base-template`
 - `base/provider/llm/llm-provider-base-template`
-- `base/surface/admin/admin-surface-base-template`
+
+Current-stage rule:
+
+- only the minimum official base set is kept active while the rebuilt `core -> base` chain is hardened
 
 ## Design rule
 

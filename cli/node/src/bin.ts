@@ -1,8 +1,10 @@
 #!/usr/bin/env node
+import { promises as fs } from "node:fs";
 import path from "node:path";
 import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { Command } from "commander";
+import { computeBundleDigest, createTemplateBundle, serializeTemplateBundle } from "./bundle.js";
 import { runDoctor } from "./doctor.js";
 import { type InspectPayload, type PackRegistryEntry } from "./contracts.js";
 import { copyTemplateAsset } from "./fs.js";
@@ -10,6 +12,7 @@ import { installPack, previewPack, upgradePacks } from "./packs.js";
 import { findProjectRoot } from "./project.js";
 import {
   getRegistryHandshake,
+  getRegistrySnapshot,
   inspectRegistryRef,
   loadPackManifest,
   prepareCoreTemplateSource,
@@ -20,7 +23,7 @@ import {
   type RegistryOptions,
 } from "./registry-client.js";
 import { scaffoldTemplate } from "./scaffold.js";
-import { installTemplateAsset, previewTemplateAssetInstall, upgradeTemplateAssets } from "./template-assets.js";
+import { integrateTemplateAsset, previewTemplateAssetIntegration, upgradeTemplateAssets } from "./template-assets.js";
 import { CLI_VERSION } from "./version.js";
 
 function print(value: unknown, json = false): void {
@@ -63,12 +66,29 @@ function printInspect(payload: InspectPayload, json: boolean): void {
   if (payload.toolchains?.length) {
     console.log(`toolchains: ${payload.toolchains.map((item) => `${item.name}@${item.version} (${item.role})`).join(", ")}`);
   }
+  if (payload.lineage) {
+    console.log(`lineage core template: ${payload.lineage.coreTemplate ?? "(none)"}`);
+    console.log(`lineage base template: ${payload.lineage.baseTemplate ?? "(none)"}`);
+    console.log(`lineage parent template: ${payload.lineage.parentTemplate ?? "(none)"}`);
+  }
   if (payload.documentation) {
     console.log(`docs overview: ${payload.documentation.overview}`);
     console.log(`docs structure: ${payload.documentation.structure}`);
     console.log(`docs extension points: ${payload.documentation.extensionPoints}`);
     console.log(`docs inheritance: ${payload.documentation.inheritanceBoundaries}`);
     console.log(`docs secondary development: ${payload.documentation.secondaryDevelopment}`);
+  }
+  if (payload.architecture) {
+    console.log(`architecture standard: ${payload.architecture.standard}`);
+    console.log(`architecture host model: ${payload.architecture.hostModel}`);
+    console.log(`architecture runtime class: ${payload.architecture.runtimeClass}`);
+    console.log(`architecture agent entrypoints: ${payload.architecture.rootPaths.agentEntrypoints.join(", ") || "(none)"}`);
+    console.log(`architecture interface roots: ${payload.architecture.rootPaths.interfaces.join(", ") || "(none)"}`);
+    console.log(`architecture implementation roots: ${payload.architecture.rootPaths.implementation.join(", ") || "(none)"}`);
+    console.log(`architecture test roots: ${payload.architecture.rootPaths.tests.join(", ") || "(none)"}`);
+    console.log(`architecture integration roots: ${payload.architecture.rootPaths.integration.join(", ") || "(none)"}`);
+    console.log(`architecture operations roots: ${payload.architecture.rootPaths.operations.join(", ") || "(none)"}`);
+    console.log(`architecture mount roots: ${payload.architecture.rootPaths.mounts.join(", ") || "(none)"}`);
   }
   if (payload.surfaceCapabilities?.length) {
     console.log(`surface capabilities: ${payload.surfaceCapabilities.join(", ")}`);
@@ -93,15 +113,15 @@ function printInspect(payload: InspectPayload, json: boolean): void {
       `compatibility: cli ${payload.compatibility.cli.min ?? "*"}..${payload.compatibility.cli.max ?? "*"}, registry ${payload.compatibility.registryProtocol.min ?? "*"}..${payload.compatibility.registryProtocol.max ?? "*"}`,
     );
   }
-  if (payload.assetInstall) {
-    const supportedHosts = payload.assetInstall.supportedHostTemplates.length
-      ? payload.assetInstall.supportedHostTemplates.join(", ")
-      : payload.assetInstall.supportedHostKinds.length
-        ? payload.assetInstall.supportedHostKinds.join(", ")
+  if (payload.assetIntegration) {
+    const supportedHosts = payload.assetIntegration.supportedHostTemplates.length
+      ? payload.assetIntegration.supportedHostTemplates.join(", ")
+      : payload.assetIntegration.supportedHostKinds.length
+        ? payload.assetIntegration.supportedHostKinds.join(", ")
         : "(any)";
-    console.log(`install summary: ${payload.assetInstall.previewSummary}`);
+    console.log(`asset integration summary: ${payload.assetIntegration.previewSummary}`);
     console.log(`supported hosts: ${supportedHosts}`);
-    for (const mode of payload.assetInstall.modes) {
+    for (const mode of payload.assetIntegration.modes) {
       console.log(`  mode ${mode.runtimeMode}: target ${mode.targetRoot}, conflict ${mode.conflictStrategy}, rollback ${mode.rollbackStrategy}`);
     }
   }
@@ -227,6 +247,42 @@ async function pullTemplateRef(ref: string, outputDir: string | undefined, json:
   throw new Error(`unable to resolve ref: ${ref}`);
 }
 
+function resolveBundleOutputPath(outputFile: string | undefined, templateId: string, version: string): string {
+  return path.resolve(outputFile ?? `${templateId}-${version}.rendo-bundle.json`);
+}
+
+async function exportTemplateBundleRef(ref: string, outputFile: string | undefined, json: boolean, registryOptions: RegistryOptions): Promise<void> {
+  const source = await prepareTemplateSource(ref, registryOptions);
+  if (!source) {
+    throw new Error(`unable to resolve template ref: ${ref}`);
+  }
+
+  try {
+    const bundle = await createTemplateBundle(source.templateDir);
+    const rawBundle = serializeTemplateBundle(bundle);
+    const bundleDigest = computeBundleDigest(rawBundle);
+    const targetPath = resolveBundleOutputPath(outputFile, bundle.templateId, bundle.version);
+    await fs.mkdir(path.dirname(targetPath), { recursive: true });
+    await fs.writeFile(targetPath, rawBundle);
+    print(
+      {
+        kind: "template-bundle",
+        templateId: bundle.templateId,
+        version: bundle.version,
+        outputPath: targetPath,
+        bundleFormat: bundle.bundleFormat,
+        bundleDigest,
+        templateDigest: bundle.templateDigest,
+        registry: source.registry,
+        source: source.source,
+      },
+      json,
+    );
+  } finally {
+    await source.cleanup();
+  }
+}
+
 async function main(): Promise<void> {
   const program = new Command();
   program
@@ -242,6 +298,7 @@ async function main(): Promise<void> {
         "  rendo create application --surfaces web,miniapp --output my-app",
         "  rendo search --type all --json",
         "  rendo inspect llm-provider-base-template --registry http://127.0.0.1:4010 --json",
+        "  rendo bundle application-base-starter --output ./artifacts/application-base-starter.rendo-bundle.json",
       ].join("\n"),
     );
 
@@ -347,7 +404,7 @@ async function main(): Promise<void> {
     .command("add")
     .description("Add a non-starter template asset or a pack to the current project")
     .argument("<ref>")
-    .option("--preview", "show install plan without applying")
+    .option("--preview", "show change plan without applying")
     .option("--yes", "apply without interactive confirmation")
     .option("--registry <provider>", "local or remote registry url", "local")
     .option("--registry-token <token>", "remote registry bearer token")
@@ -365,13 +422,13 @@ async function main(): Promise<void> {
             throw new Error("current directory is not inside a rendo project");
           }
 
-          const preview = await previewTemplateAssetInstall(templateSource, projectRoot);
+          const preview = await previewTemplateAssetIntegration(templateSource, projectRoot);
           if (options.preview) {
             print({ applied: false, preview }, Boolean(options.json));
             return;
           }
 
-          const result = await installTemplateAsset(templateSource, projectRoot);
+          const result = await integrateTemplateAsset(templateSource, projectRoot);
           print({ applied: true, preview, ...result }, Boolean(options.json));
           return;
         } finally {
@@ -399,10 +456,22 @@ async function main(): Promise<void> {
     });
 
   program
+    .command("bundle")
+    .description("Export a template as a local bundle artifact")
+    .argument("<ref>")
+    .option("--output <file>", "output bundle file")
+    .option("--registry <provider>", "local or remote registry url", "local")
+    .option("--registry-token <token>", "remote registry bearer token")
+    .option("--json", "emit structured output")
+    .action(async (ref: string, options: { output?: string; json?: boolean; registry?: string; registryToken?: string }) => {
+      await exportTemplateBundleRef(ref, options.output, Boolean(options.json), getRegistryOptions(options));
+    });
+
+  program
     .command("upgrade")
     .description("Upgrade installed template assets or packs in the current project")
     .argument("[ref]")
-    .option("--preview", "show upgrade plans without applying")
+    .option("--preview", "show upgrade change plans without applying")
     .option("--registry <provider>", "local or remote registry url", "local")
     .option("--registry-token <token>", "remote registry bearer token")
     .option("--json", "emit structured output")
@@ -442,9 +511,22 @@ async function main(): Promise<void> {
     .option("--registry-token <token>", "remote registry bearer token")
     .option("--json", "emit structured output")
     .action(async (options: { json?: boolean; registry?: string; registryToken?: string }) => {
+      const registryOptions = getRegistryOptions(options);
       const report = await runDoctor(process.cwd());
-      const registry = await getRegistryHandshake(getRegistryOptions(options));
-      print({ ...report, registry }, Boolean(options.json));
+      const registry = await getRegistryHandshake(registryOptions);
+      const registrySnapshot = await getRegistrySnapshot(registryOptions);
+      print({
+        ...report,
+        registry,
+        registrySnapshot: registrySnapshot
+          ? {
+              url: registrySnapshot.url,
+              digest: registrySnapshot.digest,
+              entryCount: registrySnapshot.snapshot.entries.length,
+              registryId: registrySnapshot.snapshot.registry.id,
+            }
+          : null,
+      }, Boolean(options.json));
     });
 
   program.configureOutput({

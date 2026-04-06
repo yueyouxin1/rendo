@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rendo.dev/contracts/registry-snapshot.schema.json",
+  "type": "object",
+  "required": ["schemaVersion", "catalogFormat", "generatedAt", "registry", "entries"],
+  "properties": {
+    "schemaVersion": { "type": "string", "minLength": 1 },
+    "catalogFormat": { "const": "rendo-runtime-catalog.v1" },
+    "generatedAt": { "type": "string", "minLength": 1 },
+    "registry": {
+      "type": "object",
+      "required": ["id", "protocolVersion", "bundleFormat", "digestAlgorithm"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "protocolVersion": { "type": "string", "minLength": 1 },
+        "bundleFormat": { "const": "rendo-bundle.v1" },
+        "digestAlgorithm": { "const": "sha256" }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "ref",
+          "aliases",
+          "official",
+          "templateKind",
+          "templateRole",
+          "version",
+          "runtimeModes",
+          "requiredEnv",
+          "toolchains",
+          "lineage",
+          "architecture",
+          "surfaceCapabilities",
+          "defaultSurfaces",
+          "surfacePaths",
+          "supports",
+          "compatibility",
+          "assetIntegration",
+          "artifacts"
+        ],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "ref": { "type": "string", "minLength": 1 },
+          "aliases": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "official": { "type": "boolean" },
+          "templateKind": {
+            "enum": [
+              "starter-template",
+              "feature-template",
+              "capability-template",
+              "provider-template",
+              "surface-template"
+            ]
+          },
+          "templateRole": { "enum": ["core", "base", "derived"] },
+          "version": { "type": "string", "minLength": 1 },
+          "runtimeModes": {
+            "type": "array",
+            "items": { "enum": ["source", "managed", "hybrid"] },
+            "minItems": 1
+          },
+          "requiredEnv": { "type": "array", "items": { "type": "string" } },
+          "toolchains": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "version", "role"],
+              "properties": {
+                "name": { "type": "string", "minLength": 1 },
+                "version": { "type": "string", "minLength": 1 },
+                "role": { "type": "string", "minLength": 1 }
+              }
+            }
+          },
+          "lineage": {
+            "type": "object",
+            "required": ["coreTemplate", "baseTemplate", "parentTemplate"],
+            "properties": {
+              "coreTemplate": { "type": ["string", "null"] },
+              "baseTemplate": { "type": ["string", "null"] },
+              "parentTemplate": { "type": ["string", "null"] }
+            }
+          },
+          "architecture": {
+            "type": "object",
+            "required": ["standard", "hostModel", "runtimeClass", "rootPaths"],
+            "properties": {
+              "standard": { "type": "string", "minLength": 1 },
+              "hostModel": { "enum": ["host-root", "host-attached"] },
+              "runtimeClass": { "enum": ["standalone-runnable", "host-attached"] },
+              "rootPaths": {
+                "type": "object",
+                "required": [
+                  "agentEntrypoints",
+                  "docs",
+                  "interfaces",
+                  "implementation",
+                  "tests",
+                  "scripts",
+                  "integration",
+                  "operations",
+                  "mounts"
+                ],
+                "properties": {
+                  "agentEntrypoints": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+                  "docs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+                  "interfaces": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+                  "implementation": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+                  "tests": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+                  "scripts": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+                  "integration": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+                  "operations": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+                  "mounts": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+                }
+              }
+            }
+          },
+          "surfaceCapabilities": {
+            "type": "array",
+            "items": { "enum": ["web", "miniapp", "mobile", "desktop"] }
+          },
+          "defaultSurfaces": {
+            "type": "array",
+            "items": { "enum": ["web", "miniapp", "mobile", "desktop"] }
+          },
+          "surfacePaths": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 }
+            }
+          },
+          "supports": {
+            "type": "object",
+            "required": ["web", "miniapp", "mobile", "desktop"],
+            "properties": {
+              "web": { "type": "boolean" },
+              "miniapp": { "type": "boolean" },
+              "mobile": { "type": "boolean" },
+              "desktop": { "type": "boolean" }
+            }
+          },
+          "compatibility": {
+            "type": "object",
+            "required": ["cli", "registryProtocol", "hosts"],
+            "properties": {
+              "cli": {
+                "type": "object",
+                "required": ["min", "max"],
+                "properties": {
+                  "min": { "type": ["string", "null"] },
+                  "max": { "type": ["string", "null"] }
+                }
+              },
+              "registryProtocol": {
+                "type": "object",
+                "required": ["min", "max"],
+                "properties": {
+                  "min": { "type": ["string", "null"] },
+                  "max": { "type": ["string", "null"] }
+                }
+              },
+              "hosts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["templateId", "templateKind", "minVersion", "maxVersion"],
+                  "properties": {
+                    "templateId": { "type": ["string", "null"] },
+                    "templateKind": {
+                      "enum": [
+                        "starter-template",
+                        "feature-template",
+                        "capability-template",
+                        "provider-template",
+                        "surface-template"
+                      ]
+                    },
+                    "minVersion": { "type": ["string", "null"] },
+                    "maxVersion": { "type": ["string", "null"] }
+                  }
+                }
+              }
+            }
+          },
+          "assetIntegration": {
+            "type": ["object", "null"],
+            "required": ["previewSummary", "supportedHostKinds", "supportedHostTemplates", "modes"],
+            "properties": {
+              "previewSummary": { "type": "string", "minLength": 1 },
+              "supportedHostKinds": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "starter-template",
+                    "feature-template",
+                    "capability-template",
+                    "provider-template",
+                    "surface-template"
+                  ]
+                }
+              },
+              "supportedHostTemplates": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 }
+              },
+              "modes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["runtimeMode", "targetRoot", "conflictStrategy", "rollbackStrategy", "changes"],
+                  "properties": {
+                    "runtimeMode": { "enum": ["source", "managed", "hybrid"] },
+                    "targetRoot": { "type": "string", "minLength": 1 },
+                    "conflictStrategy": { "enum": ["fail", "overwrite", "skip"] },
+                    "rollbackStrategy": { "enum": ["safe-abort", "manual"] },
+                    "changes": {
+                      "type": "object",
+                      "required": [
+                        "addsFiles",
+                        "updatesFiles",
+                        "deletesFiles",
+                        "addsEnv",
+                        "addsRoutes",
+                        "addsPages",
+                        "addsComponents",
+                        "addsMigrations",
+                        "addsWorkerTasks",
+                        "addsAdminModules",
+                        "requiresManualSetup"
+                      ],
+                      "properties": {
+                        "addsFiles": { "type": "array", "items": { "type": "string" } },
+                        "updatesFiles": { "type": "array", "items": { "type": "string" } },
+                        "deletesFiles": { "type": "array", "items": { "type": "string" } },
+                        "addsEnv": { "type": "array", "items": { "type": "string" } },
+                        "addsRoutes": { "type": "array", "items": { "type": "string" } },
+                        "addsPages": { "type": "array", "items": { "type": "string" } },
+                        "addsComponents": { "type": "array", "items": { "type": "string" } },
+                        "addsMigrations": { "type": "boolean" },
+                        "addsWorkerTasks": { "type": "boolean" },
+                        "addsAdminModules": { "type": "boolean" },
+                        "requiresManualSetup": { "type": "boolean" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "artifacts": {
+            "type": "object",
+            "required": ["manifestPath", "templatePath", "bundlePath", "bundleDigest", "templateDigest"],
+            "properties": {
+              "manifestPath": { "type": "string", "minLength": 1 },
+              "templatePath": { "type": "string", "minLength": 1 },
+              "bundlePath": { "type": "string", "minLength": 1 },
+              "bundleDigest": {
+                "type": "object",
+                "required": ["algorithm", "value"],
+                "properties": {
+                  "algorithm": { "const": "sha256" },
+                  "value": { "type": "string", "minLength": 1 }
+                }
+              },
+              "templateDigest": {
+                "type": "object",
+                "required": ["algorithm", "value"],
+                "properties": {
+                  "algorithm": { "const": "sha256" },
+                  "value": { "type": "string", "minLength": 1 }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -8,6 +8,7 @@
     "check": "tsc -p tsconfig.json --noEmit",
     "dev": "tsx cli/node/src/bin.ts",
     "generate:template": "tsx scripts/generate-template.ts",
+    "generate:runtime-catalog": "tsx scripts/generate-runtime-catalog.ts",
     "test": "node --import tsx --test tests/cli.test.ts"
   },
   "dependencies": {

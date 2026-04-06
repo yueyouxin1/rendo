@@ -9,6 +9,8 @@ SURFACES = {"web", "miniapp", "mobile", "desktop"}
 CONFLICT_STRATEGIES = {"fail", "overwrite", "skip"}
 ROLLBACK_STRATEGIES = {"safe-abort", "manual"}
 AUTH_TYPES = {"none", "bearer-token"}
+TEMPLATE_HOST_MODELS = {"host-root", "host-attached"}
+TEMPLATE_RUNTIME_CLASSES = {"standalone-runnable", "host-attached"}
 
 
 def require_keys(payload: dict, keys: list[str], label: str) -> None:
@@ -56,26 +58,40 @@ def validate_template_compatibility(payload: dict) -> dict:
     return payload
 
 
-def validate_asset_install(payload: dict | None) -> dict | None:
+def validate_template_architecture(payload: dict) -> dict:
+    require_keys(payload, ["standard", "hostModel", "runtimeClass", "rootPaths"], "template architecture")
+    if payload["hostModel"] not in TEMPLATE_HOST_MODELS:
+        raise RuntimeError(f"invalid template host model: {payload['hostModel']}")
+    if payload["runtimeClass"] not in TEMPLATE_RUNTIME_CLASSES:
+        raise RuntimeError(f"invalid template runtime class: {payload['runtimeClass']}")
+    require_keys(
+        payload["rootPaths"],
+        ["agentEntrypoints", "docs", "interfaces", "implementation", "tests", "scripts", "integration", "operations", "mounts"],
+        "template architecture rootPaths",
+    )
+    return payload
+
+
+def validate_asset_integration(payload: dict | None) -> dict | None:
     if payload is None:
         return None
 
-    require_keys(payload, ["previewSummary", "supportedHostKinds", "supportedHostTemplates", "modes"], "asset install")
+    require_keys(payload, ["previewSummary", "supportedHostKinds", "supportedHostTemplates", "modes"], "asset integration")
     if any(kind not in TEMPLATE_KINDS for kind in payload["supportedHostKinds"]):
-        raise RuntimeError("invalid supported host kind in asset install")
+        raise RuntimeError("invalid supported host kind in asset integration")
     for mode in payload["modes"]:
         require_keys(
             mode,
-            ["runtimeMode", "targetRoot", "conflictStrategy", "rollbackStrategy", "install"],
-            "asset install mode",
+            ["runtimeMode", "targetRoot", "conflictStrategy", "rollbackStrategy", "changes"],
+            "asset integration mode",
         )
         if mode["runtimeMode"] not in RUNTIME_MODES:
-            raise RuntimeError(f"invalid asset install runtime mode: {mode['runtimeMode']}")
+            raise RuntimeError(f"invalid asset integration runtime mode: {mode['runtimeMode']}")
         if mode["conflictStrategy"] not in CONFLICT_STRATEGIES:
             raise RuntimeError(f"invalid conflict strategy: {mode['conflictStrategy']}")
         if mode["rollbackStrategy"] not in ROLLBACK_STRATEGIES:
             raise RuntimeError(f"invalid rollback strategy: {mode['rollbackStrategy']}")
-        validate_install_plan(mode["install"], "asset install mode plan")
+        validate_install_plan(mode["changes"], "asset integration mode changes")
     return payload
 
 
@@ -103,12 +119,13 @@ def validate_template_manifest(payload: dict) -> dict:
             "toolchains",
             "lineage",
             "documentation",
+            "architecture",
             "surfaceCapabilities",
             "defaultSurfaces",
             "surfacePaths",
             "supports",
             "compatibility",
-            "assetInstall",
+            "assetIntegration",
         ],
         "template manifest",
     )
@@ -120,17 +137,19 @@ def validate_template_manifest(payload: dict) -> dict:
         raise RuntimeError(f"invalid template role: {payload['templateRole']}")
     if any(mode not in RUNTIME_MODES for mode in payload["runtimeModes"]):
         raise RuntimeError("invalid runtime mode in template manifest")
+    require_keys(payload["lineage"], ["coreTemplate", "baseTemplate", "parentTemplate"], "template lineage")
     require_keys(
         payload["documentation"],
         ["overview", "structure", "extensionPoints", "inheritanceBoundaries", "secondaryDevelopment"],
         "template documentation",
     )
+    validate_template_architecture(payload["architecture"])
     if any(surface not in SURFACES for surface in payload["surfaceCapabilities"]):
         raise RuntimeError("invalid surface in template manifest")
     if any(surface not in SURFACES for surface in payload["defaultSurfaces"]):
         raise RuntimeError("invalid default surface in template manifest")
     validate_template_compatibility(payload["compatibility"])
-    validate_asset_install(payload["assetInstall"])
+    validate_asset_integration(payload["assetIntegration"])
     return payload
 
 
@@ -240,10 +259,63 @@ def validate_registry_handshake(payload: dict) -> dict:
     )
     validate_registry_auth(payload["auth"])
     validate_version_selector(payload["cliCompatibility"], "registry handshake cliCompatibility")
+    if "snapshot" in payload:
+        require_keys(payload["snapshot"], ["url", "digest"], "registry handshake snapshot")
+        validate_digest(payload["snapshot"]["digest"], "registry handshake snapshot digest")
     if payload["bundleFormat"] != "rendo-bundle.v1":
         raise RuntimeError(f"invalid registry bundle format: {payload['bundleFormat']}")
     if payload["digestAlgorithm"] != "sha256":
         raise RuntimeError(f"invalid registry digest algorithm: {payload['digestAlgorithm']}")
+    return payload
+
+
+def validate_registry_snapshot(payload: dict) -> dict:
+    require_keys(payload, ["schemaVersion", "catalogFormat", "generatedAt", "registry", "entries"], "registry snapshot")
+    if payload["catalogFormat"] != "rendo-runtime-catalog.v1":
+        raise RuntimeError(f"invalid registry snapshot format: {payload['catalogFormat']}")
+    require_keys(payload["registry"], ["id", "protocolVersion", "bundleFormat", "digestAlgorithm"], "registry snapshot registry")
+    if payload["registry"]["bundleFormat"] != "rendo-bundle.v1":
+        raise RuntimeError(f"invalid registry snapshot bundle format: {payload['registry']['bundleFormat']}")
+    if payload["registry"]["digestAlgorithm"] != "sha256":
+        raise RuntimeError(f"invalid registry snapshot digest algorithm: {payload['registry']['digestAlgorithm']}")
+    for entry in payload["entries"]:
+        require_keys(
+            entry,
+            [
+                "id",
+                "ref",
+                "aliases",
+                "official",
+                "templateKind",
+                "templateRole",
+                "version",
+                "runtimeModes",
+                "requiredEnv",
+                "toolchains",
+                "lineage",
+                "architecture",
+                "surfaceCapabilities",
+                "defaultSurfaces",
+                "surfacePaths",
+                "supports",
+                "compatibility",
+                "assetIntegration",
+                "artifacts",
+            ],
+            "registry snapshot entry",
+        )
+        if entry["templateKind"] not in TEMPLATE_KINDS:
+            raise RuntimeError(f"invalid registry snapshot template kind: {entry['templateKind']}")
+        if entry["templateRole"] not in TEMPLATE_ROLES:
+            raise RuntimeError(f"invalid registry snapshot template role: {entry['templateRole']}")
+        if any(mode not in RUNTIME_MODES for mode in entry["runtimeModes"]):
+            raise RuntimeError("invalid runtime mode in registry snapshot entry")
+        validate_template_architecture(entry["architecture"])
+        validate_template_compatibility(entry["compatibility"])
+        validate_asset_integration(entry["assetIntegration"])
+        require_keys(entry["artifacts"], ["manifestPath", "templatePath", "bundlePath", "bundleDigest", "templateDigest"], "registry snapshot entry artifacts")
+        validate_digest(entry["artifacts"]["bundleDigest"], "registry snapshot entry bundleDigest")
+        validate_digest(entry["artifacts"]["templateDigest"], "registry snapshot entry templateDigest")
     return payload
 
 

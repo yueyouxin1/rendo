@@ -21,6 +21,12 @@
 - `cliCompatibility`
 - `bundleFormat`
 - `digestAlgorithm`
+- `snapshot`（可选）
+
+其中 `snapshot` 当前结构为：
+
+- `url`
+- `digest`
 
 ## 当前协议版本
 
@@ -59,6 +65,25 @@
 用途：
 
 - 返回 bundle 原文
+
+## Runtime-pre snapshot
+
+远程 registry 在保留 `search / inspect / bundles` 最小 API 的同时，
+可以额外暴露一份静态 deterministic catalog：
+
+- `/templates.snapshot.json`
+- `/index.json`（可作为同内容别名）
+
+它的作用是：
+
+- 让 runtime 或强 Agent 直接消费“当前正式模板集的确定性视图”
+- 提供 manifest 派生出的 lineage、architecture、compatibility、assetIntegration 与制品 digest
+- 避免把 richer 发布信息混进 runtime 前阶段的硬契约
+
+需要注意：
+
+- 当前 CLI 的远程主流程仍以 `search / inspect / create / add / pull` 为准
+- `snapshot` 是为 runtime-pre handoff 和后续 runtime 阶段准备的额外稳定入口，不是对现有 API 的替代
 
 ## CLI 兼容策略
 
@@ -107,6 +132,14 @@ CLI 在下载后必须校验：
 
 - 现在必须能校验完整性
 - 现在不强制要求公钥签名体系先行落地
+
+## 当前不包含的能力
+
+以下能力仍然属于后续 runtime / 平台阶段：
+
+- 官方远程 `publish`
+- 持久化 registry 后端
+- 审核、回退、权限与发布工作流
 
 ## 版本矩阵表达
 

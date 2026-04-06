@@ -1,3 +1,3 @@
 # Compatibility
 
-This template is meant to be installed into starter hosts that expose a provider root and can supply required credentials through explicit env configuration.
+This template is meant to be integrated into starter hosts that expose `src/providers/` and can supply required credentials through explicit env configuration.

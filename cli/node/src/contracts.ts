@@ -2,6 +2,8 @@ import { z } from "zod";
 
 export const runtimeModeSchema = z.enum(["source", "managed", "hybrid"]);
 export type RuntimeMode = z.infer<typeof runtimeModeSchema>;
+export const templateHostModelSchema = z.enum(["host-root", "host-attached"]);
+export const templateRuntimeClassSchema = z.enum(["standalone-runnable", "host-attached"]);
 
 export const templateTypeSchema = z.enum(["template"]);
 export const templateKindSchema = z.enum([
@@ -49,6 +51,7 @@ export type VersionSelector = z.infer<typeof versionSelectorSchema>;
 export const lineageSchema = z.object({
   coreTemplate: z.string().nullable(),
   baseTemplate: z.string().nullable(),
+  parentTemplate: z.string().nullable(),
 });
 
 export const documentationLinksSchema = z.object({
@@ -58,6 +61,26 @@ export const documentationLinksSchema = z.object({
   inheritanceBoundaries: z.string().min(1),
   secondaryDevelopment: z.string().min(1),
 });
+
+export const templateArchitecturePathsSchema = z.object({
+  agentEntrypoints: z.array(z.string().min(1)).default([]),
+  docs: z.array(z.string().min(1)).default([]),
+  interfaces: z.array(z.string().min(1)).default([]),
+  implementation: z.array(z.string().min(1)).default([]),
+  tests: z.array(z.string().min(1)).default([]),
+  scripts: z.array(z.string().min(1)).default([]),
+  integration: z.array(z.string().min(1)).default([]),
+  operations: z.array(z.string().min(1)).default([]),
+  mounts: z.array(z.string().min(1)).default([]),
+});
+
+export const templateArchitectureSchema = z.object({
+  standard: z.string().min(1),
+  hostModel: templateHostModelSchema,
+  runtimeClass: templateRuntimeClassSchema,
+  rootPaths: templateArchitecturePathsSchema,
+});
+export type TemplateArchitecture = z.infer<typeof templateArchitectureSchema>;
 
 export const surfacePathsSchema = z.record(z.string(), z.array(z.string()));
 
@@ -97,12 +120,13 @@ export const templateManifestSchema = z.object({
   toolchains: z.array(toolchainSchema).default([]),
   lineage: lineageSchema,
   documentation: documentationLinksSchema,
+  architecture: templateArchitectureSchema,
   surfaceCapabilities: z.array(surfaceSchema).default([]),
   defaultSurfaces: z.array(surfaceSchema).default([]),
   surfacePaths: surfacePathsSchema.default({}),
   supports: supportMatrixSchema,
   compatibility: templateCompatibilitySchema,
-  assetInstall: z
+  assetIntegration: z
     .object({
       previewSummary: z.string().min(1),
       supportedHostKinds: z.array(templateKindSchema).default([]),
@@ -113,7 +137,7 @@ export const templateManifestSchema = z.object({
           targetRoot: z.string().min(1),
           conflictStrategy: z.enum(["fail", "overwrite", "skip"]),
           rollbackStrategy: z.enum(["safe-abort", "manual"]),
-          install: z.object({
+          changes: z.object({
             addsFiles: z.array(z.string()),
             updatesFiles: z.array(z.string()),
             deletesFiles: z.array(z.string()),
@@ -262,7 +286,9 @@ export const inspectPayloadSchema = z.object({
   domainTags: z.array(domainTagSchema).optional(),
   scenarioTags: z.array(scenarioTagSchema).optional(),
   toolchains: z.array(toolchainSchema).optional(),
+  lineage: lineageSchema.optional(),
   documentation: documentationLinksSchema.optional(),
+  architecture: templateArchitectureSchema.optional(),
   surfaceCapabilities: z.array(surfaceSchema).optional(),
   defaultSurfaces: z.array(surfaceSchema).optional(),
   runtimeModes: z.array(z.string()).optional(),
@@ -273,7 +299,7 @@ export const inspectPayloadSchema = z.object({
   official: z.boolean(),
   install: installPlanSchema.optional(),
   compatibility: templateCompatibilitySchema.optional(),
-  assetInstall: templateManifestSchema.shape.assetInstall.optional(),
+  assetIntegration: templateManifestSchema.shape.assetIntegration.optional(),
 });
 export type InspectPayload = z.infer<typeof inspectPayloadSchema>;
 
@@ -282,6 +308,11 @@ export const digestSchema = z.object({
   value: z.string().min(1),
 });
 export type Digest = z.infer<typeof digestSchema>;
+
+export const registrySnapshotPointerSchema = z.object({
+  url: z.string().min(1),
+  digest: digestSchema,
+});
 
 export const templateBundleFileSchema = z.object({
   path: z.string().min(1),
@@ -309,7 +340,7 @@ export const registryAuthSchema = z.object({
 });
 export type RegistryAuth = z.infer<typeof registryAuthSchema>;
 
-export const registryHandshakeSchema = z.object({
+const registryHandshakeBaseSchema = z.object({
   schemaVersion: z.string().min(1),
   protocolVersion: z.string().min(1),
   registryId: z.string().min(1),
@@ -320,7 +351,55 @@ export const registryHandshakeSchema = z.object({
   bundleFormat: z.literal("rendo-bundle.v1"),
   digestAlgorithm: z.literal("sha256"),
 });
+export const registryHandshakeSchema = registryHandshakeBaseSchema.extend({
+  snapshot: registrySnapshotPointerSchema.optional(),
+});
 export type RegistryHandshake = z.infer<typeof registryHandshakeSchema>;
+
+export const registrySnapshotArtifactsSchema = z.object({
+  manifestPath: z.string().min(1),
+  templatePath: z.string().min(1),
+  bundlePath: z.string().min(1),
+  bundleDigest: digestSchema,
+  templateDigest: digestSchema,
+});
+
+export const registrySnapshotEntrySchema = z.object({
+  id: z.string().min(1),
+  ref: z.string().min(1),
+  aliases: z.array(z.string().min(1)),
+  official: z.boolean(),
+  templateKind: templateKindSchema,
+  templateRole: templateRoleSchema,
+  version: z.string().min(1),
+  runtimeModes: z.array(runtimeModeSchema).min(1),
+  requiredEnv: z.array(z.string()),
+  toolchains: z.array(toolchainSchema).default([]),
+  lineage: lineageSchema,
+  architecture: templateArchitectureSchema,
+  surfaceCapabilities: z.array(surfaceSchema).default([]),
+  defaultSurfaces: z.array(surfaceSchema).default([]),
+  surfacePaths: surfacePathsSchema.default({}),
+  supports: supportMatrixSchema,
+  compatibility: templateCompatibilitySchema,
+  assetIntegration: templateManifestSchema.shape.assetIntegration,
+  artifacts: registrySnapshotArtifactsSchema,
+});
+export type RegistrySnapshotEntry = z.infer<typeof registrySnapshotEntrySchema>;
+
+export const registrySnapshotSchema = z.object({
+  schemaVersion: z.string().min(1),
+  catalogFormat: z.literal("rendo-runtime-catalog.v1"),
+  generatedAt: z.string().min(1),
+  registry: z.object({
+    id: z.string().min(1),
+    protocolVersion: z.string().min(1),
+    bundleFormat: z.literal("rendo-bundle.v1"),
+    digestAlgorithm: z.literal("sha256"),
+  }),
+  entries: z.array(registrySnapshotEntrySchema),
+});
+export type RegistrySnapshot = z.infer<typeof registrySnapshotSchema>;
 
 export const remoteSearchEntrySchema = z.object({
   kind: z.string().min(1),

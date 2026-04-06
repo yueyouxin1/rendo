@@ -16,16 +16,17 @@ It exists to give humans and agents one clear, production-oriented starting poin
 
 ## Structure summary
 
-- `apps/web`: Next.js hello-world landing page
-- `apps/miniapp`: miniapp placeholder surface
-- `apps/mobile`: mobile placeholder surface
-- `packages/*`: shared contracts and future shared application modules
-- `features/`, `capabilities/`, `providers/`, `surfaces/`: host-owned install roots for non-starter template assets
+- `src/apps/web`: Next.js hello-world landing page
+- `src/apps/miniapp`: miniapp placeholder surface
+- `src/apps/mobile`: mobile placeholder surface
+- `src/apps/desktop`: reserved desktop surface slot
+- `src/packages/*`: shared contracts and future shared application modules
+- `src/features/`, `src/capabilities/`, `src/providers/`, `src/surfaces/`: host-owned integration roots for non-starter template assets
 - root manifest and docs: shared starter control plane
 
 ## Rules
 
 - Keep CLI semantics language-agnostic.
 - Keep multi-surface boundaries explicit.
-- Keep shared domain logic out of surface-specific directories when it can live under `packages/`.
+- Keep shared domain logic out of surface-specific directories when it can live under `src/packages/`.
 - Do not add admin or business modules by default.

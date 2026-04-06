@@ -46,7 +46,8 @@
   ],
   "lineage": {
     "coreTemplate": "starter-core-template",
-    "baseTemplate": null
+    "baseTemplate": null,
+    "parentTemplate": "starter-core-template"
   },
   "documentation": {
     "overview": "README.md",
@@ -54,6 +55,63 @@
     "extensionPoints": "docs/extension-points.md",
     "inheritanceBoundaries": "docs/inheritance-boundaries.md",
     "secondaryDevelopment": "docs/secondary-development.md"
+  },
+  "architecture": {
+    "standard": "rendo-service-base.v1",
+    "hostModel": "host-root",
+    "runtimeClass": "standalone-runnable",
+    "rootPaths": {
+      "agentEntrypoints": [
+        "AGENTS.md",
+        "CLAUDE.md",
+        ".agents/capabilities.yaml",
+        ".agents/review-checklist.md",
+        ".agents/glossary.md"
+      ],
+      "docs": [
+        "docs/structure.md",
+        "docs/extension-points.md",
+        "docs/inheritance-boundaries.md",
+        "docs/secondary-development.md"
+      ],
+      "interfaces": [
+        "interfaces/openapi/README.md",
+        "interfaces/mcp/README.md",
+        "interfaces/skills/README.md"
+      ],
+      "implementation": [
+        "src/apps/README.md",
+        "src/apps/desktop/README.md",
+        "src/packages/README.md",
+        "src/packages/contracts/README.md",
+        "src/packages/domain/README.md",
+        "src/packages/shared/README.md",
+        "src/packages/config/README.md"
+      ],
+      "tests": [
+        "tests/unit/README.md",
+        "tests/contracts/README.md",
+        "tests/integration/README.md",
+        "tests/smoke/README.md",
+        "tests/fixtures/README.md"
+      ],
+      "scripts": [
+        "scripts/health.mjs"
+      ],
+      "integration": [
+        "integration/README.md"
+      ],
+      "operations": [
+        "ops/README.md",
+        "ops/docker/compose.yaml"
+      ],
+      "mounts": [
+        "src/features/README.md",
+        "src/capabilities/README.md",
+        "src/providers/README.md",
+        "src/surfaces/README.md"
+      ]
+    }
   },
   "surfaceCapabilities": [
     "web",
@@ -65,13 +123,13 @@
   ],
   "surfacePaths": {
     "web": [
-      "apps/web"
+      "src/apps/web"
     ],
     "miniapp": [
-      "apps/miniapp"
+      "src/apps/miniapp"
     ],
     "mobile": [
-      "apps/mobile"
+      "src/apps/mobile"
     ]
   },
   "supports": {
@@ -91,5 +149,5 @@
     },
     "hosts": []
   },
-  "assetInstall": null
+  "assetIntegration": null
 }

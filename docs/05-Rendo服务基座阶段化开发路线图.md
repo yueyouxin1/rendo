@@ -28,7 +28,7 @@
 - `project-manifest`
 - `template-profile`
 - `templates registry`
-- `AGENTS.md / CLAUDE.md / .agents / interfaces / src / install / tests / ops` 的最小约定
+- `AGENTS.md / CLAUDE.md / .agents / interfaces / src / integration / tests / ops` 的最小约定
 - `standalone-runnable / host-attached` 的运行等级约定
 - `docs/29-Rendo服务基座首日架构与目录标准.md`
 
@@ -64,6 +64,22 @@
 - `rendo add / pull / upgrade / doctor`
 - local provider 与 remote provider 的一致用户语义
 
+## Phase 2.5：Runtime 前确定性制品边界
+
+目标：
+
+- 在进入真实 runtime / SaaS 阶段前，冻结 CLI 和 registry 需要消费的确定性制品边界
+- 区分模板 manifest 本体、bundle 制品和 runtime-pre catalog snapshot
+- 明确当前不做官方远程 publish，只做本地正式制品导出和 deterministic snapshot 生成
+
+交付：
+
+- `rendo bundle <ref>`
+- `templates.snapshot.json`
+- `index.json`
+- `.well-known/rendo-registry.json` 的 `snapshot` 指针
+- `registry-snapshot.schema.json`
+
 ## Phase 3：Base 模板层落地
 
 目标：
@@ -74,21 +90,23 @@
 交付：
 
 - `application-base-starter`
-- `dashboard-feature-base-template`
-- `storage-capability-base-template`
 - `llm-provider-base-template`
-- `admin-surface-base-template`
+
+当前阶段说明：
+
+- 先保留最小官方 base 集合，确保 `create` 和非 starter `add / pull / integrate` 闭环稳定
+- feature / capability / surface 官方 base 延后到 core/base 继承链稳定之后再恢复
 
 ## Phase 4：模板资产生命周期最小闭环
 
 目标：
 
-- 验证 capability / provider / surface template 的 manifest、install、add、pull、upgrade 语义
+- 验证 capability / provider / surface template 的 manifest、integration、add、pull、upgrade 语义
 - 证明“可装配服务单元”能在 starter 服务基座里稳定工作
 
 交付：
 
-- template asset 最小 install plan 机制
+- template asset 最小 integration plan 机制
 - 至少 1 个可被搜索、检查、安装、拉取的官方非 starter base 模板闭环样板
 
 ## Phase 5：服务基座验证与接口自动化

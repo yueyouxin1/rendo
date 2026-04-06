@@ -61,26 +61,6 @@
       "templatePath": "shared/templates/base/starter/application/application-base-starter"
     },
     {
-      "id": "dashboard-feature-base-template",
-      "ref": "rendo:dashboard-feature-base-template",
-      "aliases": ["dashboard-feature"],
-      "official": true,
-      "templateKind": "feature-template",
-      "templateRole": "base",
-      "manifestPath": "shared/templates/base/feature/dashboard/dashboard-feature-base-template/rendo.template.json",
-      "templatePath": "shared/templates/base/feature/dashboard/dashboard-feature-base-template"
-    },
-    {
-      "id": "storage-capability-base-template",
-      "ref": "rendo:storage-capability-base-template",
-      "aliases": ["storage-capability", "storage"],
-      "official": true,
-      "templateKind": "capability-template",
-      "templateRole": "base",
-      "manifestPath": "shared/templates/base/capability/storage/storage-capability-base-template/rendo.template.json",
-      "templatePath": "shared/templates/base/capability/storage/storage-capability-base-template"
-    },
-    {
       "id": "llm-provider-base-template",
       "ref": "rendo:llm-provider-base-template",
       "aliases": ["llm-provider"],
@@ -89,16 +69,6 @@
       "templateRole": "base",
       "manifestPath": "shared/templates/base/provider/llm/llm-provider-base-template/rendo.template.json",
       "templatePath": "shared/templates/base/provider/llm/llm-provider-base-template"
-    },
-    {
-      "id": "admin-surface-base-template",
-      "ref": "rendo:admin-surface-base-template",
-      "aliases": ["admin-surface"],
-      "official": true,
-      "templateKind": "surface-template",
-      "templateRole": "base",
-      "manifestPath": "shared/templates/base/surface/admin/admin-surface-base-template/rendo.template.json",
-      "templatePath": "shared/templates/base/surface/admin/admin-surface-base-template"
     }
   ]
 }

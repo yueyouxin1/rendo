@@ -26,6 +26,7 @@
 
 - `rendo.template.json`
 - `rendo.project.json`
+- `package.json`
 - `README.md`
 - `AGENTS.md`
 - `CLAUDE.md`
@@ -41,10 +42,17 @@
 - `src/`
 - `tests/`
 - `scripts/`
-- `install/`
+- `integration/`
 - 一个最小可执行或可校验的健康检查入口
 
 其中 `rendo.template.json` 应显式提供 `documentation` 字段，指向这些规范文件，方便 CLI、人类和强 Agent 从 manifest 直接找到正确入口。
+
+其中还应明确：
+
+- `integration/` 是人类与 Agent 可读的宿主接入说明目录
+- `integration/` 不是物理集成根目录
+- 物理集成根目录由 manifest `assetIntegration.modes[].targetRoot` 机器可读声明
+- `src/` 是唯一实现根目录
 
 对于目录标准本身，所有 `core` 模板还必须服从：
 
@@ -52,10 +60,13 @@
 
 如果是 `starter-core-template`，则应进一步提供：
 
-- `features/`
-- `capabilities/`
-- `providers/`
-- `surfaces/`
+- `src/apps/`
+- `src/apps/desktop/`（保留槽位）
+- `src/packages/`
+- `src/features/`
+- `src/capabilities/`
+- `src/providers/`
+- `src/surfaces/`
 - `ops/`
 
 并预留：
@@ -71,6 +82,7 @@
 - 它如何扩展宿主 starter 的 `interfaces/mcp/`
 - 它如何扩展宿主 starter 的 `interfaces/skills/`
 - 它如何更新宿主的 `.agents/capabilities.yaml`
+- 它通过 manifest `assetIntegration.modes[].targetRoot` 安装到宿主 `src/features/`、`src/capabilities/`、`src/providers/` 或 `src/surfaces/`
 
 ## 4. 必须满足
 

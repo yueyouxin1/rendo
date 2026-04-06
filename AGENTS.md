@@ -10,7 +10,7 @@ The current goal is to deliver:
 1. a stable `core` layer for every first-class service-foundation template kind
 2. `rendo cli` as the default entrypoint
 3. official `base` templates derived from those core templates
-4. the minimum manifest and install-plan mechanism needed for template-asset extensibility
+4. the minimum manifest contract plus asset-integration mechanism needed for template-asset extensibility
 5. a day-one architecture and directory standard that makes every template born ready for agent-oriented service design
 
 ## Source Of Truth
@@ -73,7 +73,7 @@ Core templates must:
 - avoid premature product or vendor opinions
 - define the control-plane contract for their template kind
 - define language-agnostic architecture semantics and reserved root directories
-- require `AGENTS.md`, `CLAUDE.md`, `.agents/`, `docs/`, `interfaces/`, `src/`, `tests/`, `scripts/`, and `install/`
+- require `AGENTS.md`, `CLAUDE.md`, `.agents/`, `docs/`, `interfaces/`, `src/`, `tests/`, `scripts/`, and `integration/`
 - distinguish `standalone-runnable` from `host-attached`
 - reserve TDD-oriented test structure and verification entrypoints
 
@@ -85,13 +85,15 @@ Each template kind should have an official `base` template that represents the c
 
 For starter templates, `base` must represent a production-evolvable service foundation rather than a demo scaffold.
 
-The current official bases are:
+The current minimum official bases are:
 
 - `application-base-starter`
-- `dashboard-feature-base-template`
-- `storage-capability-base-template`
 - `llm-provider-base-template`
-- `admin-surface-base-template`
+
+Current-stage rule:
+
+- keep only the minimum official base set needed to prove `create` plus non-starter `add / pull / integrate` with `assetIntegration.modes[].targetRoot`
+- defer feature / capability / surface official bases until the rebuilt `core -> base` chain is stable
 
 ### CLI
 
@@ -101,12 +103,15 @@ Command split:
 
 - `rendo init <kind>`: initialize a core template
 - `rendo create`: create a concrete service foundation project from a base or derived starter template
-- `rendo search / inspect / add / pull / upgrade / doctor`: template and pack lifecycle
+- `rendo search / inspect / add / pull / bundle / upgrade / doctor`: template and pack lifecycle
 
 Current delivery boundary:
 
 - the CLI consumes formal template artifacts from `shared/templates` through `shared/registry`
 - `shared/authoring/templates` is authoring-only and is not consumed directly at runtime
+- remote registry handshake plus bundle-backed `search / inspect / create / add / pull` are already implemented against the fixture registry
+- `rendo bundle <ref>` exports deterministic local formal bundle artifacts from that formal layer
+- `scripts/generate-runtime-catalog.ts` exports runtime-pre registry artifacts (`bundles/*.json`, `templates.snapshot.json`, `.well-known/rendo-registry.json`) without introducing official remote publish yet
 - current implementations run against a repository-style or distribution-style asset layout
 - self-contained binary packaging is later hardening work, not the current baseline
 
@@ -129,7 +134,7 @@ Custom code is justified only for:
 - manifests and contracts
 - CLI
 - provider adapters
-- template-asset install logic
+- template-asset integration logic
 - minimal Rendo integration glue
 
 ## Integration Policy
@@ -142,7 +147,8 @@ That means:
 - keep `AGENTS.md`, `CLAUDE.md`, `.agents/`, and `interfaces/*` explicit
 - keep the root architecture and directory contract stable across `core -> base -> derived`
 - make business capabilities discoverable through explicit `interfaces/openapi`, `interfaces/mcp`, and `interfaces/skills` surfaces
-- keep `src/` for implementation and host mount points at the starter root
+- keep `src/` as the sole implementation root, including starter host slots under `src/apps/`, `src/packages/`, `src/features/`, `src/capabilities/`, `src/providers/`, and `src/surfaces/` (reserve `src/surfaces/desktop/`)
+- use `integration/` for human/agent-readable host-impact guidance; legacy template-local `install/` guidance semantics are renamed to `integration/`, while physical install roots remain manifest-driven via `assetIntegration.modes[].targetRoot`
 - prefer local manifests, mocks, and adapters first
 - only bind real platform dependencies where the model truly needs validation
 
@@ -165,10 +171,11 @@ Work is successful when:
 2. `rendo init <kind>` initializes a valid core template
 3. official `base` templates are derived from the core layer
 4. `rendo create` creates runnable starter-based service foundation projects
-5. at least one official non-starter asset proves the `add / pull / install` lifecycle
+5. at least one official non-starter asset proves the `add / pull / integrate` lifecycle with machine-readable `assetIntegration.modes[].targetRoot` and `integration/` guidance
 6. the day-one architecture and directory standard is inherited consistently by `core -> base -> derived`
 7. the authoring source and formal artifact layer are clearly separated
 8. strong agents can understand and operate the system through files, manifests, CLI, and structured outputs
+9. runtime-pre deterministic bundle and snapshot artifacts are sufficient to hand off into the next runtime phase without requiring official remote publish first
 
 ## How To Work
 

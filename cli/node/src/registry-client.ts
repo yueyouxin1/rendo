@@ -7,12 +7,14 @@ import {
 } from "./bundle.js";
 import {
   registryHandshakeSchema,
+  registrySnapshotSchema,
   remoteInspectResponseSchema,
   remoteSearchResponseSchema,
   type InspectPayload,
   type PackManifest,
   type PackRegistryEntry,
   type RegistryHandshake,
+  type RegistrySnapshot,
   type TemplateManifest,
   type TemplateRegistryEntry,
 } from "./contracts.js";
@@ -134,6 +136,16 @@ async function fetchJson<T>(url: string, token?: string): Promise<T> {
   return (await response.json()) as T;
 }
 
+async function fetchBuffer(url: string, token?: string): Promise<Buffer> {
+  const response = await fetch(url, {
+    headers: buildRemoteHeaders(token),
+  });
+  if (!response.ok) {
+    throw new Error(`remote registry request failed: ${response.status} ${response.statusText}`);
+  }
+  return Buffer.from(await response.arrayBuffer());
+}
+
 async function resolveRegistry(options?: RegistryOptions): Promise<ResolvedRegistry> {
   const registry = normalizeRegistryInput(options?.registry);
   if (registry === "local") {
@@ -182,7 +194,9 @@ function buildInspectPayloadFromTemplate(entry: TemplateRegistryEntry, manifest:
     domainTags: manifest.domainTags,
     scenarioTags: manifest.scenarioTags,
     toolchains: manifest.toolchains,
+    lineage: manifest.lineage,
     documentation: manifest.documentation,
+    architecture: manifest.architecture,
     surfaceCapabilities: manifest.surfaceCapabilities,
     defaultSurfaces: manifest.defaultSurfaces,
     runtimeModes: manifest.runtimeModes,
@@ -190,7 +204,7 @@ function buildInspectPayloadFromTemplate(entry: TemplateRegistryEntry, manifest:
     dependencies: manifest.recommendedPacks,
     official: entry.official,
     compatibility: manifest.compatibility,
-    assetInstall: manifest.assetInstall,
+    assetIntegration: manifest.assetIntegration,
   };
 }
 
@@ -214,6 +228,31 @@ function buildInspectPayloadFromPack(entry: PackRegistryEntry, manifest: PackMan
 export async function getRegistryHandshake(options?: RegistryOptions): Promise<RegistryHandshake> {
   const resolved = await resolveRegistry(options);
   return resolved.handshake;
+}
+
+export async function getRegistrySnapshot(options?: RegistryOptions): Promise<{
+  url: string;
+  digest: NonNullable<RegistryHandshake["snapshot"]>["digest"];
+  snapshot: RegistrySnapshot;
+} | null> {
+  const resolved = await resolveRegistry(options);
+  if (resolved.source === "local" || !resolved.handshake.snapshot) {
+    return null;
+  }
+
+  const snapshotUrl = new URL(resolved.handshake.snapshot.url, `${resolved.baseUrl}/`).toString();
+  const rawSnapshot = await fetchBuffer(snapshotUrl, resolved.token);
+  const actualDigest = computeBundleDigest(rawSnapshot);
+  if (actualDigest.value !== resolved.handshake.snapshot.digest.value) {
+    throw new Error(`registry snapshot digest mismatch for ${resolved.handshake.registryId}`);
+  }
+
+  const snapshot = registrySnapshotSchema.parse(JSON.parse(rawSnapshot.toString("utf8")));
+  return {
+    url: snapshotUrl,
+    digest: resolved.handshake.snapshot.digest,
+    snapshot,
+  };
 }
 
 export async function searchRegistry(type: string, keyword: string, options?: RegistryOptions) {
@@ -293,13 +332,7 @@ async function prepareLocalTemplateSource(entry: TemplateRegistryEntry, registry
 }
 
 async function downloadRemoteBundle(url: string, token?: string): Promise<Buffer> {
-  const response = await fetch(url, {
-    headers: buildRemoteHeaders(token),
-  });
-  if (!response.ok) {
-    throw new Error(`remote bundle download failed: ${response.status} ${response.statusText}`);
-  }
-  return Buffer.from(await response.arrayBuffer());
+  return fetchBuffer(url, token);
 }
 
 async function prepareRemoteTemplateSource(

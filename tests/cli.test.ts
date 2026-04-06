@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { spawn, spawnSync, type ChildProcess, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { mkdtemp, mkdir, readFile, readdir, rm } from "node:fs/promises";
+import { access, mkdtemp, mkdir, readFile, readdir, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -86,10 +86,7 @@ async function ensureGeneratedAssets() {
     generatedAssetsPromise = (async () => {
       const profiles = [
         "base/starter/application/application-base-starter",
-        "base/feature/dashboard/dashboard-feature-base-template",
-        "base/capability/storage/storage-capability-base-template",
         "base/provider/llm/llm-provider-base-template",
-        "base/surface/admin/admin-surface-base-template"
       ];
       for (const profile of profiles) {
         const generated = run(npmCommand, ["run", "generate:template", "--", profile], repoRoot);
@@ -98,6 +95,14 @@ async function ensureGeneratedAssets() {
     })();
   }
   await generatedAssetsPromise;
+}
+
+function runRuntimeCatalogExport(outputDir: string, apiBaseUrl = "http://127.0.0.1:4010") {
+  return run(
+    "node",
+    ["--import", tsxLoader, path.join(repoRoot, "scripts", "generate-runtime-catalog.ts"), outputDir, `--api-base-url=${apiBaseUrl}`],
+    repoRoot,
+  );
 }
 
 async function withTempDir(name: string, fn: (dir: string) => Promise<void>, options?: { cleanup?: boolean }) {
@@ -142,6 +147,35 @@ async function collectDirectoryHashes(rootDir: string) {
 
   await visit(rootDir);
   return result;
+}
+
+async function pathExists(targetPath: string) {
+  try {
+    await access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function assertPathsExist(rootDir: string, relativePaths: string[]) {
+  for (const relativePath of relativePaths) {
+    assert.equal(
+      await pathExists(path.join(rootDir, relativePath)),
+      true,
+      `expected path to exist: ${relativePath}`,
+    );
+  }
+}
+
+async function assertPathsMissing(rootDir: string, relativePaths: string[]) {
+  for (const relativePath of relativePaths) {
+    assert.equal(
+      await pathExists(path.join(rootDir, relativePath)),
+      false,
+      `expected path to be absent: ${relativePath}`,
+    );
+  }
 }
 
 async function waitForHttp(
@@ -220,7 +254,7 @@ async function stopProcess(child: ChildProcess) {
 }
 
 async function runLocallyWebOnlyTemplate(templateDir: string, webPort: number, textToMatch: RegExp) {
-  const webDir = path.join(templateDir, "apps", "web");
+  const webDir = path.join(templateDir, "src", "apps", "web");
   const webInstall = run(npmCommand, ["install"], webDir);
   assert.equal(webInstall.status, 0, webInstall.stderr || webInstall.stdout);
 
@@ -240,9 +274,68 @@ async function runLocallyWebOnlyTemplate(templateDir: string, webPort: number, t
   }
 }
 
+function buildRuntimeCatalogSnapshot(
+  bundles: Map<string, { entry: { id: string; ref: string; aliases: string[]; official: boolean; templateKind: string; templateRole: string; templatePath: string; manifestPath?: string }; bundle: Awaited<ReturnType<typeof createTemplateBundle>>; raw: Buffer; digest: ReturnType<typeof computeBundleDigest> }>,
+) {
+  const entries = [...bundles.values()]
+    .sort((left, right) => left.entry.id.localeCompare(right.entry.id))
+    .map(({ entry, bundle, digest }) => ({
+      id: entry.id,
+      ref: entry.ref,
+      aliases: entry.aliases,
+      official: entry.official,
+      templateKind: entry.templateKind,
+      templateRole: entry.templateRole,
+      version: bundle.manifest.version,
+      runtimeModes: bundle.manifest.runtimeModes,
+      requiredEnv: bundle.manifest.requiredEnv,
+      toolchains: bundle.manifest.toolchains,
+      lineage: bundle.manifest.lineage,
+      architecture: bundle.manifest.architecture,
+      surfaceCapabilities: bundle.manifest.surfaceCapabilities,
+      defaultSurfaces: bundle.manifest.defaultSurfaces,
+      surfacePaths: bundle.manifest.surfacePaths,
+      supports: bundle.manifest.supports,
+      compatibility: bundle.manifest.compatibility,
+      assetIntegration: bundle.manifest.assetIntegration,
+      artifacts: {
+        manifestPath: entry.manifestPath ?? `shared/templates/${entry.id}/rendo.template.json`,
+        templatePath: entry.templatePath,
+        bundlePath: `bundles/${entry.id}.json`,
+        bundleDigest: digest,
+        templateDigest: bundle.templateDigest,
+      },
+    }));
+
+  const raw = Buffer.from(
+    JSON.stringify(
+      {
+        schemaVersion: "1.0.0",
+        catalogFormat: "rendo-runtime-catalog.v1",
+        generatedAt: "2026-04-04T00:00:00.000Z",
+        registry: {
+          id: "fixture-registry",
+          protocolVersion: "1.0.0",
+          bundleFormat: "rendo-bundle.v1",
+          digestAlgorithm: "sha256",
+        },
+        entries,
+      },
+      null,
+      2,
+    ),
+    "utf8",
+  );
+
+  return {
+    raw,
+    digest: computeBundleDigest(raw),
+  };
+}
+
 async function startFixtureRegistryServer(tamperDigest = false) {
   const registryRaw = JSON.parse(await readFile(path.join(repoRoot, "shared", "registry", "templates.json"), "utf8")) as {
-    templates: Array<{ id: string; ref: string; aliases: string[]; official: boolean; templateKind: string; templateRole: string; templatePath: string }>;
+    templates: Array<{ id: string; ref: string; aliases: string[]; official: boolean; templateKind: string; templateRole: string; templatePath: string; manifestPath: string }>;
   };
   const bundles = new Map<string, { entry: (typeof registryRaw.templates)[number]; bundle: Awaited<ReturnType<typeof createTemplateBundle>>; raw: Buffer; digest: ReturnType<typeof computeBundleDigest> }>();
   for (const entry of registryRaw.templates.filter((item) => item.official)) {
@@ -256,6 +349,7 @@ async function startFixtureRegistryServer(tamperDigest = false) {
       digest: computeBundleDigest(raw),
     });
   }
+  const runtimeCatalog = buildRuntimeCatalogSnapshot(bundles);
 
   const server = createServer(async (request: IncomingMessage, response: ServerResponse) => {
     const url = new URL(request.url ?? "/", "http://127.0.0.1");
@@ -280,8 +374,18 @@ async function startFixtureRegistryServer(tamperDigest = false) {
           },
           bundleFormat: "rendo-bundle.v1",
           digestAlgorithm: "sha256",
+          snapshot: {
+            url: "/templates.snapshot.json",
+            digest: runtimeCatalog.digest,
+          },
         }),
       );
+      return;
+    }
+
+    if (url.pathname === "/templates.snapshot.json" || url.pathname === "/index.json") {
+      response.setHeader("content-type", "application/json; charset=utf-8");
+      response.end(runtimeCatalog.raw);
       return;
     }
 
@@ -339,6 +443,8 @@ async function startFixtureRegistryServer(tamperDigest = false) {
             domainTags: matched.bundle.manifest.domainTags,
             scenarioTags: matched.bundle.manifest.scenarioTags,
             toolchains: matched.bundle.manifest.toolchains,
+            lineage: matched.bundle.manifest.lineage,
+            architecture: matched.bundle.manifest.architecture,
             surfaceCapabilities: matched.bundle.manifest.surfaceCapabilities,
             defaultSurfaces: matched.bundle.manifest.defaultSurfaces,
             runtimeModes: matched.bundle.manifest.runtimeModes,
@@ -346,14 +452,16 @@ async function startFixtureRegistryServer(tamperDigest = false) {
             dependencies: matched.bundle.manifest.recommendedPacks,
             official: true,
             compatibility: matched.bundle.manifest.compatibility,
-            assetInstall: matched.bundle.manifest.assetInstall,
+            assetIntegration: matched.bundle.manifest.assetIntegration,
           },
           manifest: matched.bundle.manifest,
           bundle: {
             url: `/v1/bundles/${matched.entry.id}`,
             digest: {
               algorithm: "sha256",
-              value: tamperDigest ? `${matched.digest.value.slice(0, -1)}0` : matched.digest.value,
+              value: tamperDigest
+                ? `${matched.digest.value.slice(0, -1)}${matched.digest.value.endsWith("0") ? "1" : "0"}`
+                : matched.digest.value,
             },
             templateDigest: matched.bundle.templateDigest,
             bundleFormat: "rendo-bundle.v1",
@@ -409,18 +517,9 @@ test("node and python CLIs expose identical template search results", async () =
   const application = payload.find((item) => item.id === "application-base-starter");
   assert.equal(application?.templateKind, "starter-template");
   assert.equal(application?.templateRole, "base");
-  const feature = payload.find((item) => item.id === "dashboard-feature-base-template");
-  assert.equal(feature?.templateKind, "feature-template");
-  assert.equal(feature?.templateRole, "base");
-  const capability = payload.find((item) => item.id === "storage-capability-base-template");
-  assert.equal(capability?.templateKind, "capability-template");
-  assert.equal(capability?.templateRole, "base");
   const provider = payload.find((item) => item.id === "llm-provider-base-template");
   assert.equal(provider?.templateKind, "provider-template");
   assert.equal(provider?.templateRole, "base");
-  const surface = payload.find((item) => item.id === "admin-surface-base-template");
-  assert.equal(surface?.templateKind, "surface-template");
-  assert.equal(surface?.templateRole, "base");
 });
 
 test("node and python CLIs expose identical inspect payload for application base starter", async () => {
@@ -440,6 +539,22 @@ test("node and python CLIs expose identical inspect payload for application base
     documentation: Record<string, string>;
     surfaceCapabilities: string[];
     defaultSurfaces: string[];
+    architecture: {
+      standard: string;
+      hostModel: string;
+      runtimeClass: string;
+      rootPaths: {
+        agentEntrypoints: string[];
+        docs: string[];
+        interfaces: string[];
+        implementation: string[];
+        tests: string[];
+        scripts: string[];
+        integration: string[];
+        operations: string[];
+        mounts: string[];
+      };
+    };
   };
   assert.equal(payload.templateKind, "starter-template");
   assert.equal(payload.templateRole, "base");
@@ -454,6 +569,56 @@ test("node and python CLIs expose identical inspect payload for application base
   });
   assert.deepEqual(payload.surfaceCapabilities, ["web", "miniapp", "mobile"]);
   assert.deepEqual(payload.defaultSurfaces, ["web"]);
+  assert.deepEqual(payload.architecture, {
+    standard: "rendo-service-base.v1",
+    hostModel: "host-root",
+    runtimeClass: "standalone-runnable",
+    rootPaths: {
+      agentEntrypoints: [
+        "AGENTS.md",
+        "CLAUDE.md",
+        ".agents/capabilities.yaml",
+        ".agents/review-checklist.md",
+        ".agents/glossary.md",
+      ],
+      docs: [
+        "docs/structure.md",
+        "docs/extension-points.md",
+        "docs/inheritance-boundaries.md",
+        "docs/secondary-development.md",
+      ],
+      interfaces: [
+        "interfaces/openapi/README.md",
+        "interfaces/mcp/README.md",
+        "interfaces/skills/README.md",
+      ],
+      implementation: [
+        "src/apps/README.md",
+        "src/apps/desktop/README.md",
+        "src/packages/README.md",
+        "src/packages/contracts/README.md",
+        "src/packages/domain/README.md",
+        "src/packages/shared/README.md",
+        "src/packages/config/README.md",
+      ],
+      tests: [
+        "tests/unit/README.md",
+        "tests/contracts/README.md",
+        "tests/integration/README.md",
+        "tests/smoke/README.md",
+        "tests/fixtures/README.md",
+      ],
+      scripts: ["scripts/health.mjs"],
+      integration: ["integration/README.md"],
+      operations: ["ops/README.md", "ops/docker/compose.yaml"],
+      mounts: [
+        "src/features/README.md",
+        "src/capabilities/README.md",
+        "src/providers/README.md",
+        "src/surfaces/README.md",
+      ],
+    },
+  });
 });
 
 test("node and python CLIs expose identical inspect payload for provider base template", async () => {
@@ -465,10 +630,91 @@ test("node and python CLIs expose identical inspect payload for provider base te
   assert.equal(pythonInspect.status, 0, pythonInspect.stderr);
 
   assert.deepEqual(JSON.parse(nodeInspect.stdout), JSON.parse(pythonInspect.stdout));
-  const payload = JSON.parse(nodeInspect.stdout) as { templateKind: string; templateRole: string; domainTags: string[] };
+  const payload = JSON.parse(nodeInspect.stdout) as {
+    templateKind: string;
+    templateRole: string;
+    domainTags: string[];
+    architecture: {
+      standard: string;
+      hostModel: string;
+      runtimeClass: string;
+      rootPaths: {
+        agentEntrypoints: string[];
+        interfaces: string[];
+        implementation: string[];
+        tests: string[];
+        integration: string[];
+      };
+    };
+    assetIntegration: {
+      previewSummary: string;
+      modes: Array<{ runtimeMode: string; targetRoot: string }>;
+    } | null;
+  };
   assert.equal(payload.templateKind, "provider-template");
   assert.equal(payload.templateRole, "base");
   assert.deepEqual(payload.domainTags, ["llm-provider"]);
+  assert.equal(payload.architecture.standard, "rendo-service-base.v1");
+  assert.equal(payload.architecture.hostModel, "host-attached");
+  assert.equal(payload.architecture.runtimeClass, "host-attached");
+  assert.deepEqual(payload.architecture.rootPaths.agentEntrypoints, [
+    "AGENTS.md",
+    "CLAUDE.md",
+    ".agents/capabilities.yaml",
+    ".agents/review-checklist.md",
+    ".agents/glossary.md",
+  ]);
+  assert.deepEqual(payload.architecture.rootPaths.interfaces, [
+    "interfaces/openapi/README.md",
+    "interfaces/mcp/README.md",
+    "interfaces/skills/README.md",
+  ]);
+  assert.deepEqual(payload.architecture.rootPaths.implementation, [
+    "src/README.md",
+  ]);
+  assert.deepEqual(payload.architecture.rootPaths.tests, [
+    "tests/unit/README.md",
+    "tests/contracts/README.md",
+    "tests/integration/README.md",
+    "tests/smoke/README.md",
+    "tests/fixtures/README.md",
+  ]);
+  assert.deepEqual(payload.architecture.rootPaths.integration, ["integration/README.md"]);
+  assert.ok(payload.assetIntegration);
+  assert.match(payload.assetIntegration.previewSummary, /src\/providers\/llm-provider-base-template/);
+  assert.ok(payload.assetIntegration.modes.every((mode) => mode.targetRoot === "src/providers"));
+});
+
+test("node and python CLIs export identical template bundles", async () => {
+  await ensureGeneratedAssets();
+  await withTempDir("rendo-bundle-export", async (dir) => {
+    const nodeOutput = path.join(dir, "node", "application-base-starter.rendo-bundle.json");
+    const pythonOutput = path.join(dir, "python", "application-base-starter.rendo-bundle.json");
+    const nodeBundle = runNodeCli(["bundle", "application-base-starter", "--output", nodeOutput, "--json"]);
+    const pythonBundle = runPythonCli(["bundle", "application-base-starter", "--output", pythonOutput, "--json"]);
+
+    assert.equal(nodeBundle.status, 0, nodeBundle.stderr);
+    assert.equal(pythonBundle.status, 0, pythonBundle.stderr);
+
+    const nodePayload = JSON.parse(nodeBundle.stdout) as {
+      kind: string;
+      templateId: string;
+      bundleFormat: string;
+      bundleDigest: { value: string };
+      templateDigest: { value: string };
+    };
+    const pythonPayload = JSON.parse(pythonBundle.stdout) as typeof nodePayload;
+    assert.equal(nodePayload.kind, "template-bundle");
+    assert.equal(nodePayload.templateId, "application-base-starter");
+    assert.equal(nodePayload.bundleFormat, "rendo-bundle.v1");
+    assert.equal(nodePayload.bundleDigest.value, pythonPayload.bundleDigest.value);
+    assert.equal(nodePayload.templateDigest.value, pythonPayload.templateDigest.value);
+
+    const nodeBundleFile = JSON.parse(await readFile(nodeOutput, "utf8"));
+    const pythonBundleFile = JSON.parse(await readFile(pythonOutput, "utf8"));
+    assert.deepEqual(nodeBundleFile, pythonBundleFile);
+    assert.equal(nodeBundleFile.manifest.lineage.parentTemplate, "starter-core-template");
+  });
 });
 
 test("template authoring pipeline generates application base starter from profile", async () => {
@@ -495,6 +741,132 @@ test("template authoring pipeline generates application base starter from profil
   assert.equal(templateManifest.templateKind, "starter-template");
   assert.equal(templateManifest.templateRole, "base");
   assert.equal(templateManifest.category, "application");
+  const outputDir = path.join(
+    repoRoot,
+    "shared",
+    "templates",
+    "base",
+    "starter",
+    "application",
+    "application-base-starter",
+  );
+  await assertPathsExist(outputDir, [
+    ".agents/capabilities.yaml",
+    ".agents/review-checklist.md",
+    ".agents/glossary.md",
+    "interfaces/openapi/README.md",
+    "interfaces/mcp/README.md",
+    "interfaces/skills/README.md",
+    "src/apps/README.md",
+    "src/apps/desktop/README.md",
+    "src/packages/README.md",
+    "src/packages/contracts/README.md",
+    "src/packages/domain/README.md",
+    "src/packages/shared/README.md",
+    "src/packages/config/README.md",
+    "tests/unit/README.md",
+    "tests/contracts/README.md",
+    "tests/integration/README.md",
+    "tests/smoke/README.md",
+    "tests/fixtures/README.md",
+    "integration/README.md",
+    "ops/README.md",
+    "ops/docker/compose.yaml",
+    "src/apps/web/package.json",
+    "src/apps/miniapp/README.md",
+    "src/apps/mobile/README.md",
+    "src/features/README.md",
+    "src/capabilities/README.md",
+    "src/providers/README.md",
+    "src/surfaces/README.md",
+  ]);
+  await assertPathsMissing(outputDir, [
+    "starter",
+    "docker-compose.yml",
+    "apps",
+    "packages",
+    "features",
+    "capabilities",
+    "providers",
+    "surfaces",
+    "install",
+  ]);
+});
+
+test("template authoring pipeline generates provider base template from profile", async () => {
+  await ensureGeneratedAssets();
+  const generated = run(
+    "node",
+    ["--import", "tsx", "scripts/generate-template.ts", "base/provider/llm/llm-provider-base-template"],
+    repoRoot,
+  );
+  assert.equal(generated.status, 0, generated.stderr);
+
+  const outputDir = path.join(
+    repoRoot,
+    "shared",
+    "templates",
+    "base",
+    "provider",
+    "llm",
+    "llm-provider-base-template",
+  );
+  await assertPathsExist(outputDir, [
+    ".agents/capabilities.yaml",
+    ".agents/review-checklist.md",
+    ".agents/glossary.md",
+    "interfaces/openapi/README.md",
+    "interfaces/mcp/README.md",
+    "interfaces/skills/README.md",
+    "src/README.md",
+    "tests/unit/README.md",
+    "tests/contracts/README.md",
+    "tests/integration/README.md",
+    "tests/smoke/README.md",
+    "tests/fixtures/README.md",
+    "integration/README.md",
+  ]);
+  await assertPathsMissing(outputDir, ["provider"]);
+  await assertPathsMissing(outputDir, ["install"]);
+});
+
+test("runtime catalog export emits handshake, deterministic entries, and matching bundle digests", async () => {
+  await ensureGeneratedAssets();
+  await withTempDir("rendo-runtime-catalog", async (dir) => {
+    const exported = runRuntimeCatalogExport(dir);
+    assert.equal(exported.status, 0, exported.stderr || exported.stdout);
+
+    const catalog = JSON.parse(await readFile(path.join(dir, "templates.snapshot.json"), "utf8")) as {
+      catalogFormat: string;
+      entries: Array<{
+        id: string;
+        lineage: { parentTemplate: string | null };
+        artifacts: { bundlePath: string; bundleDigest: { value: string }; templateDigest: { value: string } };
+      }>;
+    };
+    const handshake = JSON.parse(await readFile(path.join(dir, ".well-known", "rendo-registry.json"), "utf8")) as {
+      registryId: string;
+      apiBaseUrl: string;
+      snapshot: { url: string; digest: { value: string } };
+    };
+    assert.equal(catalog.catalogFormat, "rendo-runtime-catalog.v1");
+    assert.equal(handshake.registryId, "local-official-template-catalog");
+    assert.equal(handshake.apiBaseUrl, "http://127.0.0.1:4010");
+    assert.match(handshake.snapshot.url, /templates\.snapshot\.json$/);
+
+    const applicationEntry = catalog.entries.find((item) => item.id === "application-base-starter");
+    assert.ok(applicationEntry);
+    assert.equal(applicationEntry.lineage.parentTemplate, "starter-core-template");
+    assert.equal("title" in applicationEntry, false);
+    assert.equal("description" in applicationEntry, false);
+
+    const bundleRaw = await readFile(path.join(dir, applicationEntry.artifacts.bundlePath));
+    const bundle = JSON.parse(bundleRaw.toString("utf8")) as { templateDigest: { value: string } };
+    const snapshotRaw = await readFile(path.join(dir, "templates.snapshot.json"));
+    assert.equal(handshake.snapshot.digest.value, computeBundleDigest(snapshotRaw).value);
+    assert.equal(applicationEntry.artifacts.bundleDigest.value, computeBundleDigest(bundleRaw).value);
+    assert.equal(applicationEntry.artifacts.templateDigest.value, bundle.templateDigest.value);
+  });
 });
 
 test("core templates stay aligned with the shared skeleton", async () => {
@@ -526,6 +898,54 @@ test("rendo init creates runnable core templates for every template kind", async
       const health = run(npmCommand, ["run", "health"], target);
       assert.equal(health.status, 0, health.stderr);
       assert.match(health.stdout, new RegExp(`"templateId": "${kind}-core-template"`));
+
+      await assertPathsExist(target, [
+        "AGENTS.md",
+        "CLAUDE.md",
+        ".agents/capabilities.yaml",
+        ".agents/review-checklist.md",
+        ".agents/glossary.md",
+        "interfaces/openapi/README.md",
+        "interfaces/mcp/README.md",
+        "interfaces/skills/README.md",
+        "src/README.md",
+        "tests/unit/README.md",
+        "tests/contracts/README.md",
+        "tests/integration/README.md",
+        "tests/smoke/README.md",
+        "tests/fixtures/README.md",
+        "integration/README.md",
+      ]);
+      await assertPathsMissing(target, [
+        "starter",
+        "feature",
+        "capability",
+        "provider",
+        "surface",
+        "install",
+      ]);
+      if (kind === "starter") {
+        await assertPathsExist(target, [
+          "src/features/README.md",
+          "src/capabilities/README.md",
+          "src/providers/README.md",
+          "src/surfaces/README.md",
+          "src/apps/desktop/README.md",
+          "ops/README.md",
+        ]);
+      } else {
+        await assertPathsMissing(target, [
+          "features",
+          "capabilities",
+          "providers",
+          "surfaces",
+          "src/features",
+          "src/capabilities",
+          "src/providers",
+          "src/surfaces",
+          "ops",
+        ]);
+      }
     }
   });
 });
@@ -568,18 +988,64 @@ test("rendo create rejects core starter and creates identical multi-surface appl
     };
     assert.deepEqual(projectManifest.surfaces, ["web", "miniapp"]);
     assert.equal(projectManifest.template.id, "application-base-starter");
-    assert.ok(run("cmd", ["/c", "if exist apps\\miniapp (exit 0) else (exit 1)"], nodeTarget).status === 0);
-    assert.ok(run("cmd", ["/c", "if exist apps\\mobile (exit 0) else (exit 1)"], nodeTarget).status !== 0);
-    assert.ok(run("cmd", ["/c", "if exist features\\README.md (exit 0) else (exit 1)"], nodeTarget).status === 0);
-    assert.ok(run("cmd", ["/c", "if exist capabilities\\README.md (exit 0) else (exit 1)"], nodeTarget).status === 0);
-    assert.ok(run("cmd", ["/c", "if exist providers\\README.md (exit 0) else (exit 1)"], nodeTarget).status === 0);
-    assert.ok(run("cmd", ["/c", "if exist surfaces\\README.md (exit 0) else (exit 1)"], nodeTarget).status === 0);
+    assert.ok(run("cmd", ["/c", "if exist src\\apps\\miniapp (exit 0) else (exit 1)"], nodeTarget).status === 0);
+    assert.ok(run("cmd", ["/c", "if exist src\\apps\\mobile (exit 0) else (exit 1)"], nodeTarget).status !== 0);
+    assert.ok(run("cmd", ["/c", "if exist src\\features\\README.md (exit 0) else (exit 1)"], nodeTarget).status === 0);
+    assert.ok(run("cmd", ["/c", "if exist src\\capabilities\\README.md (exit 0) else (exit 1)"], nodeTarget).status === 0);
+    assert.ok(run("cmd", ["/c", "if exist src\\providers\\README.md (exit 0) else (exit 1)"], nodeTarget).status === 0);
+    assert.ok(run("cmd", ["/c", "if exist src\\surfaces\\README.md (exit 0) else (exit 1)"], nodeTarget).status === 0);
+    assert.ok(run("cmd", ["/c", "if exist src\\apps\\desktop\\README.md (exit 0) else (exit 1)"], nodeTarget).status === 0);
+    await assertPathsExist(nodeTarget, [
+      ".agents/capabilities.yaml",
+      ".agents/review-checklist.md",
+      ".agents/glossary.md",
+      "interfaces/openapi/README.md",
+      "interfaces/mcp/README.md",
+      "interfaces/skills/README.md",
+      "src/apps/README.md",
+      "src/apps/desktop/README.md",
+      "src/packages/README.md",
+      "src/packages/contracts/README.md",
+      "src/packages/domain/README.md",
+      "src/packages/shared/README.md",
+      "src/packages/config/README.md",
+      "tests/unit/README.md",
+      "tests/contracts/README.md",
+      "tests/integration/README.md",
+      "tests/smoke/README.md",
+      "tests/fixtures/README.md",
+      "integration/README.md",
+      "ops/README.md",
+      "ops/docker/compose.yaml",
+      "src/apps/web/package.json",
+      "src/features/README.md",
+      "src/capabilities/README.md",
+      "src/providers/README.md",
+      "src/surfaces/README.md",
+    ]);
+    await assertPathsMissing(nodeTarget, [
+      "docker-compose.yml",
+      "starter",
+      "apps",
+      "packages",
+      "features",
+      "capabilities",
+      "providers",
+      "surfaces",
+      "install",
+    ]);
 
     const nodeHashes = await collectDirectoryHashes(nodeTarget);
     const pythonHashes = await collectDirectoryHashes(pythonTarget);
     assert.deepEqual([...nodeHashes.entries()].sort(), [...pythonHashes.entries()].sort());
 
     await runLocallyWebOnlyTemplate(nodeTarget, 3200, /Multi-surface hello world, one canonical application base/);
+
+    const dockerConfig = run("docker", ["compose", "-f", "ops/docker/compose.yaml", "config"], nodeTarget);
+    assert.equal(dockerConfig.status, 0, dockerConfig.stderr || dockerConfig.stdout);
+
+    const rootCheck = run(npmCommand, ["run", "check"], nodeTarget);
+    assert.equal(rootCheck.status, 0, rootCheck.stderr || rootCheck.stdout);
   });
 });
 
@@ -624,7 +1090,115 @@ test("node and python CLIs add identical provider template assets into a project
       installedTemplates: Array<{ id: string; templateKind: string }>;
     };
     assert.ok(nodeProject.installedTemplates.some((item) => item.id === "llm-provider-base-template" && item.templateKind === "provider-template"));
+    await assertPathsExist(path.join(nodeTarget, "src", "providers", "llm-provider-base-template"), [
+      ".agents/capabilities.yaml",
+      ".agents/review-checklist.md",
+      ".agents/glossary.md",
+      "interfaces/openapi/README.md",
+      "interfaces/mcp/README.md",
+      "interfaces/skills/README.md",
+      "src/README.md",
+      "tests/unit/README.md",
+      "tests/contracts/README.md",
+      "tests/integration/README.md",
+      "tests/smoke/README.md",
+      "tests/fixtures/README.md",
+      "integration/README.md",
+    ]);
+    await assertPathsMissing(path.join(nodeTarget, "src", "providers", "llm-provider-base-template"), [
+      "provider",
+    ]);
+
+    const webInstall = run(npmCommand, ["install"], path.join(nodeTarget, "src", "apps", "web"));
+    assert.equal(webInstall.status, 0, webInstall.stderr || webInstall.stdout);
+    const rootCheck = run(npmCommand, ["run", "check"], nodeTarget);
+    assert.equal(rootCheck.status, 0, rootCheck.stderr || rootCheck.stdout);
   });
+});
+
+test("doctor reports the service-base architecture entrypoints for generated starters", async () => {
+  await ensureGeneratedAssets();
+  await withTempDir("rendo-doctor", async (dir) => {
+    const nodeTarget = path.join(dir, "node", "application-app");
+    const pythonTarget = path.join(dir, "python", "application-app");
+    const create = runNodeCli(["create", "application", "--output", nodeTarget, "--surfaces", "web", "--json"], repoRoot, {
+      RENDO_CREATED_AT_OVERRIDE: "2026-04-04T00:00:00.000Z",
+    });
+    const createPython = runPythonCli(["create", "application", "--output", pythonTarget, "--surfaces", "web", "--json"], repoRoot, {
+      RENDO_CREATED_AT_OVERRIDE: "2026-04-04T00:00:00.000Z",
+    });
+    assert.equal(create.status, 0, create.stderr);
+    assert.equal(createPython.status, 0, createPython.stderr);
+
+    const nodeAdd = runNodeCli(["add", "llm-provider-base-template", "--json"], nodeTarget, {
+      RENDO_INSTALLED_AT_OVERRIDE: "2026-04-04T00:00:00.000Z",
+    });
+    const pythonAdd = runPythonCli(["add", "llm-provider-base-template", "--json"], pythonTarget, {
+      RENDO_INSTALLED_AT_OVERRIDE: "2026-04-04T00:00:00.000Z",
+    });
+    assert.equal(nodeAdd.status, 0, nodeAdd.stderr);
+    assert.equal(pythonAdd.status, 0, pythonAdd.stderr);
+
+    const nodeDoctor = runNodeCli(["doctor", "--json"], nodeTarget);
+    const pythonDoctor = runPythonCli(["doctor", "--json"], pythonTarget);
+    assert.equal(nodeDoctor.status, 0, nodeDoctor.stderr);
+    assert.equal(pythonDoctor.status, 0, pythonDoctor.stderr);
+
+    const nodePayload = JSON.parse(nodeDoctor.stdout) as {
+      checks: Array<{ name: string; status: string; detail: string }>;
+    };
+    const pythonPayload = JSON.parse(pythonDoctor.stdout) as {
+      checks: Array<{ name: string; status: string; detail: string }>;
+    };
+
+    const requiredCheckNames = [
+      "npm -v",
+      "template architecture standard",
+      "template host model",
+      "template runtime class",
+      "template agent entrypoints",
+      "template interface roots",
+      "template implementation roots",
+      "template test roots",
+      "template integration roots",
+      "template operations roots",
+      "template mount roots",
+      "installed template llm-provider-base-template target root",
+      "installed template llm-provider-base-template integration roots",
+    ];
+    for (const checkName of requiredCheckNames) {
+      const nodeCheck = nodePayload.checks.find((item) => item.name === checkName);
+      const pythonCheck = pythonPayload.checks.find((item) => item.name === checkName);
+      assert.equal(nodeCheck?.status, "pass", `expected node doctor check to pass: ${checkName}`);
+      assert.equal(pythonCheck?.status, "pass", `expected python doctor check to pass: ${checkName}`);
+    }
+  });
+});
+
+test("doctor consumes remote registry snapshot metadata when available", async () => {
+  await ensureGeneratedAssets();
+  const registry = await startFixtureRegistryServer();
+  try {
+    const nodeDoctor = await runNodeCliAsync(["doctor", "--registry", registry.baseUrl, "--json"], repoRoot);
+    const pythonDoctor = await runPythonCliAsync(["doctor", "--registry", registry.baseUrl, "--json"], repoRoot);
+    assert.equal(nodeDoctor.status, 0, nodeDoctor.stderr);
+    assert.equal(pythonDoctor.status, 0, pythonDoctor.stderr);
+
+    const nodePayload = JSON.parse(nodeDoctor.stdout) as {
+      registrySnapshot?: { entryCount: number; digest: { algorithm: string; value: string }; url: string };
+    };
+    const pythonPayload = JSON.parse(pythonDoctor.stdout) as {
+      registrySnapshot?: { entryCount: number; digest: { algorithm: string; value: string }; url: string };
+    };
+
+    assert.ok(nodePayload.registrySnapshot);
+    assert.ok(pythonPayload.registrySnapshot);
+    assert.equal(nodePayload.registrySnapshot?.entryCount, pythonPayload.registrySnapshot?.entryCount);
+    assert.equal(nodePayload.registrySnapshot?.digest.value, pythonPayload.registrySnapshot?.digest.value);
+    assert.match(nodePayload.registrySnapshot?.url ?? "", /templates\.snapshot\.json$/);
+  } finally {
+    await registry.close();
+  }
 });
 
 test("node and python CLIs pull identical provider template assets with --output", async () => {

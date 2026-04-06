@@ -8,11 +8,11 @@ This starter is created through `rendo create`, not `rendo init` and not `rendo 
 
 This starter is expected to host:
 
-- feature templates under `features/`
-- capability templates under `capabilities/`
-- provider templates under `providers/`
-- surface templates under `surfaces/`
+- feature templates under `src/features/`
+- capability templates under `src/capabilities/`
+- provider templates under `src/providers/`
+- surface templates under `src/surfaces/`
 
 ## Surface contract
 
-`web` is the default generated surface. Other supported surfaces are optional and must be requested explicitly at creation time.
+`web` is the default generated surface. `miniapp` and `mobile` are optional and must be requested explicitly at creation time. `desktop` remains a reserved slot for later implementation.

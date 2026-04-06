@@ -15,16 +15,22 @@ It exists to:
 - Keep this template shape-neutral and vendor-neutral.
 - Prefer explicit files over hidden state.
 - Document extension points before adding convenience wrappers.
-- Treat `rendo.template.json` and `docs/*` as the control plane; code files are secondary.
+- Treat `rendo.template.json`, `.agents/*`, `interfaces/*`, and `docs/*` as the control plane.
+- Keep implementation under `src/`; do not reintroduce type-named roots like `provider/` or `feature/`.
 
 ## Key files
 
 - `rendo.template.json`
 - `rendo.project.json`
+- `.agents/capabilities.yaml`
+- `.agents/review-checklist.md`
+- `.agents/glossary.md`
 - `docs/structure.md`
 - `docs/extension-points.md`
 - `docs/inheritance-boundaries.md`
 - `docs/secondary-development.md`
-- `docs/authoring-base-template.md`
-- `docs/compatibility.md`
-- `feature/README.md`
+- `interfaces/openapi/README.md`
+- `interfaces/mcp/README.md`
+- `interfaces/skills/README.md`
+- `src/README.md`
+- `integration/README.md`

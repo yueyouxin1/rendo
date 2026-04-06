@@ -5,15 +5,15 @@ This project was initialized from the Rendo `capability-core-template`.
 ## What it is
 
 - The minimal control-plane contract for `capability templates`
-- A stable, agent-readable workspace that defines how this template kind grows
-- The inheritance source for official and internal `base` templates of the same kind
+- A stable, agent-readable workspace with explicit Agent entrypoints and interface roots
+- The inheritance source for official `base` templates that must derive from this core instead of bypassing it
 
 ## What it is not
 
 - Not a concrete product starter
 - Not a vendor binding
 - Not a hidden runtime
-- Not the place to introduce irreversible install logic
+- Not the place to introduce irreversible host integration logic
 
 ## Read first
 
@@ -21,7 +21,8 @@ This project was initialized from the Rendo `capability-core-template`.
 - `docs/extension-points.md`
 - `docs/inheritance-boundaries.md`
 - `docs/secondary-development.md`
-- `docs/authoring-base-template.md`
+- `AGENTS.md`
+- `.agents/capabilities.yaml`
 
 ## Commands
 
@@ -33,4 +34,4 @@ npm run check
 
 ## Next step
 
-Use this template to author a `base` template for `capability templates`, then let concrete `derived` assets inherit from that base instead of bypassing the core contract.
+Use this template to author a `base` template for `capability templates`, then regenerate the formal artifact layer from authoring sources instead of hand-editing `shared/templates/*`.

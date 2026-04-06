@@ -10,6 +10,7 @@ Current template-facing contracts:
 - `project-manifest.schema.json`
 - `template-profile.schema.json`
 - `registry-handshake.schema.json`
+- `registry-snapshot.schema.json`
 - `remote-registry-api.schema.json`
 - `template-bundle.schema.json`
 

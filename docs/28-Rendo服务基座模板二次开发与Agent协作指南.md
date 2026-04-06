@@ -26,9 +26,10 @@
 ## 2. Starter 二开原则
 
 - 共享逻辑优先进入 `src/` 内的职责分层
-- Surface 代码留在显式的宿主挂载位或应用目录
-- 非 starter 资产优先进入 `features/`、`capabilities/`、`providers/`、`surfaces/`
-- 与 Agent 可调用相关的说明优先留在 `AGENTS.md`、`.agents/`、`interfaces/*`、`install/*`、`docs/*`
+- Surface 代码留在 `src/surfaces/*` 或 `src/apps/*` 内的明确职责目录
+- 非 starter 资产按 manifest `assetIntegration.modes[].targetRoot` 落位到宿主 `src/features/`、`src/capabilities/`、`src/providers/`、`src/surfaces/` 等标准槽位
+- 预留 `src/surfaces/desktop/` 作为 desktop surface 槽位，即使当前实现仍可占位
+- 与 Agent 可调用相关的说明优先留在 `AGENTS.md`、`.agents/`、`interfaces/*`、`integration/`、`docs/*`
 - 不要让单一 surface 目录变成整个项目的垃圾场
 
 ---
@@ -36,7 +37,7 @@
 ## 3. 非 Starter 二开原则
 
 - feature：保持宿主可装配性
-- capability：保持 install plan、env 契约和 Agent 入口影响面显式
+- capability：在 `core -> base -> derived` 主干内保持 integration plan（`assetIntegration.modes[].targetRoot`）机器合同与 `integration/` 可读接入说明、env 契约和 Agent 入口影响面显式
 - provider：保持 credential 与 adapter 契约显式
 - surface：保持 slot 与宿主挂载边界显式
 

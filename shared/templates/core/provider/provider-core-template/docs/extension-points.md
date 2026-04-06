@@ -4,22 +4,29 @@
 
 - `rendo.template.json`
 - `rendo.project.json`
+- `.agents/*`
 - `docs/*`
+- `interfaces/*`
+- `integration/*`
 - `scripts/health.mjs`
-
-## Kind-specific contract surface
-
-- `provider/README.md`
-- future files under `provider/` that remain neutral and reusable across all descendants
 
 ## Base-template extension space
 
 Base templates may add:
 
-- concrete implementation directories
+- concrete implementation directories under `src/`
 - stronger runtime constraints
-- host/install guidance
+- host integration guidance
 - richer secondary-development instructions
+
+Starter descendants may additionally add, under `src/`:
+
+- `apps/*`
+- `packages/*`
+- `features/*`
+- `capabilities/*`
+- `providers/*`
+- `surfaces/*`
 
 ## Rule
 

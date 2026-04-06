@@ -1,8 +1,0 @@
-{
-  "drivers": [
-    "local",
-    "s3-compatible",
-    "managed"
-  ]
-}
-

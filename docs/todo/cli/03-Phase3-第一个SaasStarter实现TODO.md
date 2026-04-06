@@ -21,21 +21,21 @@
 
 ## 第一顺位仍需完成
 
-- [ ] 让 `application-base-starter` 完整落地首日标准目录
-- [ ] 让 starter 默认具备 `AGENTS.md / CLAUDE.md / .agents / interfaces` 宿主结构
-- [ ] 让 starter 默认具备 `src/` 内的职责分层
-- [ ] 让 starter 默认具备 `features / capabilities / providers / surfaces` 的标准挂载点
-- [ ] 让 starter 默认具备 TDD 导向测试骨架与 smoke 校验
-- [ ] 让 starter 默认具备 `scripts / install / ops`
-- [ ] 让 starter 以主流最佳实践方式提供第一套 `interfaces/openapi / interfaces/mcp / interfaces/skills` 接线示例
+- [x] 让 `application-base-starter` 完整落地首日标准目录
+- [x] 让 starter 默认具备 `AGENTS.md / CLAUDE.md / .agents / interfaces` 宿主结构
+- [x] 让 starter 默认具备 `src/` 内的职责分层
+- [x] 让 starter 默认具备 `src/apps / src/packages / src/features / src/capabilities / src/providers / src/surfaces` 的标准挂载点（含保留槽位 `src/surfaces/desktop`）
+- [x] 让 starter 默认具备 TDD 导向测试骨架与 smoke 校验
+- [x] 让 starter 默认具备 `scripts / integration / ops`
+- [x] 让 starter 以主流最佳实践方式提供第一套 `interfaces/openapi / interfaces/mcp / interfaces/skills` 接线示例
 
 ## 第二顺位仍需完成
 
-- [ ] 明确 application base starter 的正式场景与边界
-- [ ] 明确 web-first、multi-surface-by-request 的实现边界
-- [ ] 通过 `ops/docker/` 提供开箱即用容器化启动方案
-- [ ] 补齐 Agent 说明、操作说明和运维说明
-- [ ] 给 capability / provider / surface 安装提供标准宿主落点
+- [x] 明确 application base starter 的正式场景与边界
+- [x] 明确 web-first、multi-surface-by-request 的实现边界
+- [x] 通过 `ops/docker/` 提供开箱即用容器化启动方案
+- [x] 补齐 Agent 说明、操作说明和运维说明
+- [x] 给 capability / provider / surface 安装提供标准宿主落点
 
 ## 明确不属于本阶段第一顺位的事项
 
@@ -48,7 +48,8 @@
 
 ## 完成标准
 
-- [ ] `application-base-starter` 可以被直接视为“第一套官方服务基座 base”
-- [ ] 强 Agent 读取 starter 后，不需要猜测核心能力、接口面和宿主扩展点的位置
-- [ ] 后续 capability / provider / surface 模板都能自然落到这套 starter 结构中
-- [ ] 这套 starter 的结构不依赖某个框架特有目录才能成立
+- [x] `application-base-starter` 可以被直接视为“第一套官方服务基座 base”
+- [x] 强 Agent 读取 starter 后，不需要猜测核心能力、接口面和宿主扩展点的位置
+- [x] 后续 capability / provider / surface 模板都能自然落到这套 starter 结构中
+- [x] CLI `create / inspect / doctor` 输出能直接证明该 starter 对齐 `src/*` 槽位与 `integration/` 入口规范
+- [x] 这套 starter 的结构不依赖某个框架特有目录才能成立

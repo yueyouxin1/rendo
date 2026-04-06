@@ -38,11 +38,18 @@ registry 提供：
 - templateRole
 - manifestPath
 - templatePath
+- bundle 制品定位与 digest
+- runtime-pre snapshot 与 handshake 入口
 
 当前还要明确区分两层：
 
 - `shared/authoring/templates` 是 authoring 源
 - `shared/templates` 是 formal generated artifacts
+
+同时还要区分：
+
+- 工作区 registry 索引：`shared/registry/*.json`
+- runtime-pre 导出目录：`templates.snapshot.json`、`.well-known/rendo-registry.json`、`bundles/*`
 
 CLI 与 registry 当前消费的是：
 
@@ -61,6 +68,7 @@ CLI 与 registry 当前消费的是：
 
 - local provider 读取本地 `shared/registry` 和 `shared/templates`
 - remote provider 通过 HTTP 协议返回搜索结果、inspect 结果与 bundle 下载地址
+- runtime-pre registry 还可额外暴露 `templates.snapshot.json` 和 handshake 中的 `snapshot` 指针，供后续 runtime 或强 Agent 做确定性消费
 - 当前测试已用 fixture registry 证明远程协议闭环
 
 因此当前缺的不是“远程能力是否存在”，而是：
@@ -92,9 +100,22 @@ pack 更偏向：
 
 也就是说：
 
-- capability / provider / surface 的安装、拉取、升级优先由 `template manifest + assetInstall` 驱动
+- capability / provider / surface 的安装、拉取、升级优先由 `template manifest + assetIntegration` 驱动
 - pack 作为并行兼容语义存在，但不是当前主干的唯一扩展模型
 
-## 6. 一句话结论
+## 6. CLI 与 Runtime-pre 制品的关系
 
-CLI 面向的是整套服务基座模板控制面，registry 负责发现与分发，manifest 负责解释，`shared/templates` 负责承载正式模板产物，pack 只保留为并行兼容的安装语义。
+当前 CLI 已经把 runtime 前阶段需要的最小制品边界做出来：
+
+- `rendo bundle <ref>`：导出单模板 bundle 制品
+- `scripts/generate-runtime-catalog.ts`：导出 `bundles/*.json`、`templates.snapshot.json`、`index.json`、`.well-known/rendo-registry.json`
+
+这意味着：
+
+- 当前已经能把正式模板产物层导出成 runtime-pre 可消费目录
+- 这仍然不是官方远程 `publish`
+- 后续 runtime / SaaS 阶段应消费这些确定性制品，而不是直接消费 authoring 源
+
+## 7. 一句话结论
+
+CLI 面向的是整套服务基座模板控制面，registry 负责发现与分发，manifest 负责解释，`shared/templates` 负责承载正式模板产物，bundle 与 runtime-pre snapshot 负责进入下一阶段前的确定性制品交付，pack 只保留为并行兼容的安装语义。

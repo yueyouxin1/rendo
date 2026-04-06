@@ -23,12 +23,13 @@
     "toolchains",
     "lineage",
     "documentation",
+    "architecture",
     "surfaceCapabilities",
     "defaultSurfaces",
     "surfacePaths",
     "supports",
     "compatibility",
-    "assetInstall"
+    "assetIntegration"
   ],
   "properties": {
     "schemaVersion": { "type": "string", "minLength": 1 },
@@ -84,10 +85,11 @@
     },
     "lineage": {
       "type": "object",
-      "required": ["coreTemplate", "baseTemplate"],
+      "required": ["coreTemplate", "baseTemplate", "parentTemplate"],
       "properties": {
         "coreTemplate": { "type": ["string", "null"] },
-        "baseTemplate": { "type": ["string", "null"] }
+        "baseTemplate": { "type": ["string", "null"] },
+        "parentTemplate": { "type": ["string", "null"] }
       }
     },
     "documentation": {
@@ -99,6 +101,40 @@
         "extensionPoints": { "type": "string", "minLength": 1 },
         "inheritanceBoundaries": { "type": "string", "minLength": 1 },
         "secondaryDevelopment": { "type": "string", "minLength": 1 }
+      }
+    },
+    "architecture": {
+      "type": "object",
+      "required": ["standard", "hostModel", "runtimeClass", "rootPaths"],
+      "properties": {
+        "standard": { "type": "string", "minLength": 1 },
+        "hostModel": { "enum": ["host-root", "host-attached"] },
+        "runtimeClass": { "enum": ["standalone-runnable", "host-attached"] },
+        "rootPaths": {
+          "type": "object",
+          "required": [
+            "agentEntrypoints",
+            "docs",
+            "interfaces",
+            "implementation",
+            "tests",
+            "scripts",
+            "integration",
+            "operations",
+            "mounts"
+          ],
+          "properties": {
+            "agentEntrypoints": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "docs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "interfaces": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "implementation": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "tests": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "scripts": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "integration": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "operations": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "mounts": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+          }
+        }
       }
     },
     "surfaceCapabilities": {
@@ -169,8 +205,9 @@
         }
       }
     },
-    "assetInstall": {
+    "assetIntegration": {
       "type": ["object", "null"],
+      "description": "Machine-readable asset integration contract; physical integration roots are resolved from assetIntegration.modes[].targetRoot.",
       "required": ["previewSummary", "supportedHostKinds", "supportedHostTemplates", "modes"],
       "properties": {
         "previewSummary": { "type": "string", "minLength": 1 },
@@ -194,13 +231,13 @@
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["runtimeMode", "targetRoot", "conflictStrategy", "rollbackStrategy", "install"],
+            "required": ["runtimeMode", "targetRoot", "conflictStrategy", "rollbackStrategy", "changes"],
             "properties": {
               "runtimeMode": { "enum": ["source", "managed", "hybrid"] },
               "targetRoot": { "type": "string", "minLength": 1 },
               "conflictStrategy": { "enum": ["fail", "overwrite", "skip"] },
               "rollbackStrategy": { "enum": ["safe-abort", "manual"] },
-              "install": {
+              "changes": {
                 "type": "object",
                 "required": [
                   "addsFiles",

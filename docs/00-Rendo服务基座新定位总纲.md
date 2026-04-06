@@ -69,7 +69,7 @@ Rendo 当前仍然以统一的：
 - runtime mode 约束
 - install / pull / upgrade / doctor 的统一理解方式
 - agent 可读、可操作的最小文件结构
-- `AGENTS.md`、`CLAUDE.md`、`.agents/`、`interfaces/`、`src/`、`tests/`、`install/` 的最小接入约定
+- `AGENTS.md`、`CLAUDE.md`、`.agents/`、`interfaces/`、`src/`、`tests/`、`integration/` 的最小接入约定
 - `standalone-runnable` 与 `host-attached` 的运行形态边界
 
 `core` 不是最终产品，也不是最终服务基座。

@@ -1,0 +1,8 @@
+version: 1
+templateId: capability-core-template
+capabilities:
+  - id: template.structure
+    summary: Canonical structure contract for capability templates
+    docs:
+      - AGENTS.md
+      - docs/structure.md

@@ -1,0 +1,8 @@
+version: 1
+templateId: starter-core-template
+capabilities:
+  - id: template.structure
+    summary: Canonical structure contract for starter templates
+    docs:
+      - AGENTS.md
+      - docs/structure.md

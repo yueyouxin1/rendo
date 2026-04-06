@@ -4,34 +4,36 @@
 
 - `rendo.template.json`
 - `rendo.project.json`
-- root `docker-compose.yml`
+- `integration/*`
+- `ops/docker/compose.yaml`
 - root `docs/*`
 
 ## Surface implementations
 
-- `apps/web/app/page.tsx`
-- `apps/web/components/surface-summary.tsx`
-- future modules under `apps/web` that stay specific to the web surface
+- `src/apps/web/app/page.tsx`
+- `src/apps/web/components/surface-summary.tsx`
+- future modules under `src/apps/web` that stay specific to the web surface
 
 ## Shared application layer
 
-- `packages/contracts`
-- `packages/domain`
-- `packages/shared`
-- `packages/config`
+- `src/packages/contracts`
+- `src/packages/domain`
+- `src/packages/shared`
+- `src/packages/config`
 
-## Install roots for non-starter assets
+## Integration roots for non-starter assets
 
-- `features/`
-- `capabilities/`
-- `providers/`
-- `surfaces/`
+- `src/features/`
+- `src/capabilities/`
+- `src/providers/`
+- `src/surfaces/`
 
 ## Optional extra surfaces
 
-- `apps/miniapp`
-- `apps/mobile`
+- `src/apps/miniapp`
+- `src/apps/mobile`
+- `src/apps/desktop`
 
 ## Composition contract
 
-All generated surfaces belong to one starter identity, but `rendo create` decides which ones are physically present. Keep cross-surface contracts in `packages/*`, and keep host-installed assets inside the dedicated install roots instead of scattering them through `apps/*`.
+All generated surfaces belong to one starter identity, but `rendo create` decides which ones are physically present. Keep cross-surface contracts in `src/packages/*`, and keep host-integrated assets inside the dedicated `src/*` roots instead of scattering them through surface directories.

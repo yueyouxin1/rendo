@@ -7,14 +7,14 @@
 - runtime-mode semantics
 - directory conventions
 - health checks and authoring docs
-- neutral kind-specific notes under `__RENDO_CORE_DIRECTORY__/`
+- the single implementation-root rule under `src/`
 
 ## Not allowed to inherit blindly
 
 - concrete product logic
 - concrete vendor credentials
 - hidden runtime side effects
-- irreversible install behavior
+- irreversible host integration behavior
 - template-host assumptions that belong in `base` or `derived`
 
 ## Rule

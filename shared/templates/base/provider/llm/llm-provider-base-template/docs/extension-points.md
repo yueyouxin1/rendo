@@ -1,7 +1,8 @@
 # Extension Points
 
-- `provider/README.md`
-- `provider/config.example.json`
+- `src/README.md`
+- `src/config.example.json`
+- `integration/README.md`
 - credential contract in `rendo.template.json`
 
 ## Host rule

@@ -64,15 +64,18 @@ shared/templates/derived/<kind>/<category>/<template-id>/
 ├── src/
 ├── tests/
 ├── scripts/
-└── install/
+└── integration/
 ```
 
-只有 starter 宿主额外拥有：
+只有 starter 宿主额外冻结以下 `src/` 槽位并保留 `ops/`：
 
-- `features/`
-- `capabilities/`
-- `providers/`
-- `surfaces/`
+- `src/apps/`
+- `src/packages/`
+- `src/features/`
+- `src/capabilities/`
+- `src/providers/`
+- `src/surfaces/`
+- `src/surfaces/desktop/`（保留槽位）
 - `ops/`
 
 ---
@@ -101,7 +104,7 @@ shared/templates/derived/<kind>/<category>/<template-id>/
 
 - Base 可以增加目录和观点
 - 但不能抹掉 core 的控制面
-- Starter base 应开始把 `AGENTS.md / CLAUDE.md / .agents / interfaces / install / ops` 的宿主结构具体化
+- Starter base 应开始把 `AGENTS.md / CLAUDE.md / .agents / interfaces / integration / ops` 和 `src/apps|packages|features|capabilities|providers|surfaces` 的宿主结构具体化
 
 ### Base 到 Derived
 
@@ -127,10 +130,15 @@ shared/templates/derived/<kind>/<category>/<template-id>/
 11. `interfaces/openapi/`
 12. `interfaces/mcp/`
 13. `interfaces/skills/`
-14. `install/`
+14. `integration/`
 
 如果某个模板不是 starter，以上顺序中的后几项可以替换为：
 
 - 它对宿主中对应入口的扩展说明
+
+补充：
+
+- 物理集成根目录以 manifest `assetIntegration.modes[].targetRoot` 为准
+- `integration/` 负责可读接入说明，不负责决定落盘根目录
 
 如果一个模板不能支持这套读取顺序，说明它对 Agent 还不够友好。
