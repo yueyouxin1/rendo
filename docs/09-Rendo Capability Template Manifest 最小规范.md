@@ -105,7 +105,7 @@ Capability template manifest 必须满足：
 - 安装会影响哪些文件
 - 是否会修改数据库
 - 是否是官方 provider
-- 是否会影响宿主中的 `.agent` / `api` / `mcp` / `skills`
+- 是否会影响宿主中的 `AGENTS.md`、`.agents` 与 `interfaces/*`
 
 ---
 

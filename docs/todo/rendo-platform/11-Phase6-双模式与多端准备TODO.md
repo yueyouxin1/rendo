@@ -1,5 +1,7 @@
 # Phase 6 - 生产级运行时与狗粮验证 TODO
 
+> 该阶段不是当前第一顺位。只有在首日服务基座架构标准已被 starter、CLI、capability lifecycle 实际落实后，才应进入狗粮和生产级 runtime 线。
+
 ## 目标
 
 让 headless runtime 不只是能跑，而是能支撑生产级验证和 Rendo 自身狗粮。
@@ -21,4 +23,3 @@
 - [ ] Rendo 自己的模板发布与消费依赖这套 runtime，而不是绕过它
 - [ ] CLI、模板体系和 runtime 的契约不再频繁返工
 - [ ] 主要故障都能被定位、回滚或恢复
-

@@ -74,7 +74,7 @@ install plan 必须回答以下问题：
 
 ## 4. 文件变更规则
 
-## 4.1 允许的变更类型
+### 4.1 允许的变更类型
 
 capability template 安装默认只允许做以下几类可预测变更：
 
@@ -84,7 +84,7 @@ capability template 安装默认只允许做以下几类可预测变更：
 4. 新增 migration
 5. 新增 UI / 页面 / 后台模块
 
-## 4.2 不允许的默认行为
+### 4.2 不允许的默认行为
 
 capability template 默认不应：
 
@@ -93,7 +93,7 @@ capability template 默认不应：
 3. 静默删除关键文件
 4. 修改用户未授权的配置
 
-## 4.3 必须保持的原则
+### 4.3 必须保持的原则
 
 capability template 应尽量做到：
 
@@ -186,16 +186,18 @@ capability template 应尽量做到：
 
 有了这个标志，Agent 才不会盲目自动安装后陷入死局。
 
-## 8.1 服务基座接口面的影响
+### 8.1 服务基座入口面的影响
 
 对于当前新定位，还必须显式说明该 capability template 是否会影响宿主中的：
 
-- `.agent/instructions.md`
-- `.agent/capabilities.yaml`
-- `api/openapi.yaml`
-- `mcp/server.yaml`
-- `skills/skill_manifest.json`
-- `docs/modules/*`
+- `AGENTS.md`
+- `CLAUDE.md`
+- `.agents/capabilities.yaml`
+- `interfaces/openapi/`
+- `interfaces/mcp/`
+- `interfaces/skills/`
+- `install/`
+- `ops/`（仅当宿主或模板属于 `standalone-runnable`）
 
 如果会影响，必须把影响方式写进 install plan，而不能让 Agent 通过猜测完成接线。
 

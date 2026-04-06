@@ -1,6 +1,6 @@
 # Rendo
 
-Rendo is currently building the first template-and-contract workspace for agent-oriented service foundations.
+Rendo is building a template-and-contract workspace for agent-oriented service foundations.
 
 Its active backbone is:
 
@@ -25,7 +25,8 @@ The current normative position is:
 - `starter-template` is the root template for a runnable service foundation
 - `feature-template` / `capability-template` / `provider-template` / `surface-template` are attachable service units around that foundation
 - `rendo cli` is the default entrypoint for initializing, creating, searching, inspecting, and installing these assets
-- the current repository still focuses only on contracts, core templates, CLI, official bases, and the minimum capability-template lifecycle
+- `core -> base -> derived` must be born from a day-one architecture standard for agent-oriented services, not from ad-hoc starter code
+- the current repository still focuses on contracts, core templates, CLI, official bases, and the minimum template-asset lifecycle
 
 Rendo is not currently trying to ship:
 
@@ -34,37 +35,68 @@ Rendo is not currently trying to ship:
 - registry management surfaces
 - giant all-in-one starters
 
-## Service foundation baseline
+## Day-one architecture standard
 
-The new product narrative is "agent-oriented service foundation", but the implementation path is still template-first.
+Rendo treats the following as non-optional from day one:
 
-That means the repository is standardizing how a service foundation should be described before trying to build the larger platform around it.
+- every template kind shares the same control-plane skeleton: `rendo.template.json`, `README.md`, `AGENTS.md`, `CLAUDE.md`, `.agents/`, `docs/`, `interfaces/`, `src/`, `tests/`, `scripts/`, `install/`
+- `starter-template` adds the host mount points: `features/`, `capabilities/`, `providers/`, `surfaces/`, and `ops/`
+- Agent-facing entrypoints are expressed through `AGENTS.md`, `CLAUDE.md`, `.agents/`, and `interfaces/openapi/`, `interfaces/mcp/`, `interfaces/skills/`
+- template-internal implementation uses `src/`; host mount points stay at the starter root and are not reused as template-internal implementation roots
+- all templates must be verifiable; only `standalone-runnable` templates must also be independently bootable and provide health-check or equivalent heartbeat semantics
+- containerized out-of-box delivery belongs under `ops/docker/`, not a universal top-level `docker/`
 
-For a runnable starter foundation, the long-term baseline is:
+The detailed contract is frozen in:
 
-- `.agent/instructions.md`
-- `.agent/capabilities.yaml`
-- `.agent/review_checklist.md`
-- `api/openapi.yaml`
-- `mcp/server.yaml`
-- `skills/skill_manifest.json`
-- `docs/modules/*`
+- [docs/29-Rendo服务基座首日架构与目录标准.md](/D:/code/rendo/docs/29-Rendo服务基座首日架构与目录标准.md)
 
-Current docs formalize this target contract. Not every generated template in this workspace already exposes the full surface yet.
+## Asset model
+
+Rendo currently separates template authoring from formal template artifacts.
+
+- [shared/authoring/templates](/D:/code/rendo/shared/authoring/templates)
+  - the sole authoring source for official template production
+  - current shared core authoring base lives under `core/common/skeleton`
+  - `base` templates are produced by applying authoring overlays on top of formal core artifacts
+- [shared/templates](/D:/code/rendo/shared/templates)
+  - the formal generated template artifacts
+  - consumed by the local registry and by both CLI implementations
+  - current generated layout is `core/<kind>/<template-id>` and `base/<kind>/<category>/<template-id>`
+- [shared/registry](/D:/code/rendo/shared/registry)
+  - the language-neutral registry index that points at formal template artifacts
+- [shared/contracts](/D:/code/rendo/shared/contracts)
+  - manifest, project, bundle, remote-registry handshake, and remote API schemas
+
+This means:
+
+- `shared/authoring/templates` is the authoring truth
+- `shared/templates` is the published artifact layer
+- the CLI does not consume authoring overlays directly at runtime
+
+## CLI boundary
+
+Current Node and Python CLIs work today, but they are still asset-layout-based rather than self-contained binaries.
+
+- local mode reads [shared/registry](/D:/code/rendo/shared/registry) and [shared/templates](/D:/code/rendo/shared/templates)
+- remote mode supports HTTP `search / inspect / create / add / pull` through bundle download plus digest verification
+- current tests prove remote compatibility against a fixture registry server
+- a persistent official backend registry and self-contained CLI packaging are later phases, not prerequisites for the current repo workflow
+
+So the current implementation is:
+
+- usable inside this repository
+- usable inside any distribution that preserves the same `shared/registry + shared/templates` asset layout
+- not yet a single-file or embedded-asset binary distribution
 
 ## Current structure
 
 - [shared/templates](/D:/code/rendo/shared/templates)
-  - generated template assets consumed by the registry and both CLIs
-  - `core/<kind>/<template-id>`
-  - `base/<kind>/<category>/<template-id>`
-  - `derived/<kind>/<category>/<template-id>`
+  - formal generated template artifacts consumed by the registry and both CLIs
 - [shared/authoring/templates](/D:/code/rendo/shared/authoring/templates)
   - authoring source organized as `<role>/<kind>/<category>/<template-id>`
-  - generic authoring overlays for `base` and future `derived`
-  - shared skeleton for `core` synchronization
+  - shared core skeleton plus per-template overlays
 - [shared/registry](/D:/code/rendo/shared/registry)
-  - language-neutral registry for service-foundation templates and attachable units
+  - language-neutral registry entries for service-foundation templates and attachable units
 - [shared/contracts](/D:/code/rendo/shared/contracts)
   - manifest, project, remote-registry handshake, remote API, and bundle schemas
 - [cli/node](/D:/code/rendo/cli/node)
@@ -102,20 +134,41 @@ Every template manifest is expected to tell humans and strong agents:
 - what kind of template this is
 - whether it is `core`, `base`, or `derived`
 - whether it creates the foundation root or attaches into an existing foundation
-- which agent-facing artifacts and interfaces it provides or extends
 - which documents should be read first
 - how it can be installed, hosted, upgraded, and verified
+- which formal artifact path the registry resolves to
 
-Projects created from a starter template record their origin in `rendo.project.json` under `template`.
+Current implemented manifest schemas already cover:
 
-Installed non-starter templates record:
+- template identity
+- lineage
+- documentation links
+- runtime modes
+- compatibility
+- asset install metadata
 
-- version
-- runtime mode
-- local vs remote source
-- registry id
-- bundle digest
-- template digest
+The stronger day-one architecture semantics such as runtime shape and richer Agent entrypoint metadata are currently frozen first in the docs and will be pushed further into schema and CLI output as the next hardening step.
+
+## Authoring usage
+
+Generate official templates from authoring profiles:
+
+```bash
+npm run generate:template -- base/starter/application/application-base-starter
+npm run generate:template -- base/feature/dashboard/dashboard-feature-base-template
+npm run generate:template -- base/capability/storage/storage-capability-base-template
+npm run generate:template -- base/provider/llm/llm-provider-base-template
+npm run generate:template -- base/surface/admin/admin-surface-base-template
+```
+
+Sync and validate the shared core skeleton:
+
+```bash
+node --import tsx scripts/sync-core-templates.ts
+node --import tsx scripts/sync-core-templates.ts --check
+```
+
+The generated outputs are written into [shared/templates](/D:/code/rendo/shared/templates).
 
 ## CLI usage
 
@@ -141,38 +194,17 @@ python cli/python/rendo.py add llm-provider-base-template --json
 python cli/python/rendo.py search --registry http://127.0.0.1:3000 --json
 ```
 
-## Authoring usage
-
-Generate official templates from authoring profiles:
-
-```bash
-npm run generate:template -- base/starter/application/application-base-starter
-npm run generate:template -- base/feature/dashboard/dashboard-feature-base-template
-npm run generate:template -- base/capability/storage/storage-capability-base-template
-npm run generate:template -- base/provider/llm/llm-provider-base-template
-npm run generate:template -- base/surface/admin/admin-surface-base-template
-```
-
-Sync and validate the shared core skeleton:
-
-```bash
-node --import tsx scripts/sync-core-templates.ts
-node --import tsx scripts/sync-core-templates.ts --check
-```
-
-The generated outputs are written into [shared/templates](/D:/code/rendo/shared/templates).
-
 ## Validation status
 
 Verified in this workspace:
 
 - Node CLI and Python CLI produce identical local `search` results
 - Node CLI and Python CLI produce identical local `inspect` payloads
-- `rendo init <kind>` creates runnable core templates
+- `rendo init <kind>` creates core templates for all five template kinds
 - `rendo create application --surfaces ...` creates runnable application base projects
 - Node and Python CLIs add and pull provider base templates identically
-- core templates stay aligned with the shared skeleton via `scripts/sync-core-templates.ts --check`
-- local fixture-based remote registry responses are supported by both CLIs with digest-verified bundle downloads
+- core templates stay aligned with the shared core authoring skeleton via `scripts/sync-core-templates.ts --check`
+- remote `search / inspect / create / add / pull` flows are proven against the fixture registry with digest-verified bundle downloads
 
 ## Commands
 

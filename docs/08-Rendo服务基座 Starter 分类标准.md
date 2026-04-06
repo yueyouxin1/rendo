@@ -21,7 +21,7 @@ Starter 负责：
 - 形成完整项目起点
 - 承担 `rendo create` 的实例化对象
 - 承载后续 feature / capability / provider / surface 的组合宿主
-- 承载 `.agent` / `api` / `mcp` / `skills` / `docs/modules` 的宿主结构
+- 承载 `AGENTS.md / CLAUDE.md / .agents / interfaces / docs / install / ops` 的宿主结构
 
 ## 当前分类
 

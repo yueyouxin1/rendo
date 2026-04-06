@@ -15,19 +15,20 @@
 ## 1. 推荐工作流
 
 1. 先读 `rendo.template.json`
-2. 再读 `agentArtifacts` 和 `documentation` 指向的文件
+2. 再读 `documentation` 指向的文件
 3. 明确当前模板属于 `core / base / derived` 哪一层
 4. 明确它是 starter 根模板还是非 starter 装配模板
-5. 再决定是“继续派生”还是“直接修改当前模板”
+5. 明确它属于 `standalone-runnable` 还是 `host-attached`
+6. 再决定是“继续派生”还是“直接修改当前模板”
 
 ---
 
 ## 2. Starter 二开原则
 
-- 共享逻辑优先进入 `packages/*`
-- Surface 代码留在 `apps/*`
+- 共享逻辑优先进入 `src/` 内的职责分层
+- Surface 代码留在显式的宿主挂载位或应用目录
 - 非 starter 资产优先进入 `features/`、`capabilities/`、`providers/`、`surfaces/`
-- 与 Agent 可调用相关的说明优先留在 `.agent/`、`api/`、`mcp/`、`skills/`、`docs/modules/`
+- 与 Agent 可调用相关的说明优先留在 `AGENTS.md`、`.agents/`、`interfaces/*`、`install/*`、`docs/*`
 - 不要让单一 surface 目录变成整个项目的垃圾场
 
 ---
@@ -35,7 +36,7 @@
 ## 3. 非 Starter 二开原则
 
 - feature：保持宿主可装配性
-- capability：保持 install plan、env 契约和 Agent 接口影响面显式
+- capability：保持 install plan、env 契约和 Agent 入口影响面显式
 - provider：保持 credential 与 adapter 契约显式
 - surface：保持 slot 与宿主挂载边界显式
 
@@ -61,6 +62,7 @@
 - 单厂商 SDK 强绑定
 - 隐式依赖某个宿主 starter
 - 不可逆 install 行为
+- 与 `standalone-runnable / host-attached` 定义冲突的运行改写
 
 一句话：
 

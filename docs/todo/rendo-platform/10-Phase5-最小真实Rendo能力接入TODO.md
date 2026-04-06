@@ -1,5 +1,7 @@
 # Phase 5 - Headless Rendo Runtime v0 TODO
 
+> 该阶段不是当前第一顺位。必须先完成 `docs/29-Rendo服务基座首日架构与目录标准.md` 所要求的 `core -> base -> derived` 架构冻结与落实，再进入 runtime 线。
+
 ## 目标
 
 先做没有前端的 Rendo 后端运行时，让 CLI 能从远程真正获取模板。
@@ -30,4 +32,3 @@
 - [ ] CLI 可以不依赖本地仓库文件，从远程拉取模板
 - [ ] runtime 的元数据与制品不依赖手工同步
 - [ ] 一次模板发布后，search / inspect / pull 都能命中远程结果
-

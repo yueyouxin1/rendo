@@ -10,10 +10,21 @@
 - 它属于哪一类
 - 它处于 `core / base / derived` 的哪一层
 - 它是服务基座根模板，还是可装配服务单元
-- 它提供或扩展哪些 Agent 可调用接口
 - 它该如何初始化、创建、安装、拉取、升级和诊断
 
-## 2. 核心命令
+## 2. 当前交付边界
+
+当前 CLI 已经可用，但它仍然建立在正式模板产物层之上，而不是自包含二进制之上。
+
+这意味着：
+
+- local provider 直接读取 `shared/registry` 和 `shared/templates`
+- remote provider 通过 HTTP registry 协议做 `search / inspect / pull`，并下载 bundle 做 digest 校验
+- authoring overlays 和 `shared/authoring/templates` 不直接进入 CLI 运行时消费路径
+- 当前实现适用于仓库式或等价发布目录式资产布局
+- 自包含 CLI 分发是后续阶段，不是当前最小协议的前置条件
+
+## 3. 核心命令
 
 ### `rendo init <kind>`
 
@@ -29,13 +40,6 @@
 - `capability`
 - `provider`
 - `surface`
-
-示例：
-
-```bash
-rendo init starter --output my-starter-core
-rendo init capability --output my-capability-core
-```
 
 ### `rendo create`
 
@@ -59,7 +63,8 @@ rendo init capability --output my-capability-core
 
 用途：
 
-- 查看 manifest、结构化元信息、文档入口、Agent 入口、兼容矩阵与 install plan 元数据
+- 查看 manifest、结构化元信息、文档入口、兼容矩阵与 install plan 元数据
+- 面向强 Agent 暴露模板身份、目录契约和宿主影响面
 
 ### `rendo add`
 
@@ -85,9 +90,9 @@ rendo init capability --output my-capability-core
 
 用途：
 
-- 诊断当前环境与项目状态
+- 诊断当前环境、registry 连接与项目状态
 
-## 3. 语义边界
+## 4. 语义边界
 
 - `init` 负责 `core`
 - `create` 负责 starter 的项目实例化
@@ -97,21 +102,23 @@ rendo init capability --output my-capability-core
 - `--registry <provider>` 负责切换 `local` 与 `remote`
 - `--registry-token` 负责 bearer token 鉴权
 
-## 4. 当前不纳入最小协议的能力
+## 5. 当前不纳入最小协议的能力
 
 以下能力属于后续阶段，不是当前最小 CLI 协议的一部分：
 
 - `rendo validate`
 - `rendo gen mcp`
+- 自包含单文件 CLI 分发
 - 服务基座预览与在线试跑
 - Agent 可调用性评分
 
-## 5. Agent 友好要求
+## 6. Agent 友好要求
 
 CLI 输出应尽量让强 Agent 在不翻大量代码的情况下就能知道：
 
 - 该模板属于哪一类、哪一层
 - 它是根模板还是附加模板
 - 推荐先看哪些文档文件
-- 它暴露了哪些 `.agent` / `api` / `mcp` / `skills` 入口
+- 它当前属于 `standalone-runnable` 还是 `host-attached`
+- 它通过哪些 `AGENTS.md / .agents / interfaces/* / install/*` 入口被理解和消费
 - 它能被谁创建、谁安装、谁宿主

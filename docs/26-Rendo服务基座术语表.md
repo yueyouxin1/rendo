@@ -66,20 +66,41 @@
 
 模板或服务基座被 Agent 发现、理解、调用、扩展的能力。
 
-在当前规范层主要通过 `.agent`、`api`、`mcp`、`skills` 和模块文档来表达。
+在当前规范层主要通过 `AGENTS.md`、`.agents/`、`interfaces/*` 和安装/文档契约来表达。
 
-## Agent Artifacts
+## Agent Entry Points
 
-manifest 中显式暴露给 CLI 和 Agent 的入口文件集合。
+供 CLI 和强 Agent 快速定位模板控制面的固定入口。
 
-至少应能指向：
+当前标准包括：
 
-- `.agent/instructions.md`
-- `.agent/capabilities.yaml`
-- `.agent/review_checklist.md`
-- `api/openapi.yaml`
-- `mcp/server.yaml`
-- `skills/skill_manifest.json`
+- `AGENTS.md`
+- `CLAUDE.md`
+- `.agents/capabilities.yaml`
+- `.agents/review-checklist.md`
+- `interfaces/openapi/`
+- `interfaces/mcp/`
+- `interfaces/skills/`
+
+## Formal Template Artifacts
+
+正式模板产物层。
+
+当前目录是：
+
+- `shared/templates`
+
+它是 registry 和 CLI 实际消费的模板资产层。
+
+## Authoring Source
+
+模板作者侧源目录。
+
+当前目录是：
+
+- `shared/authoring/templates`
+
+它不是 CLI 的直接运行时消费层。
 
 ## Template Asset
 
@@ -120,6 +141,15 @@ CLI 连接 registry 的方式。
 
 对模板展开后文件列表和文件 digest 计算出的 `sha256` 校验值。
 
+## Runtime Shape
+
+模板的运行等级语义。
+
+当前规范层固定两类：
+
+- `standalone-runnable`
+- `host-attached`
+
 ## Asset Install Plan
 
 结构化的模板安装计划。
@@ -130,7 +160,7 @@ CLI 连接 registry 的方式。
 - 更新什么文件
 - 加什么 env
 - 是否需要人工处理
-- 是否会影响宿主中的 Agent 接口面
+- 是否会影响宿主中的 Agent 入口与接口描述面
 
 ## Runtime Mode
 

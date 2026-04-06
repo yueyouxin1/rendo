@@ -28,33 +28,49 @@
 - `rendo.project.json`
 - `README.md`
 - `AGENTS.md`
-- `.agent/instructions.md`
-- `.agent/capabilities.yaml`
-- `.agent/review_checklist.md`
+- `CLAUDE.md`
+- `.agents/capabilities.yaml`
+- `.agents/review-checklist.md`
 - `docs/structure.md`
 - `docs/extension-points.md`
 - `docs/inheritance-boundaries.md`
 - `docs/secondary-development.md`
-- `docs/modules/README.md`
-- `api/README.md`
-- `mcp/README.md`
-- `skills/README.md`
+- `interfaces/openapi/README.md`
+- `interfaces/mcp/README.md`
+- `interfaces/skills/README.md`
+- `src/`
+- `tests/`
+- `scripts/`
+- `install/`
 - 一个最小可执行或可校验的健康检查入口
 
 其中 `rendo.template.json` 应显式提供 `documentation` 字段，指向这些规范文件，方便 CLI、人类和强 Agent 从 manifest 直接找到正确入口。
 
+对于目录标准本身，所有 `core` 模板还必须服从：
+
+- `docs/29-Rendo服务基座首日架构与目录标准.md`
+
 如果是 `starter-core-template`，则应进一步提供：
 
-- `api/openapi.yaml`
-- `mcp/server.yaml`
-- `skills/skill_manifest.json`
+- `features/`
+- `capabilities/`
+- `providers/`
+- `surfaces/`
+- `ops/`
+
+并预留：
+
+- `interfaces/openapi/`
+- `interfaces/mcp/`
+- `interfaces/skills/`
 
 如果是非 starter `core` 模板，则至少应提供：
 
-- 它如何扩展宿主 starter 的 `api/`
-- 它如何扩展宿主 starter 的 `mcp/`
-- 它如何扩展宿主 starter 的 `skills/`
-- 它如何补充宿主 starter 的 `docs/modules/`
+- 它安装到宿主的哪个挂载位
+- 它如何扩展宿主 starter 的 `interfaces/openapi/`
+- 它如何扩展宿主 starter 的 `interfaces/mcp/`
+- 它如何扩展宿主 starter 的 `interfaces/skills/`
+- 它如何更新宿主的 `.agents/capabilities.yaml`
 
 ## 4. 必须满足
 
@@ -67,6 +83,9 @@
 - 不提前绑定具体厂商
 - 不把平台依赖做成硬前置
 - 把 Agent 可调用相关入口保留成显式契约
+- 全部可验证
+
+只有被显式定义为 `standalone-runnable` 的 `core` 模板，才要求最小可启动和健康检查。
 
 ## 5. 明确不包含
 

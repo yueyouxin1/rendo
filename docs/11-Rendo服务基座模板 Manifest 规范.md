@@ -7,12 +7,12 @@
 - 这是哪一类服务基座模板
 - 它属于 `core / base / derived` 哪一层
 - 它是服务基座根模板，还是可装配服务单元
-- 它暴露或扩展哪些 Agent 可调用入口
 - 它如何被创建、宿主、安装、升级和校验
+- 它的正式模板产物路径与兼容边界是什么
 
-## 最小字段
+## 当前最小字段
 
-当前模板 manifest 最小字段如下：
+当前实现中的模板 manifest 最小字段如下：
 
 - `schemaVersion`
 - `id`
@@ -34,7 +34,6 @@
 - `toolchains`
 - `lineage`
 - `documentation`
-- `agentArtifacts`
 - `surfaceCapabilities`
 - `defaultSurfaces`
 - `surfacePaths`
@@ -94,7 +93,6 @@
 - `extensionPoints`
 - `inheritanceBoundaries`
 - `secondaryDevelopment`
-- `moduleDocs`
 
 含义：
 
@@ -102,35 +100,20 @@
 - 让 `inspect` 输出可以直接暴露正确文档入口
 - 避免强 Agent 需要先穷举目录再猜测规范文件
 
-### `agentArtifacts`
+### `runtimeModes`
 
-当前最小结构建议包含：
+这里表达的是：
 
-- `instructions`
-- `capabilities`
-- `reviewChecklist`
-- `openapi`
-- `mcp`
-- `skills`
+- `source`
+- `managed`
+- `hybrid`
 
-含义：
+的运行模式语义。
 
-- 显式暴露 `.agent` / `api` / `mcp` / `skills` 的入口文件
-- 让 CLI 和 Agent 能直接定位服务基座的可调用面
-- 对于非 starter 模板，可以指向自身片段或指向其宿主扩展点说明
+注意：
 
-### `supports`
-
-这里应表达该模板提供或扩展的接口能力，例如：
-
-- `mcp`
-- `skill`
-- `openapi`
-- `a2ui`
-
-`supports` 关心的是：
-
-- 模板最终要让宿主或自身具备什么 Agent 可调用能力
+- `runtimeModes` 不是 `standalone-runnable / host-attached` 的替代字段
+- 当前“运行等级”主要由目录标准和文档语义冻结，后续可再增强为 manifest 显式字段
 
 ### `compatibility`
 
@@ -138,7 +121,29 @@
 
 - 该模板面向哪些宿主基础版本
 - 需要哪些接口或目录扩展点
-- 是否依赖宿主已存在的 `api` / `mcp` / `skills` 结构
+- 是否依赖宿主已存在的 `interfaces/openapi` / `interfaces/mcp` / `interfaces/skills` 结构
+
+### `assetInstall`
+
+这里表达的是：
+
+- 支持哪些宿主模板
+- 以什么模式安装
+- 安装会影响哪些文件和配置
+
+它是非 starter 模板生命周期的核心控制面。
+
+## Agent 入口如何表达
+
+当前实现中的 manifest 还没有把全部 Agent 入口做成单独必填字段。
+
+因此现阶段应这样理解：
+
+- `documentation` 提供文档入口
+- 固定目录契约提供 `AGENTS.md`、`CLAUDE.md`、`.agents/`、`interfaces/*` 的稳定位置
+- `assetInstall` 说明非 starter 模板对这些入口的影响
+
+后续可以继续增强为更强的显式 Agent 元数据，但当前最小 schema 先以以上三者配合成立。
 
 ## 设计要求
 
@@ -148,7 +153,7 @@ manifest 必须：
 - 对 Agent 可读
 - 能明确表达模板分层与模板类型
 - 能明确表达根模板与装配模板的消费关系
-- 能直接暴露文档入口、Agent 入口与二次开发入口
+- 能直接暴露文档入口与二次开发入口
 - 能支撑 `search / inspect / init / create / add / pull`
 - 能表达 CLI / registry / host compatibility
 - 能表达非 starter 模板的 install plan 元数据

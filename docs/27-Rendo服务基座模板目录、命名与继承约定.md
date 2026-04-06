@@ -32,7 +32,7 @@
 shared/authoring/templates/<role>/<kind>/<category>/<template-id>/
 ```
 
-### Generated
+### Formal Artifacts
 
 ```txt
 shared/templates/core/<kind>/<template-id>/
@@ -40,9 +40,44 @@ shared/templates/base/<kind>/<category>/<template-id>/
 shared/templates/derived/<kind>/<category>/<template-id>/
 ```
 
+注意：
+
+- `shared/authoring/templates` 是 authoring 源
+- `shared/templates` 是 formal generated artifacts
+- CLI 与 registry 当前消费的是 formal artifacts，不是 authoring overlays
+
 ---
 
-## 3. 命名约定
+## 3. 模板根结构约定
+
+所有模板的通用骨架应为：
+
+```txt
+<template-root>/
+├── rendo.template.json
+├── README.md
+├── AGENTS.md
+├── CLAUDE.md
+├── .agents/
+├── docs/
+├── interfaces/
+├── src/
+├── tests/
+├── scripts/
+└── install/
+```
+
+只有 starter 宿主额外拥有：
+
+- `features/`
+- `capabilities/`
+- `providers/`
+- `surfaces/`
+- `ops/`
+
+---
+
+## 4. 命名约定
 
 ### Core
 
@@ -60,13 +95,13 @@ shared/templates/derived/<kind>/<category>/<template-id>/
 
 ---
 
-## 4. 继承约定
+## 5. 继承约定
 
 ### Core 到 Base
 
 - Base 可以增加目录和观点
 - 但不能抹掉 core 的控制面
-- Starter base 应开始把 `.agent`、`api`、`mcp`、`skills`、`docs/modules` 的宿主结构具体化
+- Starter base 应开始把 `AGENTS.md / CLAUDE.md / .agents / interfaces / install / ops` 的宿主结构具体化
 
 ### Base 到 Derived
 
@@ -75,25 +110,27 @@ shared/templates/derived/<kind>/<category>/<template-id>/
 
 ---
 
-## 5. Agent 读取顺序
+## 6. Agent 读取顺序
 
 遇到任意模板时，推荐先读：
 
 1. `rendo.template.json`
-2. `.agent/instructions.md`
-3. `.agent/capabilities.yaml`
-4. `README.md`
-5. `docs/structure.md`
-6. `docs/extension-points.md`
-7. `docs/inheritance-boundaries.md`
-8. `docs/secondary-development.md`
-9. `docs/modules/*`
-10. `api/openapi.yaml`
-11. `mcp/server.yaml`
-12. `skills/skill_manifest.json`
+2. `AGENTS.md`
+3. `CLAUDE.md`
+4. `.agents/capabilities.yaml`
+5. `.agents/review-checklist.md`
+6. `README.md`
+7. `docs/structure.md`
+8. `docs/extension-points.md`
+9. `docs/inheritance-boundaries.md`
+10. `docs/secondary-development.md`
+11. `interfaces/openapi/`
+12. `interfaces/mcp/`
+13. `interfaces/skills/`
+14. `install/`
 
 如果某个模板不是 starter，以上顺序中的后几项可以替换为：
 
-- 它对宿主中对应文件的扩展说明
+- 它对宿主中对应入口的扩展说明
 
 如果一个模板不能支持这套读取顺序，说明它对 Agent 还不够友好。

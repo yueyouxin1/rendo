@@ -119,7 +119,7 @@ Rendo 应该把以下内容统一下来：
 - 什么是 `starter-core-template`
 - 什么是 `Starter Template`
 - 一个 starter 如何声明自己的类型、能力和默认依赖
-- 一个 starter 如何声明 `.agent` / `api` / `mcp` / `skills`
+- 一个 starter 如何声明 `AGENTS.md / .agents / interfaces/*`
 
 ### 5.2 Capability Template 语义
 

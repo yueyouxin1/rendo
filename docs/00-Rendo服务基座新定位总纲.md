@@ -12,7 +12,7 @@ Rendo 的规范层定位已经升级为：
 
 因此，当前正确表述不是“先做一个平台产品”，也不是“继续做一个 starter 模板站”，而是：
 
-- **先做成一套围绕服务基座的模板系统与控制面**
+- **先做成一套围绕服务基座的模板系统、正式模板产物层与控制面**
 
 ## 规范术语
 
@@ -69,7 +69,8 @@ Rendo 当前仍然以统一的：
 - runtime mode 约束
 - install / pull / upgrade / doctor 的统一理解方式
 - agent 可读、可操作的最小文件结构
-- `.agent`、`api`、`mcp`、`skills`、`docs/modules` 的最小接入约定
+- `AGENTS.md`、`CLAUDE.md`、`.agents/`、`interfaces/`、`src/`、`tests/`、`install/` 的最小接入约定
+- `standalone-runnable` 与 `host-attached` 的运行形态边界
 
 `core` 不是最终产品，也不是最终服务基座。
 
@@ -92,19 +93,21 @@ Rendo 当前仍然以统一的：
 - 承载具体产品形态
 - 承载具体行业或场景差异
 - 承载具体厂商绑定
-- 承载更完整的交互层和交付形态
+- 承载更完整的交付形态
 
 ## 服务基座的最低要求
 
 对于一个可运行的 starter 基座，当前规范层已经明确它最终应暴露：
 
-- `.agent/instructions.md`
-- `.agent/capabilities.yaml`
-- `.agent/review_checklist.md`
-- `api/openapi.yaml`
-- `mcp/server.yaml`
-- `skills/skill_manifest.json`
-- `docs/modules/*`
+- `AGENTS.md`
+- `CLAUDE.md`
+- `.agents/capabilities.yaml`
+- `.agents/review-checklist.md`
+- `interfaces/openapi/`
+- `interfaces/mcp/`
+- `interfaces/skills/`
+- `docs/structure.md`
+- `docs/extension-points.md`
 
 对于非 starter 模板，这些内容可以表现为：
 
@@ -115,13 +118,17 @@ Rendo 当前仍然以统一的：
 
 - 必须让人类和强 Agent 都能明确看见能力入口和扩展边界
 
-## 当前实施原则
+## Authoring 与正式模板产物
 
-1. 先把 `core` 和 `base` 做扎实，再放大 `derived`
-2. `rendo cli` 必须直接服务这条主干
-3. 不允许再把“唯一 Core Starter”当成整个系统的唯一底座描述
-4. `starter` 仍然重要，但它现在代表“服务基座根模板”，不是唯一模板中心
-5. 当前仓库只做服务基座模板体系，不直接跳去做 marketplace、预览平台或 SaaS 管理面
+当前仓库已经明确分成两层：
+
+- `shared/authoring/templates`：authoring 源
+- `shared/templates`：正式模板产物层
+
+其中：
+
+- `shared/authoring/templates/core/common/skeleton` 是当前 core 的共同 authoring 基座
+- `shared/templates/*` 是 registry 和 CLI 实际消费的正式模板产物
 
 ## 当前默认路径
 
@@ -131,7 +138,7 @@ Rendo 当前仍然以统一的：
 2. 完成 `rendo init <kind>`
 3. 完成五类官方 `base` 模板
 4. 让 `starter-template` 先成为第一个可运行的服务基座创建入口
-5. 再逐步引入 `derived`、更强的能力生命周期，以及后续的 Agent 可调用验证工具
+5. 再逐步引入更强的 asset lifecycle、远程 registry 与后续平台面
 
 ## 非目标
 
