@@ -6,9 +6,8 @@
   "category": "dashboard",
   "title": "Dashboard Feature Base Template",
   "description": "Official canonical base template for dashboard-style feature modules.",
-  "baseTemplatePath": "shared/templates/core/feature-core-template",
-  "outputTemplatePath": "shared/templates/base/feature/dashboard-feature-base-template",
+  "baseTemplatePath": "shared/templates/core/feature/feature-core-template",
+  "outputTemplatePath": "shared/templates/base/feature/dashboard/dashboard-feature-base-template",
   "overlayPath": "shared/authoring/templates/base/feature/dashboard/dashboard-feature-base-template/overlay",
   "removePaths": []
 }
-

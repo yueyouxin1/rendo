@@ -24,8 +24,26 @@ shared/authoring/templates/
 - `profile.json`: structured metadata for generation
 - `overlay/`: the file tree that differs from the lower template layer
 
+## Output convention
+
+Generated runtime assets are written to:
+
+```txt
+shared/templates/
+  core/
+    <kind>/
+      <template-id>/
+  base/
+    <kind>/
+      <category>/
+        <template-id>/
+  derived/
+    <kind>/
+      <category>/
+        <template-id>/
+```
+
 ## Design rule
 
 The generation pipeline should stay generic.
 Template-specific behavior should live in profile data and overlay files, not in ad-hoc script branches.
-

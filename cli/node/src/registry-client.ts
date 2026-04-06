@@ -182,6 +182,7 @@ function buildInspectPayloadFromTemplate(entry: TemplateRegistryEntry, manifest:
     domainTags: manifest.domainTags,
     scenarioTags: manifest.scenarioTags,
     toolchains: manifest.toolchains,
+    documentation: manifest.documentation,
     surfaceCapabilities: manifest.surfaceCapabilities,
     defaultSurfaces: manifest.defaultSurfaces,
     runtimeModes: manifest.runtimeModes,

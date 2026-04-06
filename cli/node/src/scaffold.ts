@@ -98,8 +98,9 @@ export async function scaffoldTemplate(
 
   const nextSteps = [
     `cd ${targetDir}`,
-    "pnpm install",
-    "pnpm docker:up",
+    "npm install",
+    "npm run health",
+    "npm run check",
   ];
 
   return {

@@ -2,10 +2,23 @@
 
 ## Layout
 
-- `docs/`: contract and authoring guidance
-- `scripts/`: validation helpers
-- `__RENDO_CORE_DIRECTORY__/`: `__RENDO_CORE_LABEL_LOWER__`-specific notes
+- `rendo.template.json`: machine-readable template identity and contract metadata
+- `rendo.project.json`: machine-readable project instantiation metadata
+- `README.md` and `AGENTS.md`: human and agent entrypoints
+- `docs/`: normative explanations for structure, runtime, inheritance, and authoring
+- `scripts/`: health and validation helpers owned by the core layer
+- `__RENDO_CORE_DIRECTORY__/`: kind-specific notes that stay stable across all base and derived descendants
+
+## Core ownership
+
+The core layer owns:
+
+- manifest semantics
+- directory conventions
+- runtime-mode boundaries
+- health-check shape
+- minimal authoring guidance for the next layer
 
 ## Design rule
 
-This template is the core layer for `__RENDO_CORE_LABEL_LOWER__`. Base and derived templates should extend it without weakening the control-plane contract.
+This template is the core layer for `__RENDO_CORE_LABEL_LOWER__`. Base and derived templates may add more files and stronger opinions, but they should not make the control plane harder to inspect, harder to validate, or harder to inherit.

@@ -51,10 +51,18 @@ export const lineageSchema = z.object({
   baseTemplate: z.string().nullable(),
 });
 
+export const documentationLinksSchema = z.object({
+  overview: z.string().min(1),
+  structure: z.string().min(1),
+  extensionPoints: z.string().min(1),
+  inheritanceBoundaries: z.string().min(1),
+  secondaryDevelopment: z.string().min(1),
+});
+
 export const surfacePathsSchema = z.record(z.string(), z.array(z.string()));
 
 export const hostCompatibilitySchema = z.object({
-  templateId: z.string().min(1),
+  templateId: z.string().min(1).nullable(),
   templateKind: templateKindSchema,
   minVersion: z.string().min(1).nullable(),
   maxVersion: z.string().min(1).nullable(),
@@ -88,6 +96,7 @@ export const templateManifestSchema = z.object({
   requiredEnv: z.array(z.string()),
   toolchains: z.array(toolchainSchema).default([]),
   lineage: lineageSchema,
+  documentation: documentationLinksSchema,
   surfaceCapabilities: z.array(surfaceSchema).default([]),
   defaultSurfaces: z.array(surfaceSchema).default([]),
   surfacePaths: surfacePathsSchema.default({}),
@@ -253,6 +262,7 @@ export const inspectPayloadSchema = z.object({
   domainTags: z.array(domainTagSchema).optional(),
   scenarioTags: z.array(scenarioTagSchema).optional(),
   toolchains: z.array(toolchainSchema).optional(),
+  documentation: documentationLinksSchema.optional(),
   surfaceCapabilities: z.array(surfaceSchema).optional(),
   defaultSurfaces: z.array(surfaceSchema).optional(),
   runtimeModes: z.array(z.string()).optional(),

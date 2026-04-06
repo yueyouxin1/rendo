@@ -1,15 +1,25 @@
 # Extension Points
 
-## Root control plane
+## Core-owned control plane
 
 - `rendo.template.json`
 - `rendo.project.json`
 - `docs/*`
+- `scripts/health.mjs`
 
-## `__RENDO_CORE_LABEL__` core surface
+## Kind-specific contract surface
 
 - `__RENDO_CORE_DIRECTORY__/README.md`
-- future files introduced by a base template that inherits this core
+- future files under `__RENDO_CORE_DIRECTORY__/` that remain neutral and reusable across all descendants
+
+## Base-template extension space
+
+Base templates may add:
+
+- concrete implementation directories
+- stronger runtime constraints
+- host/install guidance
+- richer secondary-development instructions
 
 ## Rule
 

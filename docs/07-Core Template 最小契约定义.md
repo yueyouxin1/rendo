@@ -30,7 +30,11 @@
 - `AGENTS.md`
 - `docs/structure.md`
 - `docs/extension-points.md`
+- `docs/inheritance-boundaries.md`
+- `docs/secondary-development.md`
 - 一个最小可执行或可校验的健康检查入口
+
+其中 `rendo.template.json` 应显式提供 `documentation` 字段，指向这些规范文件，方便 CLI、人类和强 Agent 从 manifest 直接找到正确入口。
 
 ## 4. 必须满足
 
@@ -59,4 +63,3 @@
 - `lineage.coreTemplate`
 
 `base` 负责把该类型模板的最佳实践补齐，但不应破坏 core 层控制面。
-

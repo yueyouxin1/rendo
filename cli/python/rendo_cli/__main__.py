@@ -57,6 +57,12 @@ def _print_inspect(payload: dict, as_json: bool) -> None:
             "toolchains: "
             + ", ".join(f"{item['name']}@{item['version']} ({item['role']})" for item in payload["toolchains"])
         )
+    if payload.get("documentation"):
+        print(f"docs overview: {payload['documentation']['overview']}")
+        print(f"docs structure: {payload['documentation']['structure']}")
+        print(f"docs extension points: {payload['documentation']['extensionPoints']}")
+        print(f"docs inheritance: {payload['documentation']['inheritanceBoundaries']}")
+        print(f"docs secondary development: {payload['documentation']['secondaryDevelopment']}")
     if payload.get("surfaceCapabilities"):
         print(f"surface capabilities: {', '.join(payload['surfaceCapabilities'])}")
     if payload.get("defaultSurfaces"):
@@ -79,7 +85,9 @@ def _print_inspect(payload: dict, as_json: bool) -> None:
     if payload.get("assetInstall"):
         print(f"install summary: {payload['assetInstall']['previewSummary']}")
         hosts = payload["assetInstall"]["supportedHostTemplates"]
-        print(f"supported hosts: {', '.join(hosts) if hosts else '(any)'}")
+        host_kinds = payload["assetInstall"]["supportedHostKinds"]
+        supported_hosts = ", ".join(hosts) if hosts else ", ".join(host_kinds) if host_kinds else "(any)"
+        print(f"supported hosts: {supported_hosts}")
         for mode in payload["assetInstall"]["modes"]:
             print(
                 f"  mode {mode['runtimeMode']}: target {mode['targetRoot']}, "

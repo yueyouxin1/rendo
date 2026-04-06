@@ -6,8 +6,8 @@
   "category": "application",
   "title": "Application Base Starter Template",
   "description": "Official canonical base starter for interface applications with multi-surface-aware generation.",
-  "baseTemplatePath": "shared/templates/core/starter-core-template",
-  "outputTemplatePath": "shared/templates/base/starter/application-base-starter",
+  "baseTemplatePath": "shared/templates/core/starter/starter-core-template",
+  "outputTemplatePath": "shared/templates/base/starter/application/application-base-starter",
   "overlayPath": "shared/authoring/templates/base/starter/application/application-base-starter/overlay",
   "removePaths": [
     "starter"

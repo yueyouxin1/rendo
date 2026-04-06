@@ -18,16 +18,18 @@ def _assert_compatible_host(manifest: dict, host_template: dict) -> None:
         (
             item
             for item in compatibility
-            if item["templateId"] == host_template["id"] or item["templateKind"] == host_template["templateKind"]
+            if (item["templateId"] is not None and item["templateId"] == host_template["id"])
+            or item["templateKind"] == host_template["templateKind"]
         ),
         None,
     )
     if matched is None:
         raise RuntimeError(f"template {manifest['id']} does not apply to host {host_template['id']}")
+    compatibility_target = matched["templateId"] or matched["templateKind"]
     if matched["minVersion"] and compare_versions(host_template["version"], matched["minVersion"]) < 0:
-        raise RuntimeError(f"template {manifest['id']} requires host {matched['templateId']} >= {matched['minVersion']}")
+        raise RuntimeError(f"template {manifest['id']} requires host {compatibility_target} >= {matched['minVersion']}")
     if matched["maxVersion"] and compare_versions(host_template["version"], matched["maxVersion"]) > 0:
-        raise RuntimeError(f"template {manifest['id']} requires host {matched['templateId']} <= {matched['maxVersion']}")
+        raise RuntimeError(f"template {manifest['id']} requires host {compatibility_target} <= {matched['maxVersion']}")
 
 
 def _resolve_install_mode(manifest: dict, runtime_mode: str) -> dict:

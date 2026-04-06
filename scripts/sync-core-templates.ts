@@ -74,7 +74,7 @@ async function renderTemplateFile(sourceFile: string, template: (typeof template
 }
 
 async function syncTemplate(template: (typeof templates)[number]) {
-  const templateRoot = path.join(repoRoot, "shared/templates/core", template.id);
+  const templateRoot = path.join(repoRoot, "shared/templates/core", template.directory, template.id);
   const renderedFiles: string[] = [];
   const sourceFiles = await walkFiles(skeletonDir);
 

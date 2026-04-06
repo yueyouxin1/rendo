@@ -1,9 +1,10 @@
 # Runtime Modes
 
-`__RENDO_CORE_TEMPLATE_ID__` inherits runtime-mode truth from the template manifest.
+`__RENDO_CORE_TEMPLATE_ID__` declares the widest runtime-mode range that this template kind can reasonably support.
 
-## How to use this file
+## Rules
 
 - Keep the manifest as the machine-readable source of truth.
-- Use this file to explain why `source / managed / hybrid` are allowed or intentionally constrained for `__RENDO_CORE_LABEL_LOWER__`.
+- Base templates may narrow the supported runtime modes when they introduce stronger opinions.
+- Derived templates may narrow further, but should not widen beyond the core declaration.
 - Push vendor-specific operational detail into base or derived templates.

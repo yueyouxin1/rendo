@@ -27,6 +27,7 @@
 - `requiredEnv`
 - `toolchains`
 - `lineage`
+- `documentation`
 - `surfaceCapabilities`
 - `defaultSurfaces`
 - `surfacePaths`
@@ -72,6 +73,22 @@
 - `coreTemplate` 指向其继承的 core 模板
 - `baseTemplate` 指向其继承的 base 模板
 
+### `documentation`
+
+当前最小结构：
+
+- `overview`
+- `structure`
+- `extensionPoints`
+- `inheritanceBoundaries`
+- `secondaryDevelopment`
+
+含义：
+
+- 让 manifest 直接告诉人类和 Agent 应先读哪些文件
+- 让 `inspect` 输出可以直接暴露正确文档入口
+- 避免强 Agent 需要先穷举目录再猜测规范文件
+
 ## 设计要求
 
 manifest 必须：
@@ -79,6 +96,7 @@ manifest 必须：
 - 机器可校验
 - 对 Agent 可读
 - 能明确表达模板分层与模板类型
+- 能直接暴露文档入口与二次开发入口
 - 能支撑 `search / inspect / init / create / add / pull`
 - 能表达 CLI / registry / host compatibility
 - 能表达非 starter 模板的 install plan 元数据

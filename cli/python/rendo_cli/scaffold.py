@@ -72,5 +72,5 @@ def scaffold_template(source: dict, target_dir: str, runtime_mode: str | None = 
         "templateId": manifest["id"],
         "copiedFiles": copied,
         "selectedSurfaces": selected_surfaces,
-        "nextSteps": [f"cd {target}", "npm install", "npm run health"],
+        "nextSteps": [f"cd {target}", "npm install", "npm run health", "npm run check"],
     }

@@ -2,7 +2,7 @@
 
 Rendo is currently implemented as a template-system workspace for strong agents.
 
-The active architecture is:
+The active backbone is:
 
 1. `core`
 2. `base`
@@ -19,11 +19,13 @@ The first-class template kinds are:
 ## Current structure
 
 - [shared/templates](/D:/code/rendo/shared/templates)
-  - `core/*-core-template`
-  - `base/<kind>/*`
-  - `derived/starter/rendo-saas-starter`
+  - generated template assets consumed by the registry and both CLIs
+  - `core/<kind>/<template-id>`
+  - `base/<kind>/<category>/<template-id>`
+  - `derived/<kind>/<category>/<template-id>`
 - [shared/authoring/templates](/D:/code/rendo/shared/authoring/templates)
-  - generic authoring overlays for `base` and `derived`
+  - authoring source organized as `<role>/<kind>/<category>/<template-id>`
+  - generic authoring overlays for `base` and future `derived`
   - shared skeleton for `core` synchronization
 - [shared/registry](/D:/code/rendo/shared/registry)
   - language-neutral template registry
@@ -54,7 +56,8 @@ Base templates:
 
 Derived templates:
 
-- `rendo-saas-starter`
+- directory and contract conventions are defined
+- no official generated `derived` template is published in the local registry yet
 
 ## Template semantics
 
@@ -69,6 +72,8 @@ Every template manifest carries:
   - `core`
   - `base`
   - `derived`
+- `documentation`
+  - overview, structure, extension points, inheritance boundaries, and secondary-development entrypoints
 - `compatibility`
   - CLI range, registry protocol range, host compatibility
 - `assetInstall`
@@ -119,7 +124,6 @@ npm run generate:template -- base/feature/dashboard/dashboard-feature-base-templ
 npm run generate:template -- base/capability/storage/storage-capability-base-template
 npm run generate:template -- base/provider/llm/llm-provider-base-template
 npm run generate:template -- base/surface/admin/admin-surface-base-template
-npm run generate:template -- derived/starter/rendo/rendo-saas-starter
 ```
 
 Sync and validate the shared core skeleton:
@@ -129,30 +133,7 @@ node --import tsx scripts/sync-core-templates.ts
 node --import tsx scripts/sync-core-templates.ts --check
 ```
 
-Generate the file-backed runtime catalog used by `rendo-saas-starter`:
-
-```bash
-node --import tsx scripts/generate-runtime-catalog.ts shared/authoring/templates/derived/starter/rendo/rendo-saas-starter/overlay/catalog --exclude=rendo-saas-starter
-```
-
 The generated outputs are written into [shared/templates](/D:/code/rendo/shared/templates).
-
-## Remote registry runtime
-
-`rendo-saas-starter` is the first official derived runtime starter.
-
-It currently provides:
-
-- `/.well-known/rendo-registry.json`
-- `/v1/search`
-- `/v1/inspect`
-- `/v1/bundles/:templateId`
-- `/api/health`
-
-Runtime catalog assets live under:
-
-- `catalog/index.json`
-- `catalog/bundles/*.json`
 
 ## Validation status
 
@@ -164,7 +145,6 @@ Verified in this workspace:
 - `rendo create application --surfaces ...` creates runnable application base projects
 - Node and Python CLIs add and pull provider base templates identically
 - Core templates stay aligned with the shared skeleton via `scripts/sync-core-templates.ts --check`
-- `rendo-saas-starter` scaffolds and builds as the official derived runtime starter
 - Local fixture-based remote registry responses are supported by both CLIs with digest-verified bundle downloads
 
 ## Commands

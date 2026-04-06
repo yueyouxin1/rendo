@@ -56,7 +56,7 @@ rendo init capability --output my-capability-core
 
 用途：
 
-- 查看 manifest、结构化元信息、兼容矩阵与 install plan 元数据
+- 查看 manifest、结构化元信息、文档入口、兼容矩阵与 install plan 元数据
 
 ### `rendo add`
 
@@ -91,3 +91,11 @@ rendo init capability --output my-capability-core
 - `add / pull` 负责非 starter 模板与 pack 的消费
 - `--registry <provider>` 负责切换 `local` 与 `remote`
 - `--registry-token` 负责 bearer token 鉴权
+
+## 4. Agent 友好要求
+
+CLI 输出应尽量让强 Agent 在不翻大量代码的情况下就能知道：
+
+- 该模板属于哪一类、哪一层
+- 推荐先看哪些文档文件
+- 它能被谁创建、谁安装、谁宿主

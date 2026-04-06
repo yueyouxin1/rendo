@@ -63,6 +63,13 @@ function printInspect(payload: InspectPayload, json: boolean): void {
   if (payload.toolchains?.length) {
     console.log(`toolchains: ${payload.toolchains.map((item) => `${item.name}@${item.version} (${item.role})`).join(", ")}`);
   }
+  if (payload.documentation) {
+    console.log(`docs overview: ${payload.documentation.overview}`);
+    console.log(`docs structure: ${payload.documentation.structure}`);
+    console.log(`docs extension points: ${payload.documentation.extensionPoints}`);
+    console.log(`docs inheritance: ${payload.documentation.inheritanceBoundaries}`);
+    console.log(`docs secondary development: ${payload.documentation.secondaryDevelopment}`);
+  }
   if (payload.surfaceCapabilities?.length) {
     console.log(`surface capabilities: ${payload.surfaceCapabilities.join(", ")}`);
   }
@@ -87,8 +94,13 @@ function printInspect(payload: InspectPayload, json: boolean): void {
     );
   }
   if (payload.assetInstall) {
+    const supportedHosts = payload.assetInstall.supportedHostTemplates.length
+      ? payload.assetInstall.supportedHostTemplates.join(", ")
+      : payload.assetInstall.supportedHostKinds.length
+        ? payload.assetInstall.supportedHostKinds.join(", ")
+        : "(any)";
     console.log(`install summary: ${payload.assetInstall.previewSummary}`);
-    console.log(`supported hosts: ${payload.assetInstall.supportedHostTemplates.join(", ") || "(any)"}`);
+    console.log(`supported hosts: ${supportedHosts}`);
     for (const mode of payload.assetInstall.modes) {
       console.log(`  mode ${mode.runtimeMode}: target ${mode.targetRoot}, conflict ${mode.conflictStrategy}, rollback ${mode.rollbackStrategy}`);
     }

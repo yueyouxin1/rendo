@@ -22,6 +22,7 @@
     "requiredEnv",
     "toolchains",
     "lineage",
+    "documentation",
     "surfaceCapabilities",
     "defaultSurfaces",
     "surfacePaths",
@@ -89,6 +90,17 @@
         "baseTemplate": { "type": ["string", "null"] }
       }
     },
+    "documentation": {
+      "type": "object",
+      "required": ["overview", "structure", "extensionPoints", "inheritanceBoundaries", "secondaryDevelopment"],
+      "properties": {
+        "overview": { "type": "string", "minLength": 1 },
+        "structure": { "type": "string", "minLength": 1 },
+        "extensionPoints": { "type": "string", "minLength": 1 },
+        "inheritanceBoundaries": { "type": "string", "minLength": 1 },
+        "secondaryDevelopment": { "type": "string", "minLength": 1 }
+      }
+    },
     "surfaceCapabilities": {
       "type": "array",
       "items": { "enum": ["web", "miniapp", "mobile", "desktop"] }
@@ -140,7 +152,7 @@
             "type": "object",
             "required": ["templateId", "templateKind", "minVersion", "maxVersion"],
             "properties": {
-              "templateId": { "type": "string", "minLength": 1 },
+              "templateId": { "type": ["string", "null"], "minLength": 1 },
               "templateKind": {
                 "enum": [
                   "starter-template",

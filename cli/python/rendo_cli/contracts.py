@@ -51,6 +51,8 @@ def validate_template_compatibility(payload: dict) -> dict:
         require_keys(host, ["templateId", "templateKind", "minVersion", "maxVersion"], "template host compatibility")
         if host["templateKind"] not in TEMPLATE_KINDS:
             raise RuntimeError(f"invalid host template kind: {host['templateKind']}")
+        if host["templateId"] is not None and not isinstance(host["templateId"], str):
+            raise RuntimeError("invalid host template id")
     return payload
 
 
@@ -100,6 +102,7 @@ def validate_template_manifest(payload: dict) -> dict:
             "requiredEnv",
             "toolchains",
             "lineage",
+            "documentation",
             "surfaceCapabilities",
             "defaultSurfaces",
             "surfacePaths",
@@ -117,6 +120,11 @@ def validate_template_manifest(payload: dict) -> dict:
         raise RuntimeError(f"invalid template role: {payload['templateRole']}")
     if any(mode not in RUNTIME_MODES for mode in payload["runtimeModes"]):
         raise RuntimeError("invalid runtime mode in template manifest")
+    require_keys(
+        payload["documentation"],
+        ["overview", "structure", "extensionPoints", "inheritanceBoundaries", "secondaryDevelopment"],
+        "template documentation",
+    )
     if any(surface not in SURFACES for surface in payload["surfaceCapabilities"]):
         raise RuntimeError("invalid surface in template manifest")
     if any(surface not in SURFACES for surface in payload["defaultSurfaces"]):

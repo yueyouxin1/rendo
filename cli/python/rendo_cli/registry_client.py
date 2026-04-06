@@ -125,6 +125,7 @@ def _build_template_payload(entry: dict, manifest: dict) -> dict:
         "domainTags": manifest["domainTags"],
         "scenarioTags": manifest["scenarioTags"],
         "toolchains": manifest["toolchains"],
+        "documentation": manifest["documentation"],
         "surfaceCapabilities": manifest["surfaceCapabilities"],
         "defaultSurfaces": manifest["defaultSurfaces"],
         "runtimeModes": manifest["runtimeModes"],

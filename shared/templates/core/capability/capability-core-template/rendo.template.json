@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "capability-core-template",
+  "name": "Capability Core Template",
+  "version": "0.2.0",
+  "type": "template",
+  "templateKind": "capability-template",
+  "templateRole": "core",
+  "category": "core",
+  "title": "Rendo Capability Core Template",
+  "description": "Canonical core substrate for capability templates before any base or derived installable capability is introduced.",
+  "uiMode": "none",
+  "domainTags": [],
+  "scenarioTags": [],
+  "runtimeModes": [
+    "source",
+    "managed",
+    "hybrid"
+  ],
+  "defaultProviders": {
+    "agent": "none",
+    "workflow": "none",
+    "auth": "none",
+    "db": "none",
+    "cache": "none"
+  },
+  "recommendedPacks": [],
+  "requiredEnv": [],
+  "toolchains": [
+    {
+      "name": "node",
+      "version": "22",
+      "role": "runtime"
+    },
+    {
+      "name": "npm",
+      "version": "11",
+      "role": "package-manager"
+    }
+  ],
+  "lineage": {
+    "coreTemplate": null,
+    "baseTemplate": null
+  },
+  "documentation": {
+    "overview": "README.md",
+    "structure": "docs/structure.md",
+    "extensionPoints": "docs/extension-points.md",
+    "inheritanceBoundaries": "docs/inheritance-boundaries.md",
+    "secondaryDevelopment": "docs/secondary-development.md"
+  },
+  "surfaceCapabilities": [],
+  "defaultSurfaces": [],
+  "surfacePaths": {},
+  "supports": {
+    "web": false,
+    "miniapp": false,
+    "mobile": false,
+    "desktop": false
+  },
+  "compatibility": {
+    "cli": {
+      "min": "0.2.0",
+      "max": null
+    },
+    "registryProtocol": {
+      "min": "1.0.0",
+      "max": null
+    },
+    "hosts": []
+  },
+  "assetInstall": null
+}

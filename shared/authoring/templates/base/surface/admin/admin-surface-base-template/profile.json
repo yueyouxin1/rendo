@@ -6,9 +6,8 @@
   "category": "admin",
   "title": "Admin Surface Base Template",
   "description": "Official canonical base template for admin-oriented surfaces.",
-  "baseTemplatePath": "shared/templates/core/surface-core-template",
-  "outputTemplatePath": "shared/templates/base/surface/admin-surface-base-template",
+  "baseTemplatePath": "shared/templates/core/surface/surface-core-template",
+  "outputTemplatePath": "shared/templates/base/surface/admin/admin-surface-base-template",
   "overlayPath": "shared/authoring/templates/base/surface/admin/admin-surface-base-template/overlay",
   "removePaths": []
 }
-

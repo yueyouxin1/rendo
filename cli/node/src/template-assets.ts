@@ -41,15 +41,18 @@ function assertCompatibleHost(
     return;
   }
 
-  const matched = compatibility.find((item) => item.templateId === hostTemplate.id || item.templateKind === hostTemplate.templateKind);
+  const matched = compatibility.find(
+    (item) => (item.templateId !== null && item.templateId === hostTemplate.id) || item.templateKind === hostTemplate.templateKind,
+  );
   if (!matched) {
     throw new Error(`template ${manifest.id} does not apply to host ${hostTemplate.id}`);
   }
+  const compatibilityTarget = matched.templateId ?? matched.templateKind;
   if (matched.minVersion && compareVersions(hostTemplate.version, matched.minVersion) < 0) {
-    throw new Error(`template ${manifest.id} requires host ${matched.templateId} >= ${matched.minVersion}`);
+    throw new Error(`template ${manifest.id} requires host ${compatibilityTarget} >= ${matched.minVersion}`);
   }
   if (matched.maxVersion && compareVersions(hostTemplate.version, matched.maxVersion) > 0) {
-    throw new Error(`template ${manifest.id} requires host ${matched.templateId} <= ${matched.maxVersion}`);
+    throw new Error(`template ${manifest.id} requires host ${compatibilityTarget} <= ${matched.maxVersion}`);
   }
 }
 

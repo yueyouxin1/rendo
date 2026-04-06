@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { spawn, spawnSync, type ChildProcess } from "node:child_process";
+import { spawn, spawnSync, type ChildProcess, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { mkdtemp, mkdir, readFile, readdir, rm } from "node:fs/promises";
 import os from "node:os";
@@ -33,12 +33,52 @@ function run(command: string, args: string[], cwd = repoRoot, extraEnv: Record<s
   };
 }
 
+function runAsync(command: string, args: string[], cwd = repoRoot, extraEnv: Record<string, string> = {}) {
+  return new Promise<{ status: number; stdout: string; stderr: string }>((resolve, reject) => {
+    const child: ChildProcessWithoutNullStreams = spawn(command, args, {
+      cwd,
+      shell: process.platform === "win32",
+      stdio: "pipe",
+      env: {
+        ...process.env,
+        ...extraEnv,
+      },
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    child.stdout.on("data", (chunk: Buffer | string) => {
+      stdout += chunk.toString();
+    });
+    child.stderr.on("data", (chunk: Buffer | string) => {
+      stderr += chunk.toString();
+    });
+    child.on("error", reject);
+    child.on("close", (code: number | null) => {
+      resolve({
+        status: code ?? 1,
+        stdout,
+        stderr,
+      });
+    });
+  });
+}
+
 function runNodeCli(args: string[], cwd = repoRoot, extraEnv: Record<string, string> = {}) {
   return run("node", ["--import", tsxLoader, path.join(repoRoot, "cli/node/src/bin.ts"), ...args], cwd, extraEnv);
 }
 
 function runPythonCli(args: string[], cwd = repoRoot, extraEnv: Record<string, string> = {}) {
   return run("python", [path.join(repoRoot, "cli", "python", "rendo.py"), ...args], cwd, extraEnv);
+}
+
+function runNodeCliAsync(args: string[], cwd = repoRoot, extraEnv: Record<string, string> = {}) {
+  return runAsync("node", ["--import", tsxLoader, path.join(repoRoot, "cli/node/src/bin.ts"), ...args], cwd, extraEnv);
+}
+
+function runPythonCliAsync(args: string[], cwd = repoRoot, extraEnv: Record<string, string> = {}) {
+  return runAsync("python", [path.join(repoRoot, "cli", "python", "rendo.py"), ...args], cwd, extraEnv);
 }
 
 async function ensureGeneratedAssets() {
@@ -397,6 +437,7 @@ test("node and python CLIs expose identical inspect payload for application base
     templateRole: string;
     domainTags: string[];
     scenarioTags: string[];
+    documentation: Record<string, string>;
     surfaceCapabilities: string[];
     defaultSurfaces: string[];
   };
@@ -404,6 +445,13 @@ test("node and python CLIs expose identical inspect payload for application base
   assert.equal(payload.templateRole, "base");
   assert.deepEqual(payload.domainTags, ["developer-tool", "productivity"]);
   assert.deepEqual(payload.scenarioTags, []);
+  assert.deepEqual(payload.documentation, {
+    overview: "README.md",
+    structure: "docs/structure.md",
+    extensionPoints: "docs/extension-points.md",
+    inheritanceBoundaries: "docs/inheritance-boundaries.md",
+    secondaryDevelopment: "docs/secondary-development.md",
+  });
   assert.deepEqual(payload.surfaceCapabilities, ["web", "miniapp", "mobile"]);
   assert.deepEqual(payload.defaultSurfaces, ["web"]);
 });
@@ -437,7 +485,10 @@ test("template authoring pipeline generates application base starter from profil
   assert.equal(generatedPayload.templateId, "application-base-starter");
 
   const templateManifest = JSON.parse(
-    await readFile(path.join(repoRoot, "shared", "templates", "base", "starter", "application-base-starter", "rendo.template.json"), "utf8"),
+    await readFile(
+      path.join(repoRoot, "shared", "templates", "base", "starter", "application", "application-base-starter", "rendo.template.json"),
+      "utf8",
+    ),
   ) as { id: string; type: string; category: string; templateKind: string; templateRole: string };
   assert.equal(templateManifest.id, "application-base-starter");
   assert.equal(templateManifest.type, "template");
@@ -519,6 +570,10 @@ test("rendo create rejects core starter and creates identical multi-surface appl
     assert.equal(projectManifest.template.id, "application-base-starter");
     assert.ok(run("cmd", ["/c", "if exist apps\\miniapp (exit 0) else (exit 1)"], nodeTarget).status === 0);
     assert.ok(run("cmd", ["/c", "if exist apps\\mobile (exit 0) else (exit 1)"], nodeTarget).status !== 0);
+    assert.ok(run("cmd", ["/c", "if exist features\\README.md (exit 0) else (exit 1)"], nodeTarget).status === 0);
+    assert.ok(run("cmd", ["/c", "if exist capabilities\\README.md (exit 0) else (exit 1)"], nodeTarget).status === 0);
+    assert.ok(run("cmd", ["/c", "if exist providers\\README.md (exit 0) else (exit 1)"], nodeTarget).status === 0);
+    assert.ok(run("cmd", ["/c", "if exist surfaces\\README.md (exit 0) else (exit 1)"], nodeTarget).status === 0);
 
     const nodeHashes = await collectDirectoryHashes(nodeTarget);
     const pythonHashes = await collectDirectoryHashes(pythonTarget);
@@ -596,26 +651,26 @@ test("node and python CLIs consume identical remote registry output from the fix
   try {
     const createdAt = "2026-04-04T00:00:00.000Z";
     await withTempDir("rendo-remote-fixture", async (dir) => {
-      const nodeSearch = runNodeCli(["search", "--type", "all", "--registry", registry.baseUrl, "--json"], repoRoot);
-      const pythonSearch = runPythonCli(["search", "--type", "all", "--registry", registry.baseUrl, "--json"], repoRoot);
+      const nodeSearch = await runNodeCliAsync(["search", "--type", "all", "--registry", registry.baseUrl, "--json"], repoRoot);
+      const pythonSearch = await runPythonCliAsync(["search", "--type", "all", "--registry", registry.baseUrl, "--json"], repoRoot);
       assert.equal(nodeSearch.status, 0, nodeSearch.stderr);
       assert.equal(pythonSearch.status, 0, pythonSearch.stderr);
       assert.deepEqual(JSON.parse(nodeSearch.stdout), JSON.parse(pythonSearch.stdout));
 
-      const nodeInspect = runNodeCli(["inspect", "application-base-starter", "--registry", registry.baseUrl, "--json"], repoRoot);
-      const pythonInspect = runPythonCli(["inspect", "application-base-starter", "--registry", registry.baseUrl, "--json"], repoRoot);
+      const nodeInspect = await runNodeCliAsync(["inspect", "application-base-starter", "--registry", registry.baseUrl, "--json"], repoRoot);
+      const pythonInspect = await runPythonCliAsync(["inspect", "application-base-starter", "--registry", registry.baseUrl, "--json"], repoRoot);
       assert.equal(nodeInspect.status, 0, nodeInspect.stderr);
       assert.equal(pythonInspect.status, 0, pythonInspect.stderr);
       assert.deepEqual(JSON.parse(nodeInspect.stdout), JSON.parse(pythonInspect.stdout));
 
-      const nodeApp = path.join(dir, "node-app");
-      const pythonApp = path.join(dir, "python-app");
-      const nodeCreate = runNodeCli(
+      const nodeApp = path.join(dir, "node", "remote-app");
+      const pythonApp = path.join(dir, "python", "remote-app");
+      const nodeCreate = await runNodeCliAsync(
         ["create", "application-base-starter", "--registry", registry.baseUrl, "--output", nodeApp, "--surfaces", "web", "--json"],
         repoRoot,
         { RENDO_CREATED_AT_OVERRIDE: createdAt },
       );
-      const pythonCreate = runPythonCli(
+      const pythonCreate = await runPythonCliAsync(
         ["create", "application-base-starter", "--registry", registry.baseUrl, "--output", pythonApp, "--surfaces", "web", "--json"],
         repoRoot,
         { RENDO_CREATED_AT_OVERRIDE: createdAt },
@@ -623,12 +678,12 @@ test("node and python CLIs consume identical remote registry output from the fix
       assert.equal(nodeCreate.status, 0, nodeCreate.stderr);
       assert.equal(pythonCreate.status, 0, pythonCreate.stderr);
 
-      const nodeAdd = runNodeCli(
+      const nodeAdd = await runNodeCliAsync(
         ["add", "llm-provider-base-template", "--registry", registry.baseUrl, "--json"],
         nodeApp,
         { RENDO_INSTALLED_AT_OVERRIDE: "2026-04-04T00:00:00.000Z" },
       );
-      const pythonAdd = runPythonCli(
+      const pythonAdd = await runPythonCliAsync(
         ["add", "llm-provider-base-template", "--registry", registry.baseUrl, "--json"],
         pythonApp,
         { RENDO_INSTALLED_AT_OVERRIDE: "2026-04-04T00:00:00.000Z" },
@@ -650,11 +705,11 @@ test("remote pull fails when registry advertises a wrong bundle digest", async (
   const registry = await startFixtureRegistryServer(true);
   try {
     await withTempDir("rendo-remote-digest", async (dir) => {
-      const nodePull = runNodeCli(
+      const nodePull = await runNodeCliAsync(
         ["pull", "application-base-starter", "--registry", registry.baseUrl, "--output", path.join(dir, "node"), "--json"],
         repoRoot,
       );
-      const pythonPull = runPythonCli(
+      const pythonPull = await runPythonCliAsync(
         ["pull", "application-base-starter", "--registry", registry.baseUrl, "--output", path.join(dir, "python"), "--json"],
         repoRoot,
       );

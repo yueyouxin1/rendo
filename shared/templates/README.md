@@ -1,26 +1,29 @@
 # Template Assets
 
-Rendo template assets are layered as:
+Rendo template assets are laid out as generated runtime artifacts, not authoring sources.
 
-1. `core/<template-id>`
-2. `base/<kind>/<template-id>`
-3. `derived/<kind>/<template-id>`
+## Path convention
 
-Current implemented official layers:
+1. `core/<kind>/<template-id>`
+2. `base/<kind>/<category>/<template-id>`
+3. `derived/<kind>/<category>/<template-id>`
 
-- `core/starter-core-template`
-- `core/feature-core-template`
-- `core/capability-core-template`
-- `core/provider-core-template`
-- `core/surface-core-template`
-- `base/starter/application-base-starter`
-- `base/feature/dashboard-feature-base-template`
-- `base/capability/storage-capability-base-template`
-- `base/provider/llm-provider-base-template`
-- `base/surface/admin-surface-base-template`
+## Current official generated assets
 
-Design rule:
+- `core/starter/starter-core-template`
+- `core/feature/feature-core-template`
+- `core/capability/capability-core-template`
+- `core/provider/provider-core-template`
+- `core/surface/surface-core-template`
+- `base/starter/application/application-base-starter`
+- `base/feature/dashboard/dashboard-feature-base-template`
+- `base/capability/storage/storage-capability-base-template`
+- `base/provider/llm/llm-provider-base-template`
+- `base/surface/admin/admin-surface-base-template`
+
+## Design rule
 
 - `core` defines the minimum contract layer for a template kind
 - `base` defines the canonical best-practice starting point for that kind
 - `derived` grows concrete specializations from a base template
+- generated assets should stay close to registry/runtime consumption concerns, while authoring sources live under `shared/authoring/templates`

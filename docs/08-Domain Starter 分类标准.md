@@ -1,6 +1,7 @@
 # Starter Template 分类标准
 
 > 本文件保留原路径名，但语义已更新为 `Starter Template` 分类标准。
+> 若本文出现旧的“唯一 Core Starter”心智，应以当前 `starter-core-template -> application-base-starter -> derived starter` 语义替代，并服从 `core -> base -> derived` 总主干。
 
 ## 结论
 
@@ -34,4 +35,3 @@ Starter 负责：
 ### Derived
 
 - 暂未作为当前重点推进对象
-
