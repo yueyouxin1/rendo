@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "application/saas-starter",
+  "name": "Application SaaS Starter",
+  "version": "0.2.0",
+  "type": "template",
+  "templateKind": "starter-template",
+  "templateRole": "derived",
+  "category": "application",
+  "title": "Rendo Application SaaS Starter",
+  "description": "Official multi-surface-capable application base starter with a web hello-world landing page and optional miniapp/mobile placeholders.",
+  "uiMode": "multi",
+  "domainTags": [
+    "developer-tool",
+    "productivity"
+  ],
+  "scenarioTags": [],
+  "runtimeModes": [
+    "source"
+  ],
+  "defaultProviders": {
+    "agent": "none",
+    "workflow": "none",
+    "auth": "none",
+    "db": "none",
+    "cache": "none"
+  },
+  "recommendedPacks": [],
+  "requiredEnv": [],
+  "toolchains": [
+    {
+      "name": "node",
+      "version": "22",
+      "role": "web-runtime"
+    },
+    {
+      "name": "npm",
+      "version": "11",
+      "role": "web-package-manager"
+    },
+    {
+      "name": "docker",
+      "version": "28",
+      "role": "container"
+    }
+  ],
+  "lineage": {
+    "coreTemplate": "starter-core-template",
+    "baseTemplate": null,
+    "parentTemplate": "starter-core-template"
+  },
+  "documentation": {
+    "overview": "README.md",
+    "structure": "docs/structure.md",
+    "extensionPoints": "docs/extension-points.md",
+    "inheritanceBoundaries": "docs/inheritance-boundaries.md",
+    "secondaryDevelopment": "docs/secondary-development.md"
+  },
+  "architecture": {
+    "standard": "rendo-service-base.v1",
+    "hostModel": "host-root",
+    "runtimeClass": "standalone-runnable",
+    "rootPaths": {
+      "agentEntrypoints": [
+        "AGENTS.md",
+        "CLAUDE.md",
+        ".agents/review-checklist.md",
+        ".agents/glossary.md"
+      ],
+      "docs": [
+        "docs/structure.md",
+        "docs/extension-points.md",
+        "docs/inheritance-boundaries.md",
+        "docs/secondary-development.md"
+      ],
+      "interfaces": [
+        "interfaces/openapi/README.md",
+        "interfaces/mcp/README.md",
+        "interfaces/skills/README.md"
+      ],
+      "implementation": [
+        "src/apps/README.md",
+        "src/apps/desktop/README.md",
+        "src/packages/README.md",
+        "src/packages/contracts/README.md",
+        "src/packages/domain/README.md",
+        "src/packages/shared/README.md",
+        "src/packages/config/README.md"
+      ],
+      "tests": [
+        "tests/unit/README.md",
+        "tests/contracts/README.md",
+        "tests/integration/README.md",
+        "tests/smoke/README.md",
+        "tests/fixtures/README.md"
+      ],
+      "scripts": [
+        "scripts/health.mjs"
+      ],
+      "integration": [
+        "integration/README.md"
+      ],
+      "operations": [
+        "ops/README.md",
+        "ops/docker/compose.yaml"
+      ],
+      "mounts": [
+        "src/features/README.md",
+        "src/capabilities/README.md",
+        "src/providers/README.md",
+        "src/surfaces/README.md"
+      ]
+    }
+  },
+  "surfaceCapabilities": [
+    "web",
+    "miniapp",
+    "mobile"
+  ],
+  "defaultSurfaces": [
+    "web"
+  ],
+  "surfacePaths": {
+    "web": [
+      "src/apps/web"
+    ],
+    "miniapp": [
+      "src/apps/miniapp"
+    ],
+    "mobile": [
+      "src/apps/mobile"
+    ]
+  },
+  "supports": {
+    "web": true,
+    "miniapp": true,
+    "mobile": true,
+    "desktop": false
+  },
+  "compatibility": {
+    "cli": {
+      "min": "0.2.0",
+      "max": null
+    },
+    "registryProtocol": {
+      "min": "1.0.0",
+      "max": null
+    },
+    "hosts": []
+  },
+  "assetIntegration": null
+}

@@ -1,0 +1,28 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Local publish artifacts
+.rendo-artifacts/
+
+# Dependency and build outputs
+node_modules/
+dist/
+build/
+coverage/
+.next/
+.turbo/
+
+# Python caches
+__pycache__/
+.pytest_cache/
+
+# Editor and OS noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Logs
+*.log

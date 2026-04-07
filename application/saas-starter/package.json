@@ -1,0 +1,14 @@
+{
+  "name": "saas-starter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "health": "node scripts/health.mjs",
+    "web:install": "npm --prefix src/apps/web install",
+    "web:dev": "npm --prefix src/apps/web run dev",
+    "web:check": "npm --prefix src/apps/web run check",
+    "docker:up": "docker compose -f ops/docker/compose.yaml up --build",
+    "check": "npm run health && npm run web:check"
+  }
+}

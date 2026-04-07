@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectName": "saas-starter",
+  "surfaces": [
+    "web"
+  ],
+  "template": {
+    "id": "application/saas-starter",
+    "templateKind": "starter-template",
+    "templateRole": "derived",
+    "version": "0.2.0",
+    "runtimeMode": "source",
+    "createdFrom": "rendo:application-base-starter",
+    "createdAt": "2026-04-07T06:58:27.004381+00:00"
+  },
+  "installedTemplates": [],
+  "installedPacks": [],
+  "workspaceId": "ws-saas-starter-d6f244e08c23",
+  "origin": {
+    "createdBy": "rendo.create",
+    "registry": "local-workspace",
+    "source": "local",
+    "templateId": "application-base-starter",
+    "templateKind": "starter-template",
+    "templateRole": "base",
+    "templateVersion": "0.2.0",
+    "runtimeMode": "source"
+  }
+}

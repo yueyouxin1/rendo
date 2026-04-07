@@ -1,0 +1,25 @@
+{
+  "name": "rendo-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "build:release": "powershell -ExecutionPolicy Bypass -File scripts/build-python-cli.ps1",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx cli/node/src/bin.ts",
+    "generate:template": "tsx scripts/generate-template.ts",
+    "generate:runtime-catalog": "tsx scripts/generate-runtime-catalog.ts",
+    "install:local-cli": "powershell -ExecutionPolicy Bypass -File scripts/install-local-cli.ps1",
+    "test": "node --import tsx --test tests/cli.test.ts"
+  },
+  "dependencies": {
+    "commander": "^14.0.2",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}
