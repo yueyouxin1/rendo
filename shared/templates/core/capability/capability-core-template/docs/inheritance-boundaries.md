@@ -1,22 +1,23 @@
 # Inheritance Boundaries
 
-## Allowed to inherit
+## Must Inherit
 
-- control-plane files
-- manifest semantics
-- runtime-mode semantics
-- directory conventions
-- health checks and authoring docs
-- the single implementation-root rule under `src/`
+- workspace control plane
+- agent entrypoints
+- interface-surface roots
+- `src/` as the implementation root
+- verification skeleton
+- documented extension boundaries
 
-## Not allowed to inherit blindly
+## Must Not Inherit Blindly
 
-- concrete product logic
-- concrete vendor credentials
+- product behavior
+- vendor credentials
 - hidden runtime side effects
-- irreversible host integration behavior
-- template-host assumptions that belong in `base` or `derived`
+- irreversible host coupling
+- scenario-specific UI or business assumptions
 
 ## Rule
 
-Base and derived templates may add opinion, but they should not erase the minimal contract exposed by `capability-core-template`.
+Base and derived templates may add opinion.
+They must not erase the minimal contract exposed by `capability-core-template`.

@@ -43,7 +43,7 @@ shared/templates/derived/<kind>/<category>/<template-id>/
 注意：
 
 - `shared/authoring/templates` 是 authoring 源
-- `shared/templates` 是 formal generated artifacts
+- `shared/templates` 是 internal distribution artifacts
 - CLI 与 registry 当前消费的是 formal artifacts，不是 authoring overlays
 
 ---
@@ -120,7 +120,7 @@ shared/templates/derived/<kind>/<category>/<template-id>/
 1. `rendo.template.json`
 2. `AGENTS.md`
 3. `CLAUDE.md`
-4. `.agents/capabilities.yaml`
+4. `.agents/skills/*/SKILL.md`
 5. `.agents/review-checklist.md`
 6. `README.md`
 7. `docs/structure.md`

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import hashlib
 import os
 from pathlib import Path
 import shutil
 
-from .contracts import validate_project_manifest
+from .contracts import validate_project_manifest, validate_template_manifest
 from .fs import copy_tree_with_replacements, ensure_missing_or_empty_dir, read_json, slugify, write_json
 
 
@@ -37,13 +38,49 @@ def prune_unselected_surfaces(target: Path, manifest: dict, selected_surfaces: l
                 path.unlink()
 
 
-def persist_project_surfaces(target: Path, selected_surfaces: list[str]) -> None:
-    payload = validate_project_manifest(read_json(target / "rendo.project.json"))
-    payload["surfaces"] = selected_surfaces
-    write_json(target / "rendo.project.json", payload)
+def build_workspace_id(template_id: str, project_name: str, created_at: str) -> str:
+    slug = slugify(project_name) or "workspace"
+    digest = hashlib.sha256(f"{template_id}:{slug}:{created_at}".encode("utf-8")).hexdigest()[:12]
+    return f"ws-{slug}-{digest}"
 
 
-def scaffold_template(source: dict, target_dir: str, runtime_mode: str | None = None, requested_surfaces: list[str] | None = None) -> dict:
+def persist_workspace_metadata(
+    source: dict,
+    target: Path,
+    selected_runtime: str,
+    selected_surfaces: list[str],
+    creation_mode: str,
+) -> None:
+    manifest = source["manifest"]
+    project = validate_project_manifest(read_json(target / "rendo.project.json"))
+    project["surfaces"] = selected_surfaces
+    project["template"]["templateRole"] = "derived"
+    project["workspaceId"] = build_workspace_id(manifest["id"], project["projectName"], project["template"]["createdAt"])
+    project["origin"] = {
+        "createdBy": creation_mode,
+        "registry": source["registry"],
+        "source": source["source"],
+        "templateId": manifest["id"],
+        "templateKind": manifest["templateKind"],
+        "templateRole": manifest["templateRole"],
+        "templateVersion": manifest["version"],
+        "runtimeMode": selected_runtime,
+    }
+    template = validate_template_manifest(read_json(target / "rendo.template.json"))
+    template["templateRole"] = "derived"
+    write_json(target / ".rendo" / "rendo.project.json", project)
+    write_json(target / ".rendo" / "rendo.template.json", template)
+    (target / "rendo.project.json").unlink(missing_ok=True)
+    (target / "rendo.template.json").unlink(missing_ok=True)
+
+
+def scaffold_template(
+    source: dict,
+    target_dir: str,
+    runtime_mode: str | None = None,
+    requested_surfaces: list[str] | None = None,
+    creation_mode: str = "rendo.create",
+) -> dict:
     target = Path(target_dir).resolve()
     ensure_missing_or_empty_dir(target)
 
@@ -66,11 +103,19 @@ def scaffold_template(source: dict, target_dir: str, runtime_mode: str | None = 
     }
     copied = copy_tree_with_replacements(source["templateDir"], target, replacements)
     prune_unselected_surfaces(target, manifest, selected_surfaces)
-    persist_project_surfaces(target, selected_surfaces)
+    persist_workspace_metadata(source, target, selected_runtime, selected_surfaces, creation_mode)
+    normalized_copied = [
+        relative_path
+        for relative_path in copied
+        if relative_path not in {"rendo.project.json", "rendo.template.json"}
+    ] + [
+        ".rendo/rendo.project.json",
+        ".rendo/rendo.template.json",
+    ]
     return {
         "targetDir": str(target),
         "templateId": manifest["id"],
-        "copiedFiles": copied,
+        "copiedFiles": normalized_copied,
         "selectedSurfaces": selected_surfaces,
         "nextSteps": [f"cd {target}", "npm install", "npm run health", "npm run check"],
     }

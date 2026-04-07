@@ -76,7 +76,7 @@
 
 - `AGENTS.md`
 - `CLAUDE.md`
-- `.agents/capabilities.yaml`
+- `.agents/skills/*/SKILL.md`
 - `.agents/review-checklist.md`
 - `interfaces/openapi/`
 - `interfaces/mcp/`
@@ -84,7 +84,7 @@
 
 ## Formal Template Artifacts
 
-正式模板产物层。
+Rendo 内部分发资产层。
 
 当前目录是：
 

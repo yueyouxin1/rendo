@@ -120,7 +120,6 @@ function buildArchitecture(template: TemplateConfig) {
     agentEntrypoints: [
       "AGENTS.md",
       "CLAUDE.md",
-      ".agents/capabilities.yaml",
       ".agents/review-checklist.md",
       ".agents/glossary.md",
     ],

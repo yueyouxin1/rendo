@@ -2,28 +2,30 @@
 
 ## Layout
 
-- `rendo.template.json`: machine-readable template identity and contract metadata
-- `rendo.project.json`: machine-readable project instantiation metadata
-- `README.md` and `AGENTS.md`: human and agent entrypoints
-- `.agents/`: structured agent-readable metadata
-- `docs/`: normative explanations for structure, runtime, inheritance, and authoring
-- `interfaces/`: OpenAPI, MCP, and skills description surfaces
+- `.rendo/`: CLI-managed workspace metadata namespace
+- `README.md`, `AGENTS.md`, `CLAUDE.md`: human and agent entrypoints
+- `.agents/`: structured agent metadata, glossary, checklists, and skills
+- `docs/`: normative rules for structure, extension, inheritance, and secondary development
+- `interfaces/`: externally discoverable HTTP, MCP, and skills surfaces
 - `src/`: the sole implementation root
-- `tests/`: TDD-oriented validation skeleton
-- `integration/`: host-integration guidance for humans and agents
+- `tests/`: verification skeleton
+- `integration/`: human and agent-readable host impact guidance
 - `scripts/`: health and validation helpers owned by the core layer
 
-## Core ownership
+## Workspace vs Formal Artifact
+
+- An initialized Rendo workspace should keep local metadata under `.rendo/`.
+- A formal template artifact may still expose root-level `rendo.template.json` for registry and bundle compatibility.
+- Core-owned scripts must therefore treat `.rendo/` as the first source of truth and root-level manifests as compatibility fallback only.
+
+## Core Ownership
 
 The core layer owns:
 
-- manifest semantics
+- workspace language
 - directory conventions
-- runtime-mode boundaries
-- health-check shape
-- agent entrypoints and interface roots
-- minimal authoring guidance for the next layer
+- interface-surface conventions
+- verification conventions
+- inheritance conventions
 
-## Design rule
-
-This template is the core layer for `starter templates`. Base and derived templates may add more files and stronger opinions, but they should not make the control plane harder to inspect, harder to validate, or harder to inherit.
+It does not own product behavior or vendor choice.

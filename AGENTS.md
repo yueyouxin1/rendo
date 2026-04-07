@@ -72,6 +72,7 @@ Core templates must:
 - be stable
 - avoid premature product or vendor opinions
 - define the control-plane contract for their template kind
+- define the Rendo engineering language that should survive after a template is pulled out of this repository
 - define language-agnostic architecture semantics and reserved root directories
 - require `AGENTS.md`, `CLAUDE.md`, `.agents/`, `docs/`, `interfaces/`, `src/`, `tests/`, `scripts/`, and `integration/`
 - distinguish `standalone-runnable` from `host-attached`
@@ -107,13 +108,15 @@ Command split:
 
 Current delivery boundary:
 
-- the CLI consumes formal template artifacts from `shared/templates` through `shared/registry`
+- the CLI consumes internal distribution artifacts from `shared/templates` through `shared/registry`
 - `shared/authoring/templates` is authoring-only and is not consumed directly at runtime
 - remote registry handshake plus bundle-backed `search / inspect / create / add / pull` are already implemented against the fixture registry
 - `rendo bundle <ref>` exports deterministic local formal bundle artifacts from that formal layer
 - `scripts/generate-runtime-catalog.ts` exports runtime-pre registry artifacts (`bundles/*.json`, `templates.snapshot.json`, `.well-known/rendo-registry.json`) without introducing official remote publish yet
 - current implementations run against a repository-style or distribution-style asset layout
 - self-contained binary packaging is later hardening work, not the current baseline
+- Rendo-recognizable workspaces should converge on a CLI-managed `.rendo/` namespace rather than exposing project metadata files as user-facing root artifacts
+- local non-official workspaces materialized by `init / create / pull` should already be projected to `derived`, while preserving source lineage separately
 
 ## Technology Direction
 
@@ -151,6 +154,7 @@ That means:
 - use `integration/` for human/agent-readable host-impact guidance; legacy template-local `install/` guidance semantics are renamed to `integration/`, while physical install roots remain manifest-driven via `assetIntegration.modes[].targetRoot`
 - prefer local manifests, mocks, and adapters first
 - only bind real platform dependencies where the model truly needs validation
+- ensure templates remain understandable after being pulled out of this repository by carrying their Rendo language through `AGENTS.md`, `.agents/`, and `.agents/skills/*/SKILL.md`
 
 ## Boundaries
 

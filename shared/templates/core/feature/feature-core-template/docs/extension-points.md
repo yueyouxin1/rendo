@@ -1,23 +1,26 @@
 # Extension Points
 
-## Core-owned control plane
+## Core-Owned
 
-- `rendo.template.json`
-- `rendo.project.json`
+The core layer owns these surfaces:
+
+- `.rendo/*`
 - `.agents/*`
 - `docs/*`
 - `interfaces/*`
 - `integration/*`
 - `scripts/health.mjs`
+- the rule that implementation lives under `src/`
 
-## Base-template extension space
+## What Base And Derived May Add
 
-Base templates may add:
+Base and derived templates may add:
 
 - concrete implementation directories under `src/`
 - stronger runtime constraints
 - host integration guidance
-- richer secondary-development instructions
+- richer tests
+- richer operational guidance
 
 Starter descendants may additionally add, under `src/`:
 
@@ -30,4 +33,5 @@ Starter descendants may additionally add, under `src/`:
 
 ## Rule
 
-The core layer should define how a `feature templates` grows, not what product or vendor it becomes.
+Add opinion in `base` and `derived`.
+Do not move or weaken the frozen core surfaces.

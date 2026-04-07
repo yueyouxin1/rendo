@@ -40,15 +40,16 @@
 9. [saas-starter/07-测试验收与勾选标准TODO.md](/D:/code/rendo/docs/todo/saas-starter/07-%E6%B5%8B%E8%AF%95%E9%AA%8C%E6%94%B6%E4%B8%8E%E5%8B%BE%E9%80%89%E6%A0%87%E5%87%86TODO.md)
 10. [29-Rendo服务基座首日架构与目录标准.md](/D:/code/rendo/docs/29-Rendo服务基座首日架构与目录标准.md)
 11. [V1-发布门槛清单与交付成功定义.md](/D:/code/rendo/docs/todo/V1-发布门槛清单与交付成功定义.md)
-12. [cli/00-Phase0-契约与规范TODO.md](/D:/code/rendo/docs/todo/cli/00-Phase0-%E5%A5%91%E7%BA%A6%E4%B8%8E%E8%A7%84%E8%8C%83TODO.md)
-13. [cli/01-Phase1-Core 模板层实现TODO.md](/D:/code/rendo/docs/todo/cli/01-Phase1-Core%20%E6%A8%A1%E6%9D%BF%E5%B1%82%E5%AE%9E%E7%8E%B0TODO.md)
-14. [cli/02-Phase2-RendoCLI实现TODO.md](/D:/code/rendo/docs/todo/cli/02-Phase2-RendoCLI%E5%AE%9E%E7%8E%B0TODO.md)
-15. [cli/05-Phase2.5-Runtime前确定性契约与制品边界TODO.md](/D:/code/rendo/docs/todo/cli/05-Phase2.5-Runtime%E5%89%8D%E7%A1%AE%E5%AE%9A%E6%80%A7%E5%A5%91%E7%BA%A6%E4%B8%8E%E5%88%B6%E5%93%81%E8%BE%B9%E7%95%8CTODO.md)
-16. [cli/03-Phase3-第一个SaasStarter实现TODO.md](/D:/code/rendo/docs/todo/cli/03-Phase3-%E7%AC%AC%E4%B8%80%E4%B8%AASaasStarter%E5%AE%9E%E7%8E%B0TODO.md)
-17. [cli/04-Phase4-Pack机制实现TODO.md](/D:/code/rendo/docs/todo/cli/04-Phase4-Pack%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0TODO.md)
-18. [rendo-saas-starter/10-Phase5-最小真实Rendo能力接入TODO.md](/D:/code/rendo/docs/todo/rendo-saas-starter/10-Phase5-%E6%9C%80%E5%B0%8F%E7%9C%9F%E5%AE%9ERendo%E8%83%BD%E5%8A%9B%E6%8E%A5%E5%85%A5TODO.md)
-19. [rendo-saas-starter/11-Phase6-双模式与多端准备TODO.md](/D:/code/rendo/docs/todo/rendo-saas-starter/11-Phase6-%E5%8F%8C%E6%A8%A1%E5%BC%8F%E4%B8%8E%E5%A4%9A%E7%AB%AF%E5%87%86%E5%A4%87TODO.md)
-20. [rendo-saas-starter/12-Phase7-Rendo平台闭环TODO.md](/D:/code/rendo/docs/todo/rendo-saas-starter/12-Phase7-Rendo%E5%B9%B3%E5%8F%B0%E9%97%AD%E7%8E%AFTODO.md)
+12. [cli/06-紧急-工作区命名空间与发布语义TODO.md](/D:/code/rendo/docs/todo/cli/06-%E7%B4%A7%E6%80%A5-%E5%B7%A5%E4%BD%9C%E5%8C%BA%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E4%B8%8E%E5%8F%91%E5%B8%83%E8%AF%AD%E4%B9%89TODO.md)
+13. [cli/00-Phase0-契约与规范TODO.md](/D:/code/rendo/docs/todo/cli/00-Phase0-%E5%A5%91%E7%BA%A6%E4%B8%8E%E8%A7%84%E8%8C%83TODO.md)
+14. [cli/01-Phase1-Core 模板层实现TODO.md](/D:/code/rendo/docs/todo/cli/01-Phase1-Core%20%E6%A8%A1%E6%9D%BF%E5%B1%82%E5%AE%9E%E7%8E%B0TODO.md)
+15. [cli/02-Phase2-RendoCLI实现TODO.md](/D:/code/rendo/docs/todo/cli/02-Phase2-RendoCLI%E5%AE%9E%E7%8E%B0TODO.md)
+16. [cli/05-Phase2.5-Runtime前确定性契约与制品边界TODO.md](/D:/code/rendo/docs/todo/cli/05-Phase2.5-Runtime%E5%89%8D%E7%A1%AE%E5%AE%9A%E6%80%A7%E5%A5%91%E7%BA%A6%E4%B8%8E%E5%88%B6%E5%93%81%E8%BE%B9%E7%95%8CTODO.md)
+17. [cli/03-Phase3-第一个SaasStarter实现TODO.md](/D:/code/rendo/docs/todo/cli/03-Phase3-%E7%AC%AC%E4%B8%80%E4%B8%AASaasStarter%E5%AE%9E%E7%8E%B0TODO.md)
+18. [cli/04-Phase4-Pack机制实现TODO.md](/D:/code/rendo/docs/todo/cli/04-Phase4-Pack%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0TODO.md)
+19. [rendo-saas-starter/10-Phase5-最小真实Rendo能力接入TODO.md](/D:/code/rendo/docs/todo/rendo-saas-starter/10-Phase5-%E6%9C%80%E5%B0%8F%E7%9C%9F%E5%AE%9ERendo%E8%83%BD%E5%8A%9B%E6%8E%A5%E5%85%A5TODO.md)
+20. [rendo-saas-starter/11-Phase6-双模式与多端准备TODO.md](/D:/code/rendo/docs/todo/rendo-saas-starter/11-Phase6-%E5%8F%8C%E6%A8%A1%E5%BC%8F%E4%B8%8E%E5%A4%9A%E7%AB%AF%E5%87%86%E5%A4%87TODO.md)
+21. [rendo-saas-starter/12-Phase7-Rendo平台闭环TODO.md](/D:/code/rendo/docs/todo/rendo-saas-starter/12-Phase7-Rendo%E5%B9%B3%E5%8F%B0%E9%97%AD%E7%8E%AFTODO.md)
 
 ## 当前重点
 
@@ -59,6 +60,7 @@
 - [x] 新增独立 `docs/todo/saas-starter/` 主线并按模块拆分任务与验收标准
 - [x] 在 `saas-starter` 交付清单中强制实现前阅读与本目标相关的 Vercel skills（至少 `nextjs`、`shadcn`、`turborepo`，按需补充 `geist`、`observability`）
 - [x] 将“docker 开箱即用”提升为 `application/saas-starter` 的硬性交付标准
+- [x] 立刻收敛 `.rendo/` 工作区命名空间、来源 lineage、发布角色自动归一化和 `core/base/derived` 价值定义
 - [x] 以“首日架构落地 + CLI 兼容性达标”作为第一发布门槛（未满足前不推进平台线）
 - [x] 冻结并落实首日服务基座架构与目录标准
 - [x] 让五类 `core` 模板共享同一套语言无关目录语义
@@ -72,6 +74,7 @@
 - [x] 将模板资产机器可读契约统一更名为 `assetIntegration`
 - [x] 明确当前阶段不做官方远程 `publish` API，只保留已落地的本地制品导出与 runtime-pre snapshot 导出
 - [x] 落地 `rendo bundle` 作为本地正式制品导出入口
+- [x] 落地 `rendo publish --local` 作为本地 workspace 到 publish bundle 的最小闭环
 - [x] 落地 runtime-pre deterministic catalog snapshot（`templates.snapshot.json`、`index.json`、handshake `snapshot` 指针）
 
 ### 已有基础

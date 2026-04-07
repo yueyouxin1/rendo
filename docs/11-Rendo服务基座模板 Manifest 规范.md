@@ -10,6 +10,13 @@
 - 它如何被创建、宿主、集成、升级和校验
 - 它的继承、架构与兼容边界是什么
 
+同时还要明确：
+
+- 模板正式产物元信息
+- 本地工作区元信息
+
+不是同一层语义。
+
 ## 当前最小字段
 
 当前实现中的模板 manifest 最小字段如下：
@@ -42,6 +49,12 @@
 - `compatibility`
 - `assetIntegration`
 
+注意：
+
+- 上述字段描述的是模板 manifest 语义
+- 推荐位置应为 `.rendo/rendo.template.json`
+- `.rendo/rendo.project.json` 不应与模板 manifest 混为一谈
+
 ## 关键语义
 
 ### `type`
@@ -73,6 +86,14 @@
 - `base`
 - `derived`
 
+这里表达的是：
+
+- 正式模板产物角色
+
+不应直接等同于：
+
+- 本地工作区在开发过程中的唯一状态
+
 ### `lineage`
 
 当前最小结构：
@@ -92,6 +113,12 @@
 - `core` 模板通常为 `null / null / null`
 - `base` 模板通常是 `coreTemplate != null`、`baseTemplate = null`、`parentTemplate = 对应 core`
 - `derived` 模板允许 `parentTemplate` 指向某个 `base` 或另一个 `derived`
+
+补充理解：
+
+- 本地工作区可以来源于 `core`、`base` 或 `derived`
+- 本地非官方工作区在 `init / create / pull` 时就应根据 `.rendo/rendo.project.json` 中的 origin 信息投影为 `derived`
+- 社区发布时不应要求用户再次切换角色，只需继续保留该 `derived` 投影并同步来源 lineage
 
 ### `documentation`
 
@@ -184,6 +211,48 @@
 - runtime-pre snapshot 只保留 runtime / CLI / registry 需要稳定消费的确定性字段和制品 digest
 - richer 发布说明可在后续由强 Agent enrich，但不反向改写当前强契约
 
+## `.rendo/` 工作区命名空间
+
+推荐的本地工作区命名空间为：
+
+```txt
+.rendo/
+├── rendo.project.json
+└── rendo.template.json
+```
+
+建议职责：
+
+### `.rendo/rendo.project.json`
+
+负责本地工作区状态，例如：
+
+- workspace id
+- 本地项目名
+- origin template
+- origin role
+- selected surfaces
+- installed assets
+
+### `.rendo/rendo.template.json`
+
+负责 CLI 管理的模板发布投影，例如：
+
+- template kind
+- publishable title / description
+- lineage
+- architecture
+- compatibility
+- assetIntegration
+
+用户不应被要求手工维护这两份文件；
+CLI 应负责：
+
+- 初始化
+- 校验
+- 默认值补齐
+- 发布前归一化
+
 ## Agent 入口如何表达
 
 当前实现中的 manifest 还没有把全部 Agent 入口做成单独必填字段。
@@ -209,3 +278,4 @@ manifest 必须：
 - 能支撑 `search / inspect / init / create / add / pull`
 - 能表达 CLI / registry / host compatibility
 - 能表达非 starter 模板的 integration metadata 与 `assetIntegration.modes[].targetRoot` 目标根
+- 能与 `.rendo/rendo.project.json` 一起支撑“来源 lineage”和“发布角色投影”分离

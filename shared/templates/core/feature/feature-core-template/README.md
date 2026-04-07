@@ -1,28 +1,31 @@
 # __RENDO_PROJECT_NAME__
 
-This project was initialized from the Rendo `feature-core-template`.
+This workspace is the Rendo `feature-core-template`.
 
-## What it is
+## What It Freezes
 
-- The minimal control-plane contract for `feature templates`
-- A stable, agent-readable workspace with explicit Agent entrypoints and interface roots
-- The inheritance source for official `base` templates that must derive from this core instead of bypassing it
+- the control plane for `feature templates`
+- the minimum implementation-root rule
+- the minimum interface surfaces
+- the minimum verification skeleton
+- the inheritance contract for official `base` templates
 
-## What it is not
+## What It Does Not Decide
 
-- Not a concrete product starter
-- Not a vendor binding
-- Not a hidden runtime
-- Not the place to introduce irreversible host integration logic
+- product shape
+- vendor choice
+- irreversible host integration
+- scenario-specific runtime opinions
 
-## Read first
+## Read First
 
+- `AGENTS.md`
+- `.agents/glossary.md`
+- `.agents/review-checklist.md`
 - `docs/structure.md`
 - `docs/extension-points.md`
 - `docs/inheritance-boundaries.md`
 - `docs/secondary-development.md`
-- `AGENTS.md`
-- `.agents/capabilities.yaml`
 
 ## Commands
 
@@ -32,6 +35,8 @@ npm run health
 npm run check
 ```
 
-## Next step
+## Metadata Note
 
-Use this template to author a `base` template for `feature templates`, then regenerate the formal artifact layer from authoring sources instead of hand-editing `shared/templates/*`.
+- In a live Rendo workspace, CLI-managed metadata belongs under `.rendo/`.
+- Formal template artifacts may still carry root-level manifest files for registry and bundle compatibility.
+- Validation scripts must therefore prefer `.rendo/` and fall back to root-level manifests only for formal artifact inspection.

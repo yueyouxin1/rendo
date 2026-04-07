@@ -1,7 +1,5 @@
 # CLAUDE.md
 
-## Working model
+Read `AGENTS.md` first.
 
-- Treat this workspace as the canonical `feature templates` core contract.
-- Read `AGENTS.md` first and keep this file semantically aligned with it.
-- Push concrete product or vendor opinions into base or derived templates.
+This file must stay semantically aligned with `AGENTS.md`.

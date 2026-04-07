@@ -4,8 +4,17 @@
 
 新的分工是：
 
-- `rendo init <kind>`：初始化对应模板类型的 `core` 模板
-- `rendo create`：从 `starter-template` 的 `base` 或 `derived` 模板创建具体服务基座项目
+- `rendo init <kind>`：从官方 `core` 源初始化一个 Rendo 可识别工作区
+- `rendo create`：从 `starter-template` 的 `base` 或 `derived` 模板创建一个 Rendo 可识别工作区
+
+两者都不应只是“拷贝快照”。
+
+两者都应：
+
+- 初始化 `.rendo/`
+- 生成本地唯一工作区 ID
+- 记录来源模板与来源角色
+- 用 CLI 管理工作区可发布元信息
 
 ## 为什么 `init` 不能继续默认围绕单一 `starter-core-template`
 
@@ -33,7 +42,35 @@ feature / capability / provider / surface 更适合通过：
 
 被装配进一个 starter 服务基座中。
 
+## 发布语义如何处理
+
+这里必须区分：
+
+1. 本地工作区来源
+2. 发布后的模板角色
+
+本地工作区可以来源于：
+
+- `core`
+- `base`
+- `derived`
+
+但在社区发布时，若该工作区不是官方维护模板，则 Rendo 应自动把其发布角色归一化为：
+
+- `derived`
+
+并保留来源 lineage，例如：
+
+- 来源于 `starter-core-template`
+- 来源于 `application-base-starter`
+- 来源于某个已有 `derived`
+
+这样用户不用手工思考“我现在是不是 core / base / derived”，
+而是由 Rendo 在发布时自动完成最终角色投影。
+
 ## 一句话理解
 
-- `init` 负责创建模板契约工作区
-- `create` 负责创建服务基座项目实例
+- `init` 负责从官方 `core` 源生成可识别工作区
+- `create` 负责从 starter `base / derived` 源生成可识别工作区
+- `.rendo/` 负责承载本地工作区身份
+- 社区发布时，非官方工作区统一自动投影为 `derived`

@@ -44,7 +44,7 @@ registry 提供：
 当前还要明确区分两层：
 
 - `shared/authoring/templates` 是 authoring 源
-- `shared/templates` 是 formal generated artifacts
+- `shared/templates` 是 internal distribution artifacts
 
 同时还要区分：
 
@@ -112,10 +112,10 @@ pack 更偏向：
 
 这意味着：
 
-- 当前已经能把正式模板产物层导出成 runtime-pre 可消费目录
+- 当前已经能把内部分发资产层导出成 runtime-pre 可消费目录
 - 这仍然不是官方远程 `publish`
 - 后续 runtime / SaaS 阶段应消费这些确定性制品，而不是直接消费 authoring 源
 
 ## 7. 一句话结论
 
-CLI 面向的是整套服务基座模板控制面，registry 负责发现与分发，manifest 负责解释，`shared/templates` 负责承载正式模板产物，bundle 与 runtime-pre snapshot 负责进入下一阶段前的确定性制品交付，pack 只保留为并行兼容的安装语义。
+CLI 面向的是整套服务基座模板控制面，registry 负责发现与分发，manifest 负责解释，`shared/templates` 负责承载 Rendo 内部分发资产，bundle 与 runtime-pre snapshot 负责进入下一阶段前的确定性制品交付，pack 只保留为并行兼容的安装语义。

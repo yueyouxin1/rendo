@@ -1,6 +1,7 @@
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { copyTreeWithReplacements, ensureMissingOrEmptyDir, slugify, writeJsonFile } from "./fs.js";
-import { projectManifestSchema, type TemplateManifest } from "./contracts.js";
+import { projectManifestSchema, templateManifestSchema, type TemplateManifest } from "./contracts.js";
 import { readJsonFile } from "./fs.js";
 import { promises as fs } from "node:fs";
 import type { PreparedTemplateSource } from "./registry-client.js";
@@ -12,6 +13,8 @@ export type ScaffoldResult = {
   selectedSurfaces: string[];
   nextSteps: string[];
 };
+
+export type WorkspaceCreationMode = "rendo.init" | "rendo.create" | "rendo.pull";
 
 function resolveSelectedSurfaces(manifest: TemplateManifest, requestedSurfaces?: string[]) {
   if (manifest.surfaceCapabilities.length === 0) {
@@ -56,11 +59,49 @@ async function pruneUnselectedSurfaces(
   }
 }
 
-async function persistProjectSurfaces(targetDir: string, selectedSurfaces: string[]) {
-  const manifestPath = path.join(targetDir, "rendo.project.json");
-  const payload = projectManifestSchema.parse(await readJsonFile(manifestPath));
-  payload.surfaces = selectedSurfaces as any;
-  await writeJsonFile(manifestPath, payload);
+function buildWorkspaceId(templateId: string, projectName: string, createdAt: string) {
+  const slug = slugify(projectName) || "workspace";
+  const digest = createHash("sha256")
+    .update(`${templateId}:${slug}:${createdAt}`)
+    .digest("hex")
+    .slice(0, 12);
+  return `ws-${slug}-${digest}`;
+}
+
+async function persistWorkspaceMetadata(
+  source: PreparedTemplateSource,
+  targetDir: string,
+  selectedRuntimeMode: string,
+  selectedSurfaces: string[],
+  creationMode: WorkspaceCreationMode,
+) {
+  const projectManifestPath = path.join(targetDir, "rendo.project.json");
+  const templateManifestPath = path.join(targetDir, "rendo.template.json");
+  const workspaceProjectManifestPath = path.join(targetDir, ".rendo", "rendo.project.json");
+  const workspaceTemplateManifestPath = path.join(targetDir, ".rendo", "rendo.template.json");
+  const manifest = source.manifest;
+  const project = projectManifestSchema.parse(await readJsonFile(projectManifestPath));
+  project.surfaces = selectedSurfaces as any;
+  project.template.templateRole = "derived";
+  project.workspaceId = buildWorkspaceId(manifest.id, project.projectName, project.template.createdAt);
+  project.origin = {
+    createdBy: creationMode,
+    registry: source.registry,
+    source: source.source,
+    templateId: manifest.id,
+    templateKind: manifest.templateKind,
+    templateRole: manifest.templateRole,
+    templateVersion: manifest.version,
+    runtimeMode: selectedRuntimeMode as any,
+  };
+
+  const template = templateManifestSchema.parse(await readJsonFile(templateManifestPath));
+  template.templateRole = "derived";
+
+  await writeJsonFile(workspaceProjectManifestPath, project);
+  await writeJsonFile(workspaceTemplateManifestPath, template);
+  await fs.rm(projectManifestPath, { force: true });
+  await fs.rm(templateManifestPath, { force: true });
 }
 
 export async function scaffoldTemplate(
@@ -68,6 +109,7 @@ export async function scaffoldTemplate(
   requestedTargetDir: string,
   runtimeMode?: string,
   requestedSurfaces?: string[],
+  creationMode: WorkspaceCreationMode = "rendo.create",
 ): Promise<ScaffoldResult> {
   const targetDir = path.resolve(requestedTargetDir);
   await ensureMissingOrEmptyDir(targetDir);
@@ -94,7 +136,10 @@ export async function scaffoldTemplate(
     },
   );
   await pruneUnselectedSurfaces(targetDir, manifest, selectedSurfaces);
-  await persistProjectSurfaces(targetDir, selectedSurfaces);
+  await persistWorkspaceMetadata(source, targetDir, selectedRuntimeMode, selectedSurfaces, creationMode);
+  const normalizedCopiedFiles = copiedFiles
+    .filter((relativePath) => relativePath !== "rendo.project.json" && relativePath !== "rendo.template.json")
+    .concat([".rendo/rendo.project.json", ".rendo/rendo.template.json"]);
 
   const nextSteps = [
     `cd ${targetDir}`,
@@ -106,7 +151,7 @@ export async function scaffoldTemplate(
   return {
     targetDir,
     templateId: manifest.id,
-    copiedFiles,
+    copiedFiles: normalizedCopiedFiles,
     selectedSurfaces,
     nextSteps,
   };

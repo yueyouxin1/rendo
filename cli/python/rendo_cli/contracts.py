@@ -155,11 +155,27 @@ def validate_template_manifest(payload: dict) -> dict:
 
 def validate_project_manifest(payload: dict) -> dict:
     require_keys(payload, ["schemaVersion", "projectName", "surfaces", "template", "installedTemplates", "installedPacks"], "project manifest")
+    if "workspaceId" in payload and (not isinstance(payload["workspaceId"], str) or not payload["workspaceId"]):
+        raise RuntimeError("invalid workspace id")
     require_keys(
         payload["template"],
         ["id", "templateKind", "templateRole", "version", "runtimeMode", "createdFrom", "createdAt"],
         "project template",
     )
+    if "origin" in payload:
+        require_keys(
+            payload["origin"],
+            ["createdBy", "registry", "source", "templateId", "templateKind", "templateRole", "templateVersion", "runtimeMode"],
+            "project origin",
+        )
+        if payload["origin"]["source"] not in {"local", "remote"}:
+            raise RuntimeError(f"invalid project origin source: {payload['origin']['source']}")
+        if payload["origin"]["templateKind"] not in TEMPLATE_KINDS:
+            raise RuntimeError(f"invalid project origin template kind: {payload['origin']['templateKind']}")
+        if payload["origin"]["templateRole"] not in TEMPLATE_ROLES:
+            raise RuntimeError(f"invalid project origin template role: {payload['origin']['templateRole']}")
+        if payload["origin"]["runtimeMode"] not in RUNTIME_MODES:
+            raise RuntimeError(f"invalid project origin runtime mode: {payload['origin']['runtimeMode']}")
     for item in payload["installedTemplates"]:
         require_keys(
             item,
@@ -186,7 +202,19 @@ def validate_project_manifest(payload: dict) -> dict:
             raise RuntimeError(f"invalid installed template runtime mode: {item['runtimeMode']}")
         if item["source"] not in {"local", "remote"}:
             raise RuntimeError(f"invalid installed template source: {item['source']}")
-    return payload
+    normalized = {
+        "schemaVersion": payload["schemaVersion"],
+        "projectName": payload["projectName"],
+    }
+    if "workspaceId" in payload:
+        normalized["workspaceId"] = payload["workspaceId"]
+    normalized["surfaces"] = payload["surfaces"]
+    normalized["template"] = payload["template"]
+    if "origin" in payload:
+        normalized["origin"] = payload["origin"]
+    normalized["installedTemplates"] = payload["installedTemplates"]
+    normalized["installedPacks"] = payload["installedPacks"]
+    return normalized
 
 
 def validate_pack_manifest(payload: dict) -> dict:

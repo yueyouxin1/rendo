@@ -224,9 +224,21 @@ export const installedTemplateSchema = z.object({
   installedAt: z.string(),
 });
 
+export const projectOriginSchema = z.object({
+  createdBy: z.string().min(1),
+  registry: z.string().min(1),
+  source: z.enum(["local", "remote"]),
+  templateId: z.string().min(1),
+  templateKind: templateKindSchema,
+  templateRole: templateRoleSchema,
+  templateVersion: z.string().min(1),
+  runtimeMode: runtimeModeSchema,
+});
+
 export const projectManifestSchema = z.object({
   schemaVersion: z.string(),
   projectName: z.string(),
+  workspaceId: z.string().min(1).optional(),
   surfaces: z.array(surfaceSchema).default([]),
   template: z.object({
     id: z.string(),
@@ -237,6 +249,7 @@ export const projectManifestSchema = z.object({
     createdFrom: z.string(),
     createdAt: z.string(),
   }),
+  origin: projectOriginSchema.optional(),
   installedTemplates: z.array(installedTemplateSchema).default([]),
   installedPacks: z.array(installedPackSchema),
 });

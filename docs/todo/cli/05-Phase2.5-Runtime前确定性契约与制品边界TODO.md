@@ -7,7 +7,7 @@
 
 - 哪些 manifest / CLI / bundle 字段必须是代码层可确定的
 - 哪些说明性信息允许由未来的强 Agent 在发布前补全
-- 哪些“发布能力”当前只需要做到本地正式制品导出，而不需要远程官方发布
+- 哪些“发布能力”当前只需要做到本地正式制品导出与本地 workspace publish，而不需要远程官方发布
 
 这一步的目的不是扩平台，而是降低当前阶段的契约噪音。
 
@@ -19,6 +19,7 @@
 - [x] 当前模板资产机器契约已统一迁移为 `assetIntegration`
 - [x] 当前已明确不拆第二份发布 manifest，而是通过 runtime-pre snapshot 导出 deterministic 子集
 - [x] 当前已单独定义“本地制品发布/导出”和“远程官方发布”的边界
+- [x] 当前已落地 `rendo publish --local` 作为 workspace 到 publish bundle 的最小闭环
 
 ## 当前阶段必须冻结的边界
 
@@ -57,6 +58,7 @@
 当前阶段可以考虑的最小发布能力只有：
 
 - [x] 从正式模板产物层导出 bundle
+- [x] 从本地 workspace 导出 publish bundle
 - [x] 对 bundle 做 schema / digest / drift 校验
 - [x] 生成可被 local / remote registry / runtime-pre handoff 消费的正式制品
 

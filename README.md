@@ -39,7 +39,8 @@ Rendo is not currently trying to ship:
 
 Rendo treats the following as non-optional from day one:
 
-- every template kind shares the same control-plane skeleton: `rendo.template.json`, `README.md`, `AGENTS.md`, `CLAUDE.md`, `.agents/`, `docs/`, `interfaces/`, `src/`, `tests/`, `scripts/`, `integration/`
+- every Rendo-recognizable workspace carries a CLI-managed `.rendo/` namespace that owns `rendo.template.json`, `rendo.project.json`, and future workspace metadata
+- every template kind shares the same control-plane skeleton outside that namespace: `README.md`, `AGENTS.md`, `CLAUDE.md`, `.agents/`, `docs/`, `interfaces/`, `src/`, `tests/`, `scripts/`, `integration/`
 - legacy template-local `install/` guidance semantics are renamed to `integration/`; `integration/` is guidance-only and does not define physical install roots
 - `starter-template` reserves host-facing implementation slots under `src/`: `src/apps/`, `src/packages/`, `src/features/`, `src/capabilities/`, `src/providers/`, `src/surfaces/` (with `src/surfaces/desktop/` reserved), and keeps `ops/` for runtime delivery concerns
 - Agent-facing entrypoints are expressed through `AGENTS.md`, `CLAUDE.md`, `.agents/`, and `interfaces/openapi/`, `interfaces/mcp/`, `interfaces/skills/`
@@ -60,8 +61,8 @@ Rendo currently separates template authoring from formal template artifacts.
   - current shared core authoring base lives under `core/common/skeleton`
   - `base` templates are produced by applying authoring overlays on top of formal core artifacts
 - [shared/templates](/D:/code/rendo/shared/templates)
-  - the formal generated template artifacts
-  - consumed by the local registry and by both CLI implementations
+  - the internal distribution artifacts generated from authoring sources
+  - consumed by the local registry, bundle export, and both CLI implementations
   - current generated layout is `core/<kind>/<template-id>` and `base/<kind>/<category>/<template-id>`
 - [shared/registry](/D:/code/rendo/shared/registry)
   - the language-neutral registry index that points at formal template artifacts
@@ -71,8 +72,33 @@ Rendo currently separates template authoring from formal template artifacts.
 This means:
 
 - `shared/authoring/templates` is the authoring truth
-- `shared/templates` is the published artifact layer
+- `shared/templates` is the internal distribution artifact layer
 - the CLI does not consume authoring overlays directly at runtime
+- users and agents should develop inside the materialized local workspace, not inside `shared/templates`
+
+## Workspace model
+
+Rendo now needs a clearer distinction between:
+
+- template source lineage
+- local workspace identity
+- published template role
+
+The recommended direction is:
+
+- `.rendo/` marks a workspace as Rendo-recognizable
+- `.rendo/rendo.project.json` records local workspace identity such as workspace id, local name, origin template, selected surfaces, and installed assets
+- `.rendo/rendo.template.json` is a CLI-managed publishable template projection, not a file users should hand-maintain
+- deleting `.rendo/` detaches the workspace from Rendo, similar to deleting `.git/`
+
+Current rule to freeze:
+
+- `core`, `base`, and `derived` primarily describe published template artifacts
+- user-created workspaces may originate from `core`, `base`, or `derived`
+- `rendo init / create / pull` should immediately project local non-official workspaces to `derived` while preserving source lineage separately in `.rendo/rendo.project.json`
+- community publish should keep that `derived` projection and preserve source lineage separately
+
+This removes the need for users to manually reason about template-role transitions during day-to-day development.
 
 ## CLI boundary
 
@@ -81,6 +107,7 @@ Current Node and Python CLIs work today, but they are still asset-layout-based r
 - local mode reads [shared/registry](/D:/code/rendo/shared/registry) and [shared/templates](/D:/code/rendo/shared/templates)
 - remote mode supports HTTP `search / inspect / create / add / pull` through bundle download plus digest verification
 - `rendo bundle <ref>` exports a formal local bundle artifact from the formal template layer
+- `rendo publish --local` exports the current local workspace as a publishable bundle artifact, using `.gitignore` as the default file filter while force-including `.rendo/**`
 - `npm run generate:runtime-catalog -- <outputDir> [--api-base-url=...]` exports runtime-pre deterministic registry artifacts: `bundles/*.json`, `templates.snapshot.json`, `index.json`, and `.well-known/rendo-registry.json`
 - current tests prove remote compatibility against a fixture registry server
 - a persistent official backend registry, official remote publish, and self-contained CLI packaging are later phases, not prerequisites for the current repo workflow
@@ -109,7 +136,7 @@ Current rule:
 ## Current structure
 
 - [shared/templates](/D:/code/rendo/shared/templates)
-  - formal generated template artifacts consumed by the registry and both CLIs
+  - internal distribution artifacts consumed by the registry and both CLIs
 - [shared/authoring/templates](/D:/code/rendo/shared/authoring/templates)
   - authoring source organized as `<role>/<kind>/<category>/<template-id>`
   - shared core skeleton plus per-template overlays
@@ -148,6 +175,24 @@ Derived templates:
 
 - directory and contract conventions are defined
 - no official generated `derived` template is published in the local registry yet
+
+## Why Each Layer Exists
+
+`core` is not valuable because it is empty.
+Its value is that it freezes the Rendo engineering language:
+
+- directory truth
+- Agent entrypoints
+- interface surfaces
+- testing and verification skeleton
+- integration boundaries
+- publishable workspace expectations
+
+`base` is not a thin shell for its own sake.
+Its value is that it is the official reference implementation of that engineering language for a specific template kind.
+
+`derived` is where concrete product, scenario, and community variation should live.
+Its value is that teams can ship opinionated templates without rewriting or forking the underlying Rendo language every time.
 
 ## Manifest semantics
 
@@ -207,6 +252,7 @@ node --import tsx cli/node/src/bin.ts init starter --output my-starter-core
 node --import tsx cli/node/src/bin.ts create application --surfaces web,miniapp --output my-app
 node --import tsx cli/node/src/bin.ts inspect llm-provider-base-template --json
 node --import tsx cli/node/src/bin.ts bundle application-base-starter --output ./artifacts/application-base-starter.rendo-bundle.json
+node --import tsx cli/node/src/bin.ts publish --local --output ./artifacts/application-workspace.rendo-publish.json
 node --import tsx cli/node/src/bin.ts search --registry http://127.0.0.1:3000 --json
 node --import tsx cli/node/src/bin.ts pull application-base-starter --registry http://127.0.0.1:3000 --output pulled-app
 ```
@@ -220,8 +266,18 @@ python cli/python/rendo.py init provider --output my-provider-core
 python cli/python/rendo.py create application --surfaces web --output my-app
 python cli/python/rendo.py add llm-provider-base-template --json
 python cli/python/rendo.py bundle application-base-starter --output .\\artifacts\\application-base-starter.rendo-bundle.json
+python cli/python/rendo.py publish --local --output .\\artifacts\\application-workspace.rendo-publish.json
 python cli/python/rendo.py search --registry http://127.0.0.1:3000 --json
 ```
+
+Expected workspace behavior:
+
+- `rendo init <kind>` should seed a Rendo-recognizable workspace from an official `core` source
+- `rendo create <starter>` should seed a Rendo-recognizable workspace from an official `base` or `derived` starter source
+- `rendo pull <ref> --output <dir>` should seed a local derived workspace from any pulled template source
+- both should initialize `.rendo/` metadata with a stable workspace id and sensible local project name
+- neither should force users to manually maintain publish metadata
+- local workspaces should already carry the `derived` projection in `.rendo/`, and later community publish should preserve it automatically
 
 ## Validation status
 

@@ -12,7 +12,7 @@ Rendo 的规范层定位已经升级为：
 
 因此，当前正确表述不是“先做一个平台产品”，也不是“继续做一个 starter 模板站”，而是：
 
-- **先做成一套围绕服务基座的模板系统、正式模板产物层与控制面**
+- **先做成一套围绕服务基座的模板系统、内部分发资产层与控制面**
 
 ## 规范术语
 
@@ -101,7 +101,7 @@ Rendo 当前仍然以统一的：
 
 - `AGENTS.md`
 - `CLAUDE.md`
-- `.agents/capabilities.yaml`
+- `.agents/skills/*/SKILL.md`
 - `.agents/review-checklist.md`
 - `interfaces/openapi/`
 - `interfaces/mcp/`
@@ -118,17 +118,17 @@ Rendo 当前仍然以统一的：
 
 - 必须让人类和强 Agent 都能明确看见能力入口和扩展边界
 
-## Authoring 与正式模板产物
+## Authoring 与内部分发资产
 
 当前仓库已经明确分成两层：
 
 - `shared/authoring/templates`：authoring 源
-- `shared/templates`：正式模板产物层
+- `shared/templates`：Rendo 内部分发资产层
 
 其中：
 
 - `shared/authoring/templates/core/common/skeleton` 是当前 core 的共同 authoring 基座
-- `shared/templates/*` 是 registry 和 CLI 实际消费的正式模板产物
+- `shared/templates/*` 是 registry、bundle 与 runtime-pre 实际消费的内部分发资产，不是用户开发入口
 
 ## 当前默认路径
 

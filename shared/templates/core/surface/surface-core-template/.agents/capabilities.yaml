@@ -1,8 +1,0 @@
-version: 1
-templateId: surface-core-template
-capabilities:
-  - id: template.structure
-    summary: Canonical structure contract for surface templates
-    docs:
-      - AGENTS.md
-      - docs/structure.md

@@ -8,13 +8,83 @@ import {
 } from "./contracts.js";
 import { pathExists, readJsonFile, writeJsonFile } from "./fs.js";
 
+const workspaceMetadataDirName = ".rendo";
+const projectManifestFileName = "rendo.project.json";
+const templateManifestFileName = "rendo.template.json";
+
+function workspaceMetadataPaths(projectRoot: string) {
+  const workspaceMetadataDir = path.join(projectRoot, workspaceMetadataDirName);
+  return {
+    workspaceProjectManifestPath: path.join(workspaceMetadataDir, projectManifestFileName),
+    workspaceTemplateManifestPath: path.join(workspaceMetadataDir, templateManifestFileName),
+    legacyProjectManifestPath: path.join(projectRoot, projectManifestFileName),
+    legacyTemplateManifestPath: path.join(projectRoot, templateManifestFileName),
+  };
+}
+
+async function resolveWorkspaceMetadata(projectRoot: string) {
+  const paths = workspaceMetadataPaths(projectRoot);
+  const [
+    hasWorkspaceProjectManifest,
+    hasWorkspaceTemplateManifest,
+    hasLegacyProjectManifest,
+    hasLegacyTemplateManifest,
+  ] = await Promise.all([
+    pathExists(paths.workspaceProjectManifestPath),
+    pathExists(paths.workspaceTemplateManifestPath),
+    pathExists(paths.legacyProjectManifestPath),
+    pathExists(paths.legacyTemplateManifestPath),
+  ]);
+
+  return {
+    ...paths,
+    hasWorkspaceProjectManifest,
+    hasWorkspaceTemplateManifest,
+    hasLegacyProjectManifest,
+    hasLegacyTemplateManifest,
+  };
+}
+
+async function readProjectManifest(metadata: Awaited<ReturnType<typeof resolveWorkspaceMetadata>>) {
+  if (metadata.hasWorkspaceProjectManifest) {
+    return projectManifestSchema.parse(await readJsonFile<ProjectManifest>(metadata.workspaceProjectManifestPath));
+  }
+  if (metadata.hasLegacyProjectManifest) {
+    return projectManifestSchema.parse(await readJsonFile<ProjectManifest>(metadata.legacyProjectManifestPath));
+  }
+  return null;
+}
+
+async function readTemplateManifest(metadata: Awaited<ReturnType<typeof resolveWorkspaceMetadata>>) {
+  if (metadata.hasWorkspaceTemplateManifest) {
+    return templateManifestSchema.parse(await readJsonFile<TemplateManifest>(metadata.workspaceTemplateManifestPath));
+  }
+  if (metadata.hasLegacyTemplateManifest) {
+    return templateManifestSchema.parse(await readJsonFile<TemplateManifest>(metadata.legacyTemplateManifestPath));
+  }
+  return null;
+}
+
+async function removeLegacyMetadataFiles(
+  metadata: Awaited<ReturnType<typeof resolveWorkspaceMetadata>>,
+  options?: { removeProject?: boolean; removeTemplate?: boolean },
+) {
+  if (options?.removeProject ?? true) {
+    await fs.rm(metadata.legacyProjectManifestPath, { force: true });
+  }
+  if (options?.removeTemplate ?? true) {
+    await fs.rm(metadata.legacyTemplateManifestPath, { force: true });
+  }
+}
+
 export async function findProjectRoot(startDir: string): Promise<string | null> {
   let current = path.resolve(startDir);
 
   while (true) {
-    const projectManifest = path.join(current, "rendo.project.json");
-    const templateManifest = path.join(current, "rendo.template.json");
-    if ((await pathExists(projectManifest)) && (await pathExists(templateManifest))) {
+    const metadata = await resolveWorkspaceMetadata(current);
+    const hasProjectManifest = metadata.hasWorkspaceProjectManifest || metadata.hasLegacyProjectManifest;
+    const hasTemplateManifest = metadata.hasWorkspaceTemplateManifest || metadata.hasLegacyTemplateManifest;
+    if (hasProjectManifest && hasTemplateManifest) {
       return current;
     }
 
@@ -30,15 +100,23 @@ export async function loadProjectState(projectRoot: string): Promise<{
   project: ProjectManifest;
   template: TemplateManifest;
 }> {
-  const project = projectManifestSchema.parse(await readJsonFile<ProjectManifest>(path.join(projectRoot, "rendo.project.json")));
-  const template = templateManifestSchema.parse(
-    await readJsonFile<TemplateManifest>(path.join(projectRoot, "rendo.template.json")),
-  );
+  const metadata = await resolveWorkspaceMetadata(projectRoot);
+  const project = await readProjectManifest(metadata);
+  const template = await readTemplateManifest(metadata);
+  if (!project || !template) {
+    throw new Error(`no rendo project found at ${projectRoot}`);
+  }
   return { project, template };
 }
 
 export async function saveProjectManifest(projectRoot: string, manifest: ProjectManifest): Promise<void> {
-  await writeJsonFile(path.join(projectRoot, "rendo.project.json"), manifest);
+  const metadata = await resolveWorkspaceMetadata(projectRoot);
+  const template = await readTemplateManifest(metadata);
+  await writeJsonFile(metadata.workspaceProjectManifestPath, manifest);
+  if (template) {
+    await writeJsonFile(metadata.workspaceTemplateManifestPath, template);
+  }
+  await removeLegacyMetadataFiles(metadata, { removeProject: true, removeTemplate: Boolean(template) });
 }
 
 export async function readEnvKeys(envFilePath: string): Promise<Set<string>> {

@@ -205,7 +205,7 @@ capability template 应尽量做到：
 
 - `AGENTS.md`
 - `CLAUDE.md`
-- `.agents/capabilities.yaml`
+- `.agents/skills/*/SKILL.md`
 - `interfaces/openapi/`
 - `interfaces/mcp/`
 - `interfaces/skills/`

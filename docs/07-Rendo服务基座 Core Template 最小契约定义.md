@@ -30,7 +30,7 @@
 - `README.md`
 - `AGENTS.md`
 - `CLAUDE.md`
-- `.agents/capabilities.yaml`
+- `.agents/skills/*/SKILL.md`
 - `.agents/review-checklist.md`
 - `docs/structure.md`
 - `docs/extension-points.md`
@@ -81,7 +81,7 @@
 - 它如何扩展宿主 starter 的 `interfaces/openapi/`
 - 它如何扩展宿主 starter 的 `interfaces/mcp/`
 - 它如何扩展宿主 starter 的 `interfaces/skills/`
-- 它如何更新宿主的 `.agents/capabilities.yaml`
+- 它如何更新宿主的 `.agents/skills/*` 与 `interfaces/*`
 - 它通过 manifest `assetIntegration.modes[].targetRoot` 安装到宿主 `src/features/`、`src/capabilities/`、`src/providers/` 或 `src/surfaces/`
 
 ## 4. 必须满足

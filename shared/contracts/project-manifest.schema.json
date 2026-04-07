@@ -6,6 +6,7 @@
   "properties": {
     "schemaVersion": { "type": "string", "minLength": 1 },
     "projectName": { "type": "string", "minLength": 1 },
+    "workspaceId": { "type": "string", "minLength": 1 },
     "surfaces": {
       "type": "array",
       "items": { "enum": ["web", "miniapp", "mobile", "desktop"] }
@@ -21,6 +22,20 @@
         "runtimeMode": { "type": "string" },
         "createdFrom": { "type": "string" },
         "createdAt": { "type": "string" }
+      }
+    },
+    "origin": {
+      "type": "object",
+      "required": ["createdBy", "registry", "source", "templateId", "templateKind", "templateRole", "templateVersion", "runtimeMode"],
+      "properties": {
+        "createdBy": { "type": "string", "minLength": 1 },
+        "registry": { "type": "string", "minLength": 1 },
+        "source": { "enum": ["local", "remote"] },
+        "templateId": { "type": "string", "minLength": 1 },
+        "templateKind": { "type": "string", "minLength": 1 },
+        "templateRole": { "type": "string", "minLength": 1 },
+        "templateVersion": { "type": "string", "minLength": 1 },
+        "runtimeMode": { "type": "string", "minLength": 1 }
       }
     },
     "installedTemplates": {

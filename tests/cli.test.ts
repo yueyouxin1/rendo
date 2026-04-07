@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { spawn, spawnSync, type ChildProcess, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { access, mkdtemp, mkdir, readFile, readdir, rm } from "node:fs/promises";
+import { access, mkdtemp, mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -156,6 +156,44 @@ async function pathExists(targetPath: string) {
   } catch {
     return false;
   }
+}
+
+type WorkspaceProjectManifest = {
+  projectName: string;
+  workspaceId?: string;
+  surfaces: string[];
+  template: {
+    id: string;
+    templateKind: string;
+    templateRole: string;
+    version: string;
+    runtimeMode: string;
+    createdFrom: string;
+    createdAt: string;
+  };
+  origin?: {
+    createdBy?: string;
+    registry?: string;
+    source?: string;
+    templateId?: string;
+    templateKind?: string;
+    templateRole?: string;
+    templateVersion?: string;
+    runtimeMode?: string;
+  };
+  installedTemplates: Array<{ id: string; templateKind: string }>;
+};
+
+async function readWorkspaceProjectManifest(rootDir: string) {
+  return JSON.parse(await readFile(path.join(rootDir, ".rendo", "rendo.project.json"), "utf8")) as WorkspaceProjectManifest;
+}
+
+async function readWorkspaceTemplateManifest(rootDir: string) {
+  return JSON.parse(await readFile(path.join(rootDir, ".rendo", "rendo.template.json"), "utf8")) as {
+    id: string;
+    type: string;
+    templateRole: string;
+  };
 }
 
 async function assertPathsExist(rootDir: string, relativePaths: string[]) {
@@ -577,7 +615,6 @@ test("node and python CLIs expose identical inspect payload for application base
       agentEntrypoints: [
         "AGENTS.md",
         "CLAUDE.md",
-        ".agents/capabilities.yaml",
         ".agents/review-checklist.md",
         ".agents/glossary.md",
       ],
@@ -660,7 +697,6 @@ test("node and python CLIs expose identical inspect payload for provider base te
   assert.deepEqual(payload.architecture.rootPaths.agentEntrypoints, [
     "AGENTS.md",
     "CLAUDE.md",
-    ".agents/capabilities.yaml",
     ".agents/review-checklist.md",
     ".agents/glossary.md",
   ]);
@@ -717,6 +753,65 @@ test("node and python CLIs export identical template bundles", async () => {
   });
 });
 
+test("node and python CLIs publish identical local workspace bundles while honoring .gitignore", async () => {
+  await ensureGeneratedAssets();
+  await withTempDir("rendo-publish-local", async (dir) => {
+    const nodeWorkspace = path.join(dir, "node", "application-app");
+    const pythonWorkspace = path.join(dir, "python", "application-app");
+    const createdAt = "2026-04-04T00:00:00.000Z";
+
+    const nodeCreate = runNodeCli(["create", "application", "--output", nodeWorkspace, "--surfaces", "web", "--json"], repoRoot, {
+      RENDO_CREATED_AT_OVERRIDE: createdAt,
+    });
+    const pythonCreate = runPythonCli(["create", "application", "--output", pythonWorkspace, "--surfaces", "web", "--json"], repoRoot, {
+      RENDO_CREATED_AT_OVERRIDE: createdAt,
+    });
+    assert.equal(nodeCreate.status, 0, nodeCreate.stderr);
+    assert.equal(pythonCreate.status, 0, pythonCreate.stderr);
+
+    await writeFile(path.join(nodeWorkspace, ".gitignore"), "ignored.txt\nnode_modules/\n.rendo/\n", "utf8");
+    await writeFile(path.join(pythonWorkspace, ".gitignore"), "ignored.txt\nnode_modules/\n.rendo/\n", "utf8");
+    await writeFile(path.join(nodeWorkspace, "ignored.txt"), "ignore me\n", "utf8");
+    await writeFile(path.join(pythonWorkspace, "ignored.txt"), "ignore me\n", "utf8");
+    await mkdir(path.join(nodeWorkspace, "node_modules"), { recursive: true });
+    await mkdir(path.join(pythonWorkspace, "node_modules"), { recursive: true });
+    await writeFile(path.join(nodeWorkspace, "node_modules", "ignored.js"), "console.log('ignore');\n", "utf8");
+    await writeFile(path.join(pythonWorkspace, "node_modules", "ignored.js"), "console.log('ignore');\n", "utf8");
+
+    const nodeOutput = path.join(dir, "node-workspace-publish.rendo-bundle.json");
+    const pythonOutput = path.join(dir, "python-workspace-publish.rendo-bundle.json");
+    const nodePublish = runNodeCli(["publish", "--local", "--output", nodeOutput, "--json"], nodeWorkspace);
+    const pythonPublish = runPythonCli(["publish", "--local", "--output", pythonOutput, "--json"], pythonWorkspace);
+
+    assert.equal(nodePublish.status, 0, nodePublish.stderr);
+    assert.equal(pythonPublish.status, 0, pythonPublish.stderr);
+
+    const nodePayload = JSON.parse(nodePublish.stdout) as {
+      kind: string;
+      templateId: string;
+      bundleFormat: string;
+      bundleDigest: { value: string };
+    };
+    const pythonPayload = JSON.parse(pythonPublish.stdout) as typeof nodePayload;
+    assert.equal(nodePayload.kind, "workspace-publish");
+    assert.equal(nodePayload.templateId, "application-base-starter");
+    assert.equal(nodePayload.bundleFormat, "rendo-bundle.v1");
+    assert.equal(nodePayload.bundleDigest.value, pythonPayload.bundleDigest.value);
+
+    const nodeBundleFile = JSON.parse(await readFile(nodeOutput, "utf8")) as {
+      manifest: { templateRole: string };
+      files: Array<{ path: string }>;
+    };
+    const pythonBundleFile = JSON.parse(await readFile(pythonOutput, "utf8")) as typeof nodeBundleFile;
+    assert.deepEqual(nodeBundleFile, pythonBundleFile);
+    assert.equal(nodeBundleFile.manifest.templateRole, "derived");
+    assert.ok(nodeBundleFile.files.some((file) => file.path === ".rendo/rendo.project.json"));
+    assert.ok(nodeBundleFile.files.some((file) => file.path === ".rendo/rendo.template.json"));
+    assert.ok(!nodeBundleFile.files.some((file) => file.path === "ignored.txt"));
+    assert.ok(!nodeBundleFile.files.some((file) => file.path.startsWith("node_modules/")));
+  });
+});
+
 test("template authoring pipeline generates application base starter from profile", async () => {
   await ensureGeneratedAssets();
   const generated = run(
@@ -751,7 +846,6 @@ test("template authoring pipeline generates application base starter from profil
     "application-base-starter",
   );
   await assertPathsExist(outputDir, [
-    ".agents/capabilities.yaml",
     ".agents/review-checklist.md",
     ".agents/glossary.md",
     "interfaces/openapi/README.md",
@@ -812,7 +906,6 @@ test("template authoring pipeline generates provider base template from profile"
     "llm-provider-base-template",
   );
   await assertPathsExist(outputDir, [
-    ".agents/capabilities.yaml",
     ".agents/review-checklist.md",
     ".agents/glossary.md",
     "interfaces/openapi/README.md",
@@ -883,14 +976,17 @@ test("rendo init creates runnable core templates for every template kind", async
       const init = runNodeCli(["init", kind, "--output", target, "--json"], repoRoot);
       assert.equal(init.status, 0, init.stderr);
 
-      const templateManifest = JSON.parse(await readFile(path.join(target, "rendo.template.json"), "utf8")) as {
-        id: string;
-        type: string;
-        templateRole: string;
-      };
+      const templateManifest = await readWorkspaceTemplateManifest(target);
       assert.equal(templateManifest.id, `${kind}-core-template`);
       assert.equal(templateManifest.type, "template");
-      assert.equal(templateManifest.templateRole, "core");
+      assert.equal(templateManifest.templateRole, "derived");
+      const projectManifest = await readWorkspaceProjectManifest(target);
+      assert.equal(projectManifest.projectName, `${kind}-core`);
+      assert.match(projectManifest.workspaceId ?? "", /^ws-[a-z0-9-]+-[a-f0-9]{12}$/);
+      assert.equal(projectManifest.template.templateRole, "derived");
+      assert.equal(projectManifest.origin?.createdBy, "rendo.init");
+      assert.equal(projectManifest.origin?.templateId, `${kind}-core-template`);
+      assert.equal(projectManifest.origin?.templateRole, "core");
 
       const install = run(npmCommand, ["install"], target);
       assert.equal(install.status, 0, install.stderr);
@@ -900,11 +996,17 @@ test("rendo init creates runnable core templates for every template kind", async
       assert.match(health.stdout, new RegExp(`"templateId": "${kind}-core-template"`));
 
       await assertPathsExist(target, [
+        ".rendo/rendo.project.json",
+        ".rendo/rendo.template.json",
         "AGENTS.md",
         "CLAUDE.md",
-        ".agents/capabilities.yaml",
         ".agents/review-checklist.md",
         ".agents/glossary.md",
+        ".agents/skills/rendo-workspace-mode/SKILL.md",
+        ".agents/skills/rendo-boundaries/SKILL.md",
+        ".agents/skills/rendo-service-surfaces/SKILL.md",
+        ".agents/skills/rendo-tdd-and-verification/SKILL.md",
+        ".agents/skills/rendo-doc-hygiene/SKILL.md",
         "interfaces/openapi/README.md",
         "interfaces/mcp/README.md",
         "interfaces/skills/README.md",
@@ -917,6 +1019,13 @@ test("rendo init creates runnable core templates for every template kind", async
         "integration/README.md",
       ]);
       await assertPathsMissing(target, [
+        "rendo.project.json",
+        "rendo.template.json",
+        ".agents/skills/rendo-workspace-mode.md",
+        ".agents/skills/rendo-boundaries.md",
+        ".agents/skills/rendo-service-surfaces.md",
+        ".agents/skills/rendo-tdd-and-verification.md",
+        ".agents/skills/rendo-doc-hygiene.md",
         "starter",
         "feature",
         "capability",
@@ -973,21 +1082,20 @@ test("rendo create rejects core starter and creates identical multi-surface appl
     assert.equal(nodeCreate.status, 0, nodeCreate.stderr);
     assert.equal(pythonCreate.status, 0, pythonCreate.stderr);
 
-    const templateManifest = JSON.parse(await readFile(path.join(nodeTarget, "rendo.template.json"), "utf8")) as {
-      id: string;
-      type: string;
-      templateRole: string;
-    };
+    const templateManifest = await readWorkspaceTemplateManifest(nodeTarget);
     assert.equal(templateManifest.id, "application-base-starter");
     assert.equal(templateManifest.type, "template");
-    assert.equal(templateManifest.templateRole, "base");
+    assert.equal(templateManifest.templateRole, "derived");
 
-    const projectManifest = JSON.parse(await readFile(path.join(nodeTarget, "rendo.project.json"), "utf8")) as {
-      surfaces: string[];
-      template: { id: string };
-    };
+    const projectManifest = await readWorkspaceProjectManifest(nodeTarget);
+    assert.equal(projectManifest.projectName, "application-app");
+    assert.match(projectManifest.workspaceId ?? "", /^ws-[a-z0-9-]+-[a-f0-9]{12}$/);
     assert.deepEqual(projectManifest.surfaces, ["web", "miniapp"]);
     assert.equal(projectManifest.template.id, "application-base-starter");
+    assert.equal(projectManifest.template.templateRole, "derived");
+    assert.equal(projectManifest.origin?.createdBy, "rendo.create");
+    assert.equal(projectManifest.origin?.templateId, "application-base-starter");
+    assert.equal(projectManifest.origin?.templateRole, "base");
     assert.ok(run("cmd", ["/c", "if exist src\\apps\\miniapp (exit 0) else (exit 1)"], nodeTarget).status === 0);
     assert.ok(run("cmd", ["/c", "if exist src\\apps\\mobile (exit 0) else (exit 1)"], nodeTarget).status !== 0);
     assert.ok(run("cmd", ["/c", "if exist src\\features\\README.md (exit 0) else (exit 1)"], nodeTarget).status === 0);
@@ -996,9 +1104,15 @@ test("rendo create rejects core starter and creates identical multi-surface appl
     assert.ok(run("cmd", ["/c", "if exist src\\surfaces\\README.md (exit 0) else (exit 1)"], nodeTarget).status === 0);
     assert.ok(run("cmd", ["/c", "if exist src\\apps\\desktop\\README.md (exit 0) else (exit 1)"], nodeTarget).status === 0);
     await assertPathsExist(nodeTarget, [
-      ".agents/capabilities.yaml",
+      ".rendo/rendo.project.json",
+      ".rendo/rendo.template.json",
       ".agents/review-checklist.md",
       ".agents/glossary.md",
+      ".agents/skills/rendo-workspace-mode/SKILL.md",
+      ".agents/skills/rendo-boundaries/SKILL.md",
+      ".agents/skills/rendo-service-surfaces/SKILL.md",
+      ".agents/skills/rendo-tdd-and-verification/SKILL.md",
+      ".agents/skills/rendo-doc-hygiene/SKILL.md",
       "interfaces/openapi/README.md",
       "interfaces/mcp/README.md",
       "interfaces/skills/README.md",
@@ -1024,6 +1138,13 @@ test("rendo create rejects core starter and creates identical multi-surface appl
       "src/surfaces/README.md",
     ]);
     await assertPathsMissing(nodeTarget, [
+      "rendo.project.json",
+      "rendo.template.json",
+      ".agents/skills/rendo-workspace-mode.md",
+      ".agents/skills/rendo-boundaries.md",
+      ".agents/skills/rendo-service-surfaces.md",
+      ".agents/skills/rendo-tdd-and-verification.md",
+      ".agents/skills/rendo-doc-hygiene.md",
       "docker-compose.yml",
       "starter",
       "apps",
@@ -1038,6 +1159,7 @@ test("rendo create rejects core starter and creates identical multi-surface appl
     const nodeHashes = await collectDirectoryHashes(nodeTarget);
     const pythonHashes = await collectDirectoryHashes(pythonTarget);
     assert.deepEqual([...nodeHashes.entries()].sort(), [...pythonHashes.entries()].sort());
+    assert.equal((await readWorkspaceProjectManifest(nodeTarget)).workspaceId, (await readWorkspaceProjectManifest(pythonTarget)).workspaceId);
 
     await runLocallyWebOnlyTemplate(nodeTarget, 3200, /Multi-surface hello world, one canonical application base/);
 
@@ -1086,14 +1208,16 @@ test("node and python CLIs add identical provider template assets into a project
     const pythonHashes = await collectDirectoryHashes(pythonTarget);
     assert.deepEqual([...nodeHashes.entries()].sort(), [...pythonHashes.entries()].sort());
 
-    const nodeProject = JSON.parse(await readFile(path.join(nodeTarget, "rendo.project.json"), "utf8")) as {
-      installedTemplates: Array<{ id: string; templateKind: string }>;
-    };
+    const nodeProject = await readWorkspaceProjectManifest(nodeTarget);
     assert.ok(nodeProject.installedTemplates.some((item) => item.id === "llm-provider-base-template" && item.templateKind === "provider-template"));
     await assertPathsExist(path.join(nodeTarget, "src", "providers", "llm-provider-base-template"), [
-      ".agents/capabilities.yaml",
       ".agents/review-checklist.md",
       ".agents/glossary.md",
+      ".agents/skills/rendo-workspace-mode/SKILL.md",
+      ".agents/skills/rendo-boundaries/SKILL.md",
+      ".agents/skills/rendo-service-surfaces/SKILL.md",
+      ".agents/skills/rendo-tdd-and-verification/SKILL.md",
+      ".agents/skills/rendo-doc-hygiene/SKILL.md",
       "interfaces/openapi/README.md",
       "interfaces/mcp/README.md",
       "interfaces/skills/README.md",
@@ -1106,6 +1230,11 @@ test("node and python CLIs add identical provider template assets into a project
       "integration/README.md",
     ]);
     await assertPathsMissing(path.join(nodeTarget, "src", "providers", "llm-provider-base-template"), [
+      ".agents/skills/rendo-workspace-mode.md",
+      ".agents/skills/rendo-boundaries.md",
+      ".agents/skills/rendo-service-surfaces.md",
+      ".agents/skills/rendo-tdd-and-verification.md",
+      ".agents/skills/rendo-doc-hygiene.md",
       "provider",
     ]);
 
@@ -1113,6 +1242,54 @@ test("node and python CLIs add identical provider template assets into a project
     assert.equal(webInstall.status, 0, webInstall.stderr || webInstall.stdout);
     const rootCheck = run(npmCommand, ["run", "check"], nodeTarget);
     assert.equal(rootCheck.status, 0, rootCheck.stderr || rootCheck.stdout);
+  });
+});
+
+test("legacy root-level workspace metadata remains readable and migrates into .rendo on write", async () => {
+  await ensureGeneratedAssets();
+  await withTempDir("rendo-legacy-metadata", async (dir) => {
+    const nodeTarget = path.join(dir, "node", "application-app");
+    const pythonTarget = path.join(dir, "python", "application-app");
+    const createdAt = "2026-04-04T00:00:00.000Z";
+
+    const nodeCreate = runNodeCli(["create", "application", "--output", nodeTarget, "--surfaces", "web", "--json"], repoRoot, {
+      RENDO_CREATED_AT_OVERRIDE: createdAt,
+    });
+    const pythonCreate = runPythonCli(["create", "application", "--output", pythonTarget, "--surfaces", "web", "--json"], repoRoot, {
+      RENDO_CREATED_AT_OVERRIDE: createdAt,
+    });
+    assert.equal(nodeCreate.status, 0, nodeCreate.stderr);
+    assert.equal(pythonCreate.status, 0, pythonCreate.stderr);
+
+    await rename(path.join(nodeTarget, ".rendo", "rendo.project.json"), path.join(nodeTarget, "rendo.project.json"));
+    await rename(path.join(nodeTarget, ".rendo", "rendo.template.json"), path.join(nodeTarget, "rendo.template.json"));
+    await rename(path.join(pythonTarget, ".rendo", "rendo.project.json"), path.join(pythonTarget, "rendo.project.json"));
+    await rename(path.join(pythonTarget, ".rendo", "rendo.template.json"), path.join(pythonTarget, "rendo.template.json"));
+    await rm(path.join(nodeTarget, ".rendo"), { recursive: true, force: true });
+    await rm(path.join(pythonTarget, ".rendo"), { recursive: true, force: true });
+
+    const nodeDoctor = runNodeCli(["doctor", "--json"], nodeTarget);
+    const pythonDoctor = runPythonCli(["doctor", "--json"], pythonTarget);
+    assert.equal(nodeDoctor.status, 0, nodeDoctor.stderr);
+    assert.equal(pythonDoctor.status, 0, pythonDoctor.stderr);
+
+    const nodeAdd = runNodeCli(["add", "llm-provider-base-template", "--json"], nodeTarget, {
+      RENDO_INSTALLED_AT_OVERRIDE: "2026-04-04T00:00:00.000Z",
+    });
+    const pythonAdd = runPythonCli(["add", "llm-provider-base-template", "--json"], pythonTarget, {
+      RENDO_INSTALLED_AT_OVERRIDE: "2026-04-04T00:00:00.000Z",
+    });
+    assert.equal(nodeAdd.status, 0, nodeAdd.stderr);
+    assert.equal(pythonAdd.status, 0, pythonAdd.stderr);
+
+    await assertPathsExist(nodeTarget, [
+      ".rendo/rendo.project.json",
+      ".rendo/rendo.template.json",
+    ]);
+    await assertPathsExist(pythonTarget, [
+      ".rendo/rendo.project.json",
+      ".rendo/rendo.template.json",
+    ]);
   });
 });
 
@@ -1206,9 +1383,18 @@ test("node and python CLIs pull identical provider template assets with --output
   await withTempDir("rendo-provider-pull", async (dir) => {
     const nodeTarget = path.join(dir, "node", "provider-template");
     const pythonTarget = path.join(dir, "python", "provider-template");
+    const createdAt = "2026-04-04T00:00:00.000Z";
 
-    const nodePull = runNodeCli(["pull", "llm-provider-base-template", "--output", nodeTarget, "--json"], repoRoot);
-    const pythonPull = runPythonCli(["pull", "llm-provider-base-template", "--output", pythonTarget, "--json"], repoRoot);
+    const nodePull = runNodeCli(
+      ["pull", "llm-provider-base-template", "--output", nodeTarget, "--json"],
+      repoRoot,
+      { RENDO_CREATED_AT_OVERRIDE: createdAt },
+    );
+    const pythonPull = runPythonCli(
+      ["pull", "llm-provider-base-template", "--output", pythonTarget, "--json"],
+      repoRoot,
+      { RENDO_CREATED_AT_OVERRIDE: createdAt },
+    );
 
     assert.equal(nodePull.status, 0, nodePull.stderr);
     assert.equal(pythonPull.status, 0, pythonPull.stderr);
@@ -1216,6 +1402,20 @@ test("node and python CLIs pull identical provider template assets with --output
     const nodeHashes = await collectDirectoryHashes(nodeTarget);
     const pythonHashes = await collectDirectoryHashes(pythonTarget);
     assert.deepEqual([...nodeHashes.entries()].sort(), [...pythonHashes.entries()].sort());
+    const nodeTemplateManifest = await readWorkspaceTemplateManifest(nodeTarget);
+    const pythonTemplateManifest = await readWorkspaceTemplateManifest(pythonTarget);
+    assert.equal(nodeTemplateManifest.templateRole, "derived");
+    assert.equal(pythonTemplateManifest.templateRole, "derived");
+    const nodeProjectManifest = await readWorkspaceProjectManifest(nodeTarget);
+    const pythonProjectManifest = await readWorkspaceProjectManifest(pythonTarget);
+    assert.equal(nodeProjectManifest.template.templateRole, "derived");
+    assert.equal(pythonProjectManifest.template.templateRole, "derived");
+    assert.equal(nodeProjectManifest.origin?.templateRole, "base");
+    assert.equal(pythonProjectManifest.origin?.templateRole, "base");
+    await assertPathsExist(nodeTarget, [".rendo/rendo.project.json", ".rendo/rendo.template.json"]);
+    await assertPathsExist(pythonTarget, [".rendo/rendo.project.json", ".rendo/rendo.template.json"]);
+    await assertPathsMissing(nodeTarget, ["rendo.project.json", "rendo.template.json"]);
+    await assertPathsMissing(pythonTarget, ["rendo.project.json", "rendo.template.json"]);
   });
 });
 

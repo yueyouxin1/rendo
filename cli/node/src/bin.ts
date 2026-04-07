@@ -4,10 +4,9 @@ import path from "node:path";
 import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { Command } from "commander";
-import { computeBundleDigest, createTemplateBundle, serializeTemplateBundle } from "./bundle.js";
+import { computeBundleDigest, createTemplateBundle, createWorkspacePublishBundle, serializeTemplateBundle } from "./bundle.js";
 import { runDoctor } from "./doctor.js";
 import { type InspectPayload, type PackRegistryEntry } from "./contracts.js";
-import { copyTemplateAsset } from "./fs.js";
 import { installPack, previewPack, upgradePacks } from "./packs.js";
 import { findProjectRoot } from "./project.js";
 import {
@@ -218,13 +217,9 @@ async function pullTemplateRef(ref: string, outputDir: string | undefined, json:
   if (source) {
     try {
       const target = path.resolve(outputDir ?? ".");
-      const copiedFiles = await copyTemplateAsset(source.templateDir, target);
       print(
         {
-          kind: source.manifest.templateKind,
-          templateId: source.manifest.id,
-          targetDir: target,
-          copiedFiles,
+          ...(await scaffoldTemplate(source, target, source.manifest.runtimeModes[0], undefined, "rendo.pull")),
           registry: source.registry,
           source: source.source,
           bundleDigest: source.bundleDigest,
@@ -249,6 +244,10 @@ async function pullTemplateRef(ref: string, outputDir: string | undefined, json:
 
 function resolveBundleOutputPath(outputFile: string | undefined, templateId: string, version: string): string {
   return path.resolve(outputFile ?? `${templateId}-${version}.rendo-bundle.json`);
+}
+
+function resolvePublishOutputPath(outputFile: string | undefined, templateId: string, version: string): string {
+  return path.resolve(outputFile ?? `${templateId}-${version}.rendo-publish.json`);
 }
 
 async function exportTemplateBundleRef(ref: string, outputFile: string | undefined, json: boolean, registryOptions: RegistryOptions): Promise<void> {
@@ -283,6 +282,34 @@ async function exportTemplateBundleRef(ref: string, outputFile: string | undefin
   }
 }
 
+async function publishLocalWorkspace(outputFile: string | undefined, json: boolean): Promise<void> {
+  const projectRoot = await findProjectRoot(process.cwd());
+  if (!projectRoot) {
+    throw new Error("current directory is not inside a rendo project");
+  }
+
+  const bundle = await createWorkspacePublishBundle(projectRoot);
+  const rawBundle = serializeTemplateBundle(bundle);
+  const bundleDigest = computeBundleDigest(rawBundle);
+  const targetPath = resolvePublishOutputPath(outputFile, bundle.templateId, bundle.version);
+  await fs.mkdir(path.dirname(targetPath), { recursive: true });
+  await fs.writeFile(targetPath, rawBundle);
+  print(
+    {
+      kind: "workspace-publish",
+      templateId: bundle.templateId,
+      version: bundle.version,
+      outputPath: targetPath,
+      bundleFormat: bundle.bundleFormat,
+      bundleDigest,
+      templateDigest: bundle.templateDigest,
+      projectRoot,
+      source: "workspace",
+    },
+    json,
+  );
+}
+
 async function main(): Promise<void> {
   const program = new Command();
   program
@@ -299,6 +326,7 @@ async function main(): Promise<void> {
         "  rendo search --type all --json",
         "  rendo inspect llm-provider-base-template --registry http://127.0.0.1:4010 --json",
         "  rendo bundle application-base-starter --output ./artifacts/application-base-starter.rendo-bundle.json",
+        "  rendo publish --local --output ./artifacts/application-workspace.rendo-publish.json",
       ].join("\n"),
     );
 
@@ -320,7 +348,7 @@ async function main(): Promise<void> {
 
       try {
         const requestedTarget = options.output ?? targetDir ?? ".";
-        const result = await scaffoldTemplate(source, requestedTarget, options.runtime);
+        const result = await scaffoldTemplate(source, requestedTarget, options.runtime, undefined, "rendo.init");
         print({ ...result, registry: source.registry, source: source.source }, Boolean(options.json));
       } finally {
         await source.cleanup();
@@ -367,7 +395,7 @@ async function main(): Promise<void> {
             throw new Error(`rendo create does not accept core starter templates. Use rendo init starter for ${source.manifest.id}.`);
           }
           const selectedSurfaces = options.surfaces?.split(",").map((item) => item.trim()).filter(Boolean);
-          const result = await scaffoldTemplate(source, targetDir, options.runtime, selectedSurfaces);
+          const result = await scaffoldTemplate(source, targetDir, options.runtime, selectedSurfaces, "rendo.create");
           print({ ...result, registry: source.registry, source: source.source }, Boolean(options.json));
         } finally {
           await source.cleanup();
@@ -465,6 +493,16 @@ async function main(): Promise<void> {
     .option("--json", "emit structured output")
     .action(async (ref: string, options: { output?: string; json?: boolean; registry?: string; registryToken?: string }) => {
       await exportTemplateBundleRef(ref, options.output, Boolean(options.json), getRegistryOptions(options));
+    });
+
+  program
+    .command("publish")
+    .description("Export the current workspace as a local publishable bundle artifact")
+    .option("--local", "export a local publish artifact")
+    .option("--output <file>", "output bundle file")
+    .option("--json", "emit structured output")
+    .action(async (options: { local?: boolean; output?: string; json?: boolean }) => {
+      await publishLocalWorkspace(options.output, Boolean(options.json));
     });
 
   program

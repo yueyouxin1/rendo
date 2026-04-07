@@ -1,17 +1,18 @@
 # Secondary Development
 
-This file exists for agents and template authors who need to extend `capability-core-template`.
+Use this core template to build stronger layers without losing the Rendo language.
 
-## Safe workflow
+## Required Workflow
 
-1. Read `rendo.template.json` first to understand identity, role, runtime modes, and compatibility.
-2. Read `docs/structure.md` and `docs/extension-points.md` before adding files.
-3. Put concrete opinion into a `base` template before creating any `derived` template.
-4. Preserve health checks and manifest readability after every change.
+1. Read `AGENTS.md`.
+2. Read `.agents/skills/rendo-workspace-mode/SKILL.md`.
+3. Read `.agents/skills/rendo-boundaries/SKILL.md`.
+4. Read `docs/structure.md` and `docs/extension-points.md`.
+5. Add tests before claiming behavior is settled.
+6. Update interface surfaces, capabilities, and docs in the same change when behavior or boundaries move.
 
-## Do not do this in core
+## Put Opinions In The Right Layer
 
-- add product-specific routes or UI
-- bind a single vendor as a hard dependency
-- hide required behavior behind undocumented scripts
-- assume a specific host project layout that belongs to the next layer
+- Put engineering language in `core`.
+- Put official reference implementation in `base`.
+- Put product and scenario opinion in `derived`.

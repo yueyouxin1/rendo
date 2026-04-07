@@ -1,8 +1,0 @@
-version: 1
-templateId: __RENDO_CORE_TEMPLATE_ID__
-capabilities:
-  - id: template.structure
-    summary: Canonical structure contract for __RENDO_CORE_LABEL_LOWER__
-    docs:
-      - AGENTS.md
-      - docs/structure.md

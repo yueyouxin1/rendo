@@ -35,12 +35,18 @@
 
 它负责：
 
+- Rendo 工程语言规范
 - manifest 最小语义
 - CLI 最小语义
 - runtime mode 边界
 - agent 可读的最小文件结构
 - `AGENTS.md`、`CLAUDE.md`、`.agents/`、`interfaces/`、`src/`、`tests/`、`integration/` 的最小接入边界
 - 对下一层的稳定继承点
+
+换句话说：
+
+- `core` 的价值不是“空模板”
+- `core` 的价值是冻结目录真相、接口真相、验证真相、Agent 入口真相和二次开发规则
 
 ### 2.2 `base`
 
@@ -49,8 +55,13 @@
 它负责：
 
 - 该模板类型的 canonical best practice
+- 把 `core` 工程语言落实为官方参考实现
 - 最小但完整的目录与扩展边界
 - 供后续 `derived` 稳定继承的起点
+
+`base` 的价值不是“轻壳”本身，而是：
+
+- 官方推荐的可运行、可验证、可演进实现
 
 ### 2.3 `derived`
 
@@ -61,6 +72,10 @@
 - 具体产品形态
 - 具体场景差异
 - 具体技术或厂商绑定
+
+`derived` 的价值是：
+
+- 让官方或社区在不重写 Rendo 工程语言的前提下发布具体模板产品
 
 ---
 
@@ -97,6 +112,19 @@
 - 它是根模板还是附加模板
 - 它提供或扩展哪些可调用接口
 - 它属于 `standalone-runnable` 还是 `host-attached`
+
+这里要额外区分两件事：
+
+1. 发布产物身份
+2. 本地工作区来源
+
+`core / base / derived` 优先表达的是：
+
+- 发布到 registry 后的模板角色
+
+而不是：
+
+- 本地工作区在开发过程中的唯一状态
 
 ---
 
@@ -138,14 +166,43 @@ shared/templates/derived/<kind>/<category>/<template-id>/
 
 这里的 `shared/templates` 不是冗余目录，而是：
 
-- formal generated artifacts
-- registry 记录的正式模板位置
-- CLI 实际消费的模板产物层
+- internal distribution artifacts
+- registry 记录的内部模板资产位置
+- CLI、bundle、runtime-pre snapshot 实际消费的资产层
 
 也就是说：
 
 - `shared/authoring/templates` 是 authoring truth
-- `shared/templates` 是 runtime/distribution consumption layer
+- `shared/templates` 是 Rendo 内部 distribution artifact layer
+- 用户与 Agent 真正开发的是 CLI materialize 出来的本地 workspace，而不是 `shared/templates`
+
+## 5.4 Rendo 可识别工作区
+
+在内部分发资产之外，Rendo 还需要一个清晰的本地工作区语义。
+
+推荐统一使用：
+
+```txt
+<workspace-root>/
+└── .rendo/
+    ├── rendo.project.json
+    └── rendo.template.json
+```
+
+其中：
+
+- `.rendo/` 负责标识“这是一个 Rendo 可识别工作区”
+- `.rendo/rendo.project.json` 负责记录本地工作区身份、唯一 ID、名称、来源模板、已安装资产等信息
+- `.rendo/rendo.template.json` 负责记录 CLI 管理的模板发布投影信息
+
+用户不应被要求手工维护这些文件；
+CLI 应负责初始化、校验、升级、本地工作区角色投影和错误提示。
+
+如果用户删除 `.rendo/`，则该仓库退化为：
+
+- 普通项目
+
+而不再受 Rendo 工作区约束。
 
 ### 5.3 当前路径与未来收敛
 
@@ -153,7 +210,7 @@ shared/templates/derived/<kind>/<category>/<template-id>/
 
 后续可以继续收敛目录冗余，但在迁移前必须坚持：
 
-- CLI 和 registry 只认正式模板产物层
+- CLI 和 registry 只认内部分发资产层
 - 不直接消费 authoring overlays
 
 ---
@@ -164,7 +221,7 @@ shared/templates/derived/<kind>/<category>/<template-id>/
 
 ```txt
 <template-root>/
-├── rendo.template.json
+├── .rendo/
 ├── README.md
 ├── AGENTS.md
 ├── CLAUDE.md
@@ -179,6 +236,7 @@ shared/templates/derived/<kind>/<category>/<template-id>/
 
 其中：
 
+- `.rendo/` 是 CLI 管理的工作区命名空间
 - `AGENTS.md / CLAUDE.md / .agents/` 是 Agent 入口
 - `interfaces/` 是接口描述面
 - `src/` 是实现根
@@ -255,7 +313,7 @@ Rendo 当前明确区分两类运行形态：
 同时还应清晰说明它会如何触达宿主中的：
 
 - `AGENTS.md`
-- `.agents/capabilities.yaml`
+- `.agents/skills/*/SKILL.md`
 - `interfaces/openapi/`
 - `interfaces/mcp/`
 - `interfaces/skills/`
@@ -304,5 +362,9 @@ Rendo 当前模板体系的正确主干不是：
 - `starter-template` 是服务基座根模板
 - `feature / capability / provider / surface` 是服务基座装配模板
 - `shared/authoring/templates` 是 authoring 源
-- `shared/templates` 是正式模板产物层
+- `shared/templates` 是 Rendo 内部分发资产层
+- `.rendo/` 应成为本地 Rendo 可识别工作区的命名空间
+- 用户工作区可以来源于 `core`、`base` 或 `derived`
+- `rendo init / create / pull` 生成的本地非官方工作区应立即由 Rendo 投影为 `derived`，并保留来源 lineage
+- 社区发布时应继续沿用该 `derived` 投影，而不是再次要求用户理解角色切换
 - 目录、命名、manifest、`assetIntegration` 与 `integration` 语义都应服务于“让强 Agent 无歧义理解服务基座模板系统”

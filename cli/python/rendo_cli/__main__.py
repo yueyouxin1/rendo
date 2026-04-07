@@ -5,7 +5,7 @@ import json
 import sys
 from pathlib import Path
 
-from .bundle import compute_bundle_digest, create_template_bundle, serialize_template_bundle
+from .bundle import compute_bundle_digest, create_template_bundle, create_workspace_publish_bundle, serialize_template_bundle
 from .doctor import run_doctor
 from .packs import install_pack, preview_pack, upgrade_packs
 from .project import find_project_root
@@ -21,7 +21,6 @@ from .registry_client import (
     search_registry,
 )
 from .scaffold import scaffold_template
-from .fs import copy_template_asset
 from .template_assets import integrate_template_asset, preview_template_asset_integration, upgrade_template_assets
 from .version import CLI_VERSION
 
@@ -156,13 +155,9 @@ def _pull_template_ref(ref: str, output_dir: str | None, as_json: bool, registry
     if source:
         try:
             target = Path(output_dir or ".").resolve()
-            copied_files = copy_template_asset(source["templateDir"], target)
             _emit(
                 {
-                    "kind": source["manifest"]["templateKind"],
-                    "templateId": source["manifest"]["id"],
-                    "targetDir": str(target),
-                    "copiedFiles": copied_files,
+                    **scaffold_template(source, str(target), source["manifest"]["runtimeModes"][0], None, "rendo.pull"),
                     "registry": source["registry"],
                     "source": source["source"],
                     "bundleDigest": source["bundleDigest"],
@@ -181,6 +176,10 @@ def _pull_template_ref(ref: str, output_dir: str | None, as_json: bool, registry
 
 def _resolve_bundle_output_path(output_file: str | None, template_id: str, version: str) -> Path:
     return Path(output_file or f"{template_id}-{version}.rendo-bundle.json").resolve()
+
+
+def _resolve_publish_output_path(output_file: str | None, template_id: str, version: str) -> Path:
+    return Path(output_file or f"{template_id}-{version}.rendo-publish.json").resolve()
 
 
 def _export_template_bundle_ref(ref: str, output_file: str | None, as_json: bool, registry_options: dict) -> None:
@@ -211,6 +210,33 @@ def _export_template_bundle_ref(ref: str, output_file: str | None, as_json: bool
         )
     finally:
         source["cleanup"]()
+
+
+def _publish_local_workspace(output_file: str | None, as_json: bool) -> None:
+    project_root = find_project_root(Path.cwd())
+    if not project_root:
+        raise RuntimeError("current directory is not inside a rendo project")
+
+    bundle = create_workspace_publish_bundle(project_root)
+    raw_bundle = serialize_template_bundle(bundle)
+    bundle_digest = compute_bundle_digest(raw_bundle)
+    target = _resolve_publish_output_path(output_file, bundle["templateId"], bundle["version"])
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(raw_bundle)
+    _emit(
+        {
+            "kind": "workspace-publish",
+            "templateId": bundle["templateId"],
+            "version": bundle["version"],
+            "outputPath": str(target),
+            "bundleFormat": bundle["bundleFormat"],
+            "bundleDigest": bundle_digest,
+            "templateDigest": bundle["templateDigest"],
+            "projectRoot": str(project_root),
+            "source": "workspace",
+        },
+        as_json,
+    )
 
 
 def main() -> None:
@@ -278,6 +304,11 @@ def main() -> None:
     bundle_parser.add_argument("--registry-token")
     bundle_parser.add_argument("--json", action="store_true")
 
+    publish_parser = subparsers.add_parser("publish", help="Export the current workspace as a local publishable bundle artifact")
+    publish_parser.add_argument("--local", action="store_true")
+    publish_parser.add_argument("--output")
+    publish_parser.add_argument("--json", action="store_true")
+
     upgrade_parser = subparsers.add_parser("upgrade", help="Upgrade installed template assets or packs in the current project")
     upgrade_parser.add_argument("ref", nargs="?")
     upgrade_parser.add_argument("--preview", action="store_true")
@@ -299,7 +330,7 @@ def main() -> None:
                 raise RuntimeError(f"core template is missing from registry for {args.kind}")
             try:
                 target_dir = args.output or args.target_dir or "."
-                _emit({**scaffold_template(source, target_dir, args.runtime), "registry": source["registry"], "source": source["source"]}, args.json)
+                _emit({**scaffold_template(source, target_dir, args.runtime, None, "rendo.init"), "registry": source["registry"], "source": source["source"]}, args.json)
             finally:
                 source["cleanup"]()
             return
@@ -315,7 +346,7 @@ def main() -> None:
                         f"rendo create does not accept core starter templates. Use rendo init starter for {source['manifest']['id']}."
                     )
                 selected_surfaces = [item.strip() for item in args.surfaces.split(",") if item.strip()] if args.surfaces else None
-                _emit({**scaffold_template(source, target_dir, args.runtime, selected_surfaces), "registry": source["registry"], "source": source["source"]}, args.json)
+                _emit({**scaffold_template(source, target_dir, args.runtime, selected_surfaces, "rendo.create"), "registry": source["registry"], "source": source["source"]}, args.json)
             finally:
                 source["cleanup"]()
             return
@@ -367,6 +398,10 @@ def main() -> None:
 
         if args.command == "bundle":
             _export_template_bundle_ref(args.ref, args.output, args.json, _registry_options(args))
+            return
+
+        if args.command == "publish":
+            _publish_local_workspace(args.output, args.json)
             return
 
         if args.command == "upgrade":

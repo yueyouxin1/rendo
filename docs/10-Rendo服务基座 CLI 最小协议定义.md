@@ -14,17 +14,25 @@
 
 ## 2. 当前交付边界
 
-当前 CLI 已经可用，但它仍然建立在正式模板产物层之上，而不是自包含二进制之上。
+当前 CLI 已经可用，但它仍然建立在内部 `distribution artifact` 层之上，而不是自包含二进制之上。
 
 这意味着：
 
 - local provider 直接读取 `shared/registry` 和 `shared/templates`
 - remote provider 通过 HTTP registry 协议做 `search / inspect / create / add / pull`，并下载 bundle 做 digest 校验
-- `rendo bundle <ref>` 已作为本地正式制品导出入口落地
+- `rendo bundle <ref>` 已作为内部模板资产的本地制品导出入口落地
+- `rendo publish --local` 已作为本地工作区到 publish bundle 的最小闭环落地
 - `scripts/generate-runtime-catalog.ts` 已作为 runtime-pre deterministic snapshot 生成入口落地
 - authoring overlays 和 `shared/authoring/templates` 不直接进入 CLI 运行时消费路径
 - 当前实现适用于仓库式或等价发布目录式资产布局
 - 自包含 CLI 分发是后续阶段，不是当前最小协议的前置条件
+
+同时，CLI 还需要明确本地工作区语义：
+
+- `.rendo/` 应作为 Rendo 可识别工作区的命名空间
+- `.rendo/rendo.project.json` 负责本地工作区身份
+- `.rendo/rendo.template.json` 负责 CLI 管理的发布投影元信息
+- 用户不应被要求手工维护这些文件
 
 ## 3. 核心命令
 
@@ -32,8 +40,9 @@
 
 用途：
 
-- 初始化某一模板类型的 `core` 模板
-- 创建一个最小、可校验、可继续派生的模板契约工作区
+- 初始化某一模板类型的官方 `core` 源
+- 创建一个最小、可校验、可发布的 Rendo 可识别工作区
+- 初始化 `.rendo/`、工作区 ID 和来源 lineage
 
 当前支持：
 
@@ -47,7 +56,8 @@
 
 用途：
 
-- 从 `starter-template` 的 `base` 或 `derived` 模板创建可运行的服务基座项目
+- 从 `starter-template` 的 `base` 或 `derived` 模板创建可运行的服务基座工作区
+- 初始化 `.rendo/`、工作区 ID、本地项目名和来源 lineage
 
 约束：
 
@@ -96,6 +106,23 @@
 - 当前是本地正式制品导出，不等于官方远程 `publish`
 - 输出 bundle 仍来自 `shared/templates` 对应的正式模板产物
 
+### `rendo publish --local`
+
+当前已实现的 `publish` 仅面向本地工作区导出，不等于官方远程 `publish`。
+
+当前语义：
+
+- `publish --local` 读取 `.rendo/` 中的工作区元信息
+- 只要 `.rendo/` 仍然存在且合法，工作区就被视为可发布工作区
+- `rendo init / create / pull` 生成的本地非官方工作区，应立即投影为 `derived`
+- 导出时默认基于 `.gitignore` 过滤文件，以避免用户维护两套过滤规则
+- `.rendo/**` 必须被强制保留，不能被 `.gitignore` 意外排除
+- CLI 负责补齐来源 lineage、唯一 workspace id、标题、名称和默认投影值，而不是要求用户手工维护
+
+### 未来的官方远程 `publish`
+
+官方远程 `publish` 仍未纳入当前最小协议。
+
 ### `rendo upgrade`
 
 用途：
@@ -114,11 +141,13 @@
 
 ## 4. 语义边界
 
-- `init` 负责 `core`
-- `create` 负责 starter 的项目实例化
+- `init` 负责从官方 `core` 源初始化工作区
+- `create` 负责从 starter `base / derived` 源初始化工作区
 - `add / pull` 负责非 starter 模板与 pack 的消费
 - `starter-template` 是服务基座根模板
 - `feature / capability / provider / surface` 是围绕服务基座装配的服务单元模板
+- `.rendo/` 负责标识本地是否仍然是 Rendo 可识别工作区
+- 工作区删除 `.rendo/` 后，可退化为普通项目
 - 模板实现根统一为 `src/`；starter 的标准槽位为 `src/apps/ src/packages/ src/features/ src/capabilities/ src/providers/ src/surfaces/`（含保留槽位 `src/surfaces/desktop/`）
 - 非 starter 物理安装根由 `assetIntegration.modes[].targetRoot` 决定，`integration/` 只负责可读接入说明
 - `--registry <provider>` 负责切换 `local` 与 `remote`
