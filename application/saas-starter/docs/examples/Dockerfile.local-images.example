@@ -1,0 +1,6 @@
+# 本机已验证镜像参考样例
+# 说明：
+# - 仅供独立开发阶段对照，不是当前模板 source of truth
+# - 正式实现应回写到 src/apps/web/Dockerfile
+
+FROM node:24-bookworm-slim

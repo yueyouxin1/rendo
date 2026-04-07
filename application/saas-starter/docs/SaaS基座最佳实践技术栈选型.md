@@ -1,8 +1,12 @@
 # SaaS 基座最佳实践技术栈选型
 
-> 文档定位：定义 `shared/authoring/templates/derived/starter/application/saas-starter` 的 canonical 技术栈与架构边界。
+> 文档定位：定义 `application/saas-starter` 独立工作区的 canonical 技术栈与架构边界。
 >
-> `application/saas-starter` 是未来大量 SaaS 项目的高质量起点，也是后续 `rendo-saas-starter` 的直接上游。
+> 前端与产品体验的具体规则，继续看：
+>
+> - `docs/SaaS前端与产品体验标准.md`
+>
+> `application/saas-starter` 是未来大量 SaaS 项目的高质量起点，也是后续更具体平台型派生模板的稳定上游。
 >
 > 本文以 2026-04-07 为时间基线。文中的“事实依据”来自官方资料；文中的“默认技术选型”是结合 Rendo 定位做出的工程判断。
 
@@ -17,6 +21,10 @@
 - **工作区**：`pnpm workspaces + Turborepo`
 - **Web 主界面**：`Next.js App Router + React`
 - **Web UI 系统**：`Tailwind CSS v4 + shadcn/ui`
+- **字体系统**：`Geist Sans + Geist Mono`
+- **多语言**：`next-intl`（默认 `zh-CN`，第一 fallback `en`）
+- **主题**：`next-themes`
+- **动效**：`motion/react`
 - **Canonical HTTP API**：`Hono + Zod + OpenAPI 3.1`
 - **Canonical Agent API**：`MCP TypeScript SDK`
 - **认证与多租户**：`Better Auth`
@@ -45,6 +53,7 @@
 - **Supabase 不应成为 canonical `saas-starter` 的默认整包平台基座**
 - **Trigger.dev 不应成为 canonical `saas-starter` 的默认必选后台任务运行时**
 - **不能把 Next.js 和 Hono 理解为两套并列后端真相**
+- **不能把 i18n、theme、motion 视为后补前端细节**
 
 正确的分工是：
 
@@ -63,7 +72,7 @@
 
 1. 它要成为**大型 SaaS 项目**可长期演进的骨架，而不是几个月后就要推倒重来。
 2. 它要符合 Rendo 的“**面向 Agent 的服务基座**”定位，能力要能被 `OpenAPI / MCP / skills` 稳定发现和驱动。
-3. 它要继续派生出 `rendo-saas-starter`，所以底座必须**可迁移、可扩展、不过早锁平台**。
+3. 它要继续派生出更具体的平台型模板，所以底座必须**可迁移、可扩展、不过早锁平台**。
 4. 它要面向中国市场与多端场景，不能把“web-only”伪装成 SaaS 基座最佳实践。
 
 所以这里的核心原则不是“哪个服务最省事”，而是：
@@ -84,7 +93,7 @@
 - 自托管 -> 托管云
 - 单区 -> 多区
 - 普通 SaaS -> AI / Agent-heavy SaaS
-- 通用产品 -> `rendo-saas-starter`
+- 通用产品 -> 更具体的平台型派生模板
 
 这意味着 canonical base 应优先选择：
 
@@ -335,7 +344,62 @@ Node 官方发布页明确说明，生产环境应优先使用 `Active LTS` 或 
 - `packages/ui` 沉淀 Rendo 的 design tokens 和通用组件
 - 不使用重黑盒 UI 套件做主基座
 
-## 5.6 Hono + Zod + OpenAPI 3.1 作为唯一 canonical HTTP API
+## 5.6 Geist Sans + Geist Mono
+
+默认字体系统应直接冻结为：
+
+- `Geist Sans`
+- `Geist Mono`
+
+原因：
+
+- 更符合 `Vercel/shadcn` 的克制云服务商风格
+- marketing / app / admin 共用时更稳定
+- 更适合在独立工作区内建立统一的 typography system
+
+## 5.7 next-intl（默认 `zh-CN`）
+
+`saas-starter` 必须从第一天就支持 i18n。
+
+默认要求：
+
+- 默认 locale：`zh-CN`
+- 第一 fallback locale：`en`
+- 文案不得以单语硬编码形式散落在组件中
+- 价格、配额、日期、时间、数字必须走 `Intl` 格式化
+
+这不是“后续可补”的国际化增强，而是 canonical SaaS 基座必须具备的 day-one front-end contract。
+
+## 5.8 next-themes
+
+默认主题切换建议使用：
+
+- `next-themes`
+
+原因：
+
+- 与 `Next.js App Router` 和 `shadcn/ui` 的配合足够成熟
+- 能让浅色默认、品牌色主题和后续深色扩展共存
+
+## 5.9 motion/react
+
+默认动效库建议冻结为：
+
+- `motion/react`
+
+原因：
+
+- 已经和当前 React 生态足够成熟
+- 适合做 page load、sheet、dialog、state transition 等关键动效
+- 比零散 CSS 动画更适合统一策略和后续扩展
+
+默认要求：
+
+- 首屏 reveal、关键交互反馈、页面切换必须有明确 motion strategy
+- 必须支持 `prefers-reduced-motion`
+- 动效用于强化层级和反馈，不用于掩盖结构问题
+
+## 5.10 Hono + Zod + OpenAPI 3.1 作为唯一 canonical HTTP API
 
 这次需要把结论说得更精确：
 
@@ -355,7 +419,7 @@ Node 官方发布页明确说明，生产环境应优先使用 `Active LTS` 或 
 - `packages/contracts` 存放 schema 与 DTO
 - `web` 侧需要复用时，走同一套 contract / client，而不是复制路由逻辑
 
-## 5.7 MCP TypeScript SDK 作为唯一 canonical Agent API
+## 5.11 MCP TypeScript SDK 作为唯一 canonical Agent API
 
 MCP 是 Rendo 的一等能力面，不应只是文档占位。
 
@@ -375,7 +439,7 @@ MCP 是 Rendo 的一等能力面，不应只是文档占位。
 - [MCP Introduction](https://modelcontextprotocol.io/introduction)
 - [MCP TypeScript SDK](https://ts.sdk.modelcontextprotocol.io/)
 
-## 5.8 Better Auth 作为默认认证与多租户基线
+## 5.12 Better Auth 作为默认认证与多租户基线
 
 这仍然是默认解，而且要继续强化。
 
@@ -406,7 +470,7 @@ MCP 是 Rendo 的一等能力面，不应只是文档占位。
 - [Better Auth Organization Plugin](https://better-auth.com/docs/plugins/organization)
 - [Better Auth OpenAPI Plugin](https://www.better-auth.com/docs/plugins/open-api)
 
-## 5.9 PostgreSQL + pgvector + Drizzle ORM + drizzle-kit + pg
+## 5.13 PostgreSQL + pgvector + Drizzle ORM + drizzle-kit + pg
 
 这里需要修正前一版结论。
 
@@ -452,7 +516,7 @@ canonical `saas-starter` 的数据库基线应是：
 - [Supabase pgvector Docs](https://supabase.com/docs/guides/database/extensions/pgvector)
 - [Drizzle PostgreSQL](https://orm.drizzle.team/docs/get-started-postgresql)
 
-## 5.10 多租户策略：应用层强约束 + Postgres 能力预留
+## 5.14 多租户策略：应用层强约束 + Postgres 能力预留
 
 `saas-starter` 必须默认是组织 / 工作区 SaaS，而不是单用户网站骨架。
 
@@ -473,7 +537,7 @@ canonical `saas-starter` 的数据库基线应是：
 - 应用层租户边界是主线
 - `RLS` 是增强项
 
-## 5.11 Redis-compatible + BullMQ 作为默认缓存 / 队列基线
+## 5.15 Redis-compatible + BullMQ 作为默认缓存 / 队列基线
 
 这条保持不变。
 
@@ -498,7 +562,7 @@ canonical `saas-starter` 的数据库基线应是：
 - [BullMQ Docs](https://docs.bullmq.io/)
 - [Trigger.dev Docs](https://trigger.dev/docs)
 
-## 5.12 Stripe Billing 作为默认订阅与计费
+## 5.16 Stripe Billing 作为默认订阅与计费
 
 这条保持不变。
 
@@ -518,7 +582,7 @@ canonical `saas-starter` 的数据库基线应是：
 - [Stripe Billing Subscriptions](https://docs.stripe.com/billing/subscriptions/creating)
 - [Stripe Subscription Features](https://docs.stripe.com/billing/subscriptions/features)
 
-## 5.13 Resend + React Email 作为默认邮件栈
+## 5.17 Resend + React Email 作为默认邮件栈
 
 保持不变。
 
@@ -533,7 +597,7 @@ canonical `saas-starter` 的数据库基线应是：
 - [Resend API Introduction](https://www.resend.com/docs/api-reference/introduction)
 - [React Email Introduction](https://react.email/docs/introduction)
 
-## 5.14 S3-compatible storage 作为默认对象存储策略
+## 5.18 S3-compatible storage 作为默认对象存储策略
 
 保持不变。
 
@@ -548,7 +612,7 @@ canonical `saas-starter` 的数据库基线应是：
 - S3 语义已经是事实标准
 - 这样既方便本地交付，也不锁死平台
 
-## 5.15 OpenTelemetry + 结构化日志
+## 5.19 OpenTelemetry + 结构化日志
 
 保持不变，但强调边界：
 
@@ -562,7 +626,7 @@ canonical `saas-starter` 的数据库基线应是：
 - [OpenTelemetry Docs](https://opentelemetry.io/docs/)
 - [OpenTelemetry JavaScript](https://opentelemetry.io/docs/languages/js/)
 
-## 5.16 Vitest + Playwright
+## 5.20 Vitest + Playwright
 
 保持不变。
 
@@ -587,7 +651,7 @@ canonical `saas-starter` 的数据库基线应是：
 - [Vitest Guide](https://vitest.dev/guide/)
 - [Playwright Introduction](https://playwright.dev/docs/intro)
 
-## 5.17 默认多端路线：Taro + React Native/Expo + Electron 预留
+## 5.21 默认多端路线：Taro + React Native/Expo + Electron 预留
 
 前一版只强调 `web-first`，这不够。
 
@@ -786,10 +850,12 @@ Supabase 官方特性页本身就说明它是一整套平台：
 - 最小向量检索样例
 - tenant / auth / subscription / queue / email / storage 的最小贯通样例
 - `miniapp / mobile / desktop` 的占位 README、contract client 和接线预留
+- `zh-CN` 默认 locale 与 `en` fallback locale 的消息结构
+- 统一字体、主题和 Motion 策略
 
 ---
 
-## 9. `saas-starter` 与 `rendo-saas-starter` 的关系
+## 9. `saas-starter` 与后续平台型派生模板的关系
 
 这两者必须严格区分：
 
@@ -799,16 +865,16 @@ Supabase 官方特性页本身就说明它是一整套平台：
 - 默认智能基线存在，但不带 Rendo runtime 平台依赖
 - 是稳定、可迁移、可派生的 canonical SaaS 基座
 
-### `rendo-saas-starter`
+### 平台型派生模板
 
 - 在 `saas-starter` 上继续派生
-- 再加入 Rendo runtime / registry / publish / platform 能力
+- 再加入更重的平台能力、runtime、registry 或 publish 逻辑
 - 可以更重，但不能反向污染 `saas-starter` 的普适性
 
 所以正确顺序是：
 
 1. 先把 `saas-starter` 做成真正通用的高质量 SaaS 基座
-2. 再在其上派生 `rendo-saas-starter`
+2. 再在其上派生更具体的平台型模板
 
 而不是反过来让 canonical base 先背上平台实现负担。
 
@@ -818,7 +884,7 @@ Supabase 官方特性页本身就说明它是一整套平台：
 
 最终结论可以收敛成一句话：
 
-> `application/saas-starter` 应采用 **Node 24 + TypeScript + pnpm/Turborepo + Next.js App Router(只负责 web) + Hono/Zod/OpenAPI(唯一 canonical HTTP API) + MCP SDK(唯一 canonical Agent API) + Better Auth + PostgreSQL/pgvector/Drizzle + Redis-compatible/BullMQ + Stripe + Resend/React Email + S3-compatible storage + OpenTelemetry + Vitest/Playwright + Docker Compose** 的 **Postgres-first、smart-by-default、interface-first、multi-surface-by-default、vendor-moderate** 主栈。
+> `application/saas-starter` 应采用 **Node 24 + TypeScript + pnpm/Turborepo + Next.js App Router(只负责 web) + Tailwind v4 + shadcn/ui + Geist + next-intl(默认 zh-CN) + next-themes + motion/react + Hono/Zod/OpenAPI(唯一 canonical HTTP API) + MCP SDK(唯一 canonical Agent API) + Better Auth + PostgreSQL/pgvector/Drizzle + Redis-compatible/BullMQ + Stripe + Resend/React Email + S3-compatible storage + OpenTelemetry + Vitest/Playwright + Docker Compose** 的 **Postgres-first、smart-by-default、interface-first、multi-surface-by-default、vendor-moderate** 主栈。
 
 这是当前最符合以下目标的默认解：
 
@@ -828,7 +894,7 @@ Supabase 官方特性页本身就说明它是一整套平台：
 - 对强 Agent 友好
 - 默认具备智能时代基线
 - 默认承认多端场景
-- 能继续派生出 `rendo-saas-starter`
+- 能继续派生出更具体的平台型模板
 - 不把基座提前锁死在 Supabase 这类整包平台语义中
 
 ---
@@ -873,4 +939,3 @@ Supabase 官方特性页本身就说明它是一整套平台：
 - `Next.js` 不应独占 canonical service API；`Hono` 应作为唯一 canonical HTTP API
 - `saas-starter` 必须默认多端预留，不能继续按 web-only 心智设计
 - `Supabase` 更适合作为官方变体，而不是 canonical base 默认值
-

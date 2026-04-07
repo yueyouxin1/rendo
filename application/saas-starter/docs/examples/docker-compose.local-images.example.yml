@@ -1,3 +1,8 @@
+# 本机已验证镜像参考样例
+# 说明：
+# - 仅供独立开发阶段对照，不是当前模板 source of truth
+# - 镜像标签以当前机器已验证版本为准，正式实现应回写到 ops/docker/compose.yaml
+
 services:
   web:
     build:

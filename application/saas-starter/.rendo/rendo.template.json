@@ -8,13 +8,19 @@
   "templateRole": "derived",
   "category": "application",
   "title": "Rendo Application SaaS Starter",
-  "description": "Official multi-surface-capable application base starter with a web hello-world landing page and optional miniapp/mobile placeholders.",
+  "description": "Derived SaaS starter workspace for cloud-service products with multi-surface architecture, admin/control-plane requirements, day-one i18n, and agent-oriented service contracts.",
   "uiMode": "multi",
   "domainTags": [
-    "developer-tool",
-    "productivity"
+    "saas",
+    "cloud-service",
+    "agent-oriented-service"
   ],
-  "scenarioTags": [],
+  "scenarioTags": [
+    "admin",
+    "billing",
+    "i18n",
+    "multi-surface"
+  ],
   "runtimeModes": [
     "source"
   ],
@@ -51,6 +57,8 @@
   },
   "documentation": {
     "overview": "README.md",
+    "productStandard": "docs/SaaS前端与产品体验标准.md",
+    "stackSelection": "docs/SaaS基座最佳实践技术栈选型.md",
     "structure": "docs/structure.md",
     "extensionPoints": "docs/extension-points.md",
     "inheritanceBoundaries": "docs/inheritance-boundaries.md",

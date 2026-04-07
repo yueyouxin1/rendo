@@ -2,54 +2,43 @@
 
 ## 使用方式
 
-`docs/todo` 现在按三条主线组织：
+`docs/todo` 现在按两条主线组织：
 
-- `saas-starter/`
-  - `application/saas-starter` 的最佳实践交付路线
-  - 当前仓库第一顺位
-  - 只关注通用 SaaS 基座，不推进 `rendo-saas-starter`
+- `application/saas-starter` 的独立模板开发 TODO 已迁移到：
+  - [application/saas-starter/docs/todo/README.md](/D:/code/rendo/application/saas-starter/docs/todo/README.md)
+  - 当前不再在 `rendo-cli/docs/todo/` 下维护单独的 `saas-starter/` 目录
 
 - `cli/`
   - 模板契约、首日架构标准、authoring/产物分层、core/base/derived、CLI、模板资产生命周期
 - `rendo-saas-starter/`
   - headless Rendo runtime、持久化存储、远程发布与狗粮验证
 
-当前必须先完成的不是平台线，而是两件事中的前者：
+当前这里主要关注的是：
 
-- **先把 `application/saas-starter` 做成真正稳定、专业、可生产演进的 SaaS 基座**
-- **再把 runtime / `rendo-saas-starter` 建在这个稳定基座之上**
+- `rendo-cli` 自身的契约、打包、分发、runtime-pre 制品与后续平台衔接
 
 这些文件不再代表旧的“唯一 Core Starter 路线”。
 即使文件名保留了旧阶段编号，也应按当前正式架构理解：
 
 - `core -> base -> derived`
 - `starter / feature / capability / provider / surface`
-- `application/saas-starter -> 首日架构标准 -> core/base/derived -> CLI -> template asset lifecycle` 是当前主线
+- `application/saas-starter` 的具体实现工作已移到独立工作区
 - `rendo-saas-starter/` 目录代表后续阶段，不应挤占当前第一顺位
 
 ## 阅读顺序
 
-1. [saas-starter/README.md](/D:/code/rendo/docs/todo/saas-starter/README.md)
-2. [saas-starter/00-Application-SaaS-Starter总目标与边界TODO.md](/D:/code/rendo/docs/todo/saas-starter/00-Application-SaaS-Starter%E6%80%BB%E7%9B%AE%E6%A0%87%E4%B8%8E%E8%BE%B9%E7%95%8CTODO.md)
-3. [saas-starter/01-技术选型与架构冻结TODO.md](/D:/code/rendo/docs/todo/saas-starter/01-%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B%E4%B8%8E%E6%9E%B6%E6%9E%84%E5%86%BB%E7%BB%93TODO.md)
-4. [saas-starter/02-产品门面与商业化体验TODO.md](/D:/code/rendo/docs/todo/saas-starter/02-%E4%BA%A7%E5%93%81%E9%97%A8%E9%9D%A2%E4%B8%8E%E5%95%86%E4%B8%9A%E5%8C%96%E4%BD%93%E9%AA%8CTODO.md)
-5. [saas-starter/03-管理端与控制面TODO.md](/D:/code/rendo/docs/todo/saas-starter/03-%E7%AE%A1%E7%90%86%E7%AB%AF%E4%B8%8E%E6%8E%A7%E5%88%B6%E9%9D%A2TODO.md)
-6. [saas-starter/04-服务数据与智能能力TODO.md](/D:/code/rendo/docs/todo/saas-starter/04-%E6%9C%8D%E5%8A%A1%E6%95%B0%E6%8D%AE%E4%B8%8E%E6%99%BA%E8%83%BD%E8%83%BD%E5%8A%9BTODO.md)
-7. [saas-starter/05-多端预留与客户端策略TODO.md](/D:/code/rendo/docs/todo/saas-starter/05-%E5%A4%9A%E7%AB%AF%E9%A2%84%E7%95%99%E4%B8%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%AD%96%E7%95%A5TODO.md)
-8. [saas-starter/06-工程基础设施与Docker交付TODO.md](/D:/code/rendo/docs/todo/saas-starter/06-%E5%B7%A5%E7%A8%8B%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%E4%B8%8EDocker%E4%BA%A4%E4%BB%98TODO.md)
-9. [saas-starter/07-测试验收与勾选标准TODO.md](/D:/code/rendo/docs/todo/saas-starter/07-%E6%B5%8B%E8%AF%95%E9%AA%8C%E6%94%B6%E4%B8%8E%E5%8B%BE%E9%80%89%E6%A0%87%E5%87%86TODO.md)
-10. [29-Rendo服务基座首日架构与目录标准.md](/D:/code/rendo/docs/29-Rendo服务基座首日架构与目录标准.md)
-11. [V1-发布门槛清单与交付成功定义.md](/D:/code/rendo/docs/todo/V1-发布门槛清单与交付成功定义.md)
-12. [cli/06-紧急-工作区命名空间与发布语义TODO.md](/D:/code/rendo/docs/todo/cli/06-%E7%B4%A7%E6%80%A5-%E5%B7%A5%E4%BD%9C%E5%8C%BA%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E4%B8%8E%E5%8F%91%E5%B8%83%E8%AF%AD%E4%B9%89TODO.md)
-13. [cli/00-Phase0-契约与规范TODO.md](/D:/code/rendo/docs/todo/cli/00-Phase0-%E5%A5%91%E7%BA%A6%E4%B8%8E%E8%A7%84%E8%8C%83TODO.md)
-14. [cli/01-Phase1-Core 模板层实现TODO.md](/D:/code/rendo/docs/todo/cli/01-Phase1-Core%20%E6%A8%A1%E6%9D%BF%E5%B1%82%E5%AE%9E%E7%8E%B0TODO.md)
-15. [cli/02-Phase2-RendoCLI实现TODO.md](/D:/code/rendo/docs/todo/cli/02-Phase2-RendoCLI%E5%AE%9E%E7%8E%B0TODO.md)
-16. [cli/05-Phase2.5-Runtime前确定性契约与制品边界TODO.md](/D:/code/rendo/docs/todo/cli/05-Phase2.5-Runtime%E5%89%8D%E7%A1%AE%E5%AE%9A%E6%80%A7%E5%A5%91%E7%BA%A6%E4%B8%8E%E5%88%B6%E5%93%81%E8%BE%B9%E7%95%8CTODO.md)
-17. [cli/03-Phase3-第一个SaasStarter实现TODO.md](/D:/code/rendo/docs/todo/cli/03-Phase3-%E7%AC%AC%E4%B8%80%E4%B8%AASaasStarter%E5%AE%9E%E7%8E%B0TODO.md)
-18. [cli/04-Phase4-Pack机制实现TODO.md](/D:/code/rendo/docs/todo/cli/04-Phase4-Pack%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0TODO.md)
-19. [rendo-saas-starter/10-Phase5-最小真实Rendo能力接入TODO.md](/D:/code/rendo/docs/todo/rendo-saas-starter/10-Phase5-%E6%9C%80%E5%B0%8F%E7%9C%9F%E5%AE%9ERendo%E8%83%BD%E5%8A%9B%E6%8E%A5%E5%85%A5TODO.md)
-20. [rendo-saas-starter/11-Phase6-双模式与多端准备TODO.md](/D:/code/rendo/docs/todo/rendo-saas-starter/11-Phase6-%E5%8F%8C%E6%A8%A1%E5%BC%8F%E4%B8%8E%E5%A4%9A%E7%AB%AF%E5%87%86%E5%A4%87TODO.md)
-21. [rendo-saas-starter/12-Phase7-Rendo平台闭环TODO.md](/D:/code/rendo/docs/todo/rendo-saas-starter/12-Phase7-Rendo%E5%B9%B3%E5%8F%B0%E9%97%AD%E7%8E%AFTODO.md)
+1. [29-Rendo服务基座首日架构与目录标准.md](/D:/code/rendo/rendo-cli/docs/29-Rendo服务基座首日架构与目录标准.md)
+2. [V1-发布门槛清单与交付成功定义.md](/D:/code/rendo/rendo-cli/docs/todo/V1-发布门槛清单与交付成功定义.md)
+3. [cli/06-紧急-工作区命名空间与发布语义TODO.md](/D:/code/rendo/rendo-cli/docs/todo/cli/06-%E7%B4%A7%E6%80%A5-%E5%B7%A5%E4%BD%9C%E5%8C%BA%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E4%B8%8E%E5%8F%91%E5%B8%83%E8%AF%AD%E4%B9%89TODO.md)
+4. [cli/00-Phase0-契约与规范TODO.md](/D:/code/rendo/rendo-cli/docs/todo/cli/00-Phase0-%E5%A5%91%E7%BA%A6%E4%B8%8E%E8%A7%84%E8%8C%83TODO.md)
+5. [cli/01-Phase1-Core 模板层实现TODO.md](/D:/code/rendo/rendo-cli/docs/todo/cli/01-Phase1-Core%20%E6%A8%A1%E6%9D%BF%E5%B1%82%E5%AE%9E%E7%8E%B0TODO.md)
+6. [cli/02-Phase2-RendoCLI实现TODO.md](/D:/code/rendo/rendo-cli/docs/todo/cli/02-Phase2-RendoCLI%E5%AE%9E%E7%8E%B0TODO.md)
+7. [cli/05-Phase2.5-Runtime前确定性契约与制品边界TODO.md](/D:/code/rendo/rendo-cli/docs/todo/cli/05-Phase2.5-Runtime%E5%89%8D%E7%A1%AE%E5%AE%9A%E6%80%A7%E5%A5%91%E7%BA%A6%E4%B8%8E%E5%88%B6%E5%93%81%E8%BE%B9%E7%95%8CTODO.md)
+8. [cli/03-Phase3-第一个SaasStarter实现TODO.md](/D:/code/rendo/rendo-cli/docs/todo/cli/03-Phase3-%E7%AC%AC%E4%B8%80%E4%B8%AASaasStarter%E5%AE%9E%E7%8E%B0TODO.md)
+9. [cli/04-Phase4-Pack机制实现TODO.md](/D:/code/rendo/rendo-cli/docs/todo/cli/04-Phase4-Pack%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0TODO.md)
+10. [rendo-saas-starter/10-Phase5-最小真实Rendo能力接入TODO.md](/D:/code/rendo/rendo-cli/docs/todo/rendo-saas-starter/10-Phase5-%E6%9C%80%E5%B0%8F%E7%9C%9F%E5%AE%9ERendo%E8%83%BD%E5%8A%9B%E6%8E%A5%E5%85%A5TODO.md)
+11. [rendo-saas-starter/11-Phase6-双模式与多端准备TODO.md](/D:/code/rendo/rendo-cli/docs/todo/rendo-saas-starter/11-Phase6-%E5%8F%8C%E6%A8%A1%E5%BC%8F%E4%B8%8E%E5%A4%9A%E7%AB%AF%E5%87%86%E5%A4%87TODO.md)
+12. [rendo-saas-starter/12-Phase7-Rendo平台闭环TODO.md](/D:/code/rendo/rendo-cli/docs/todo/rendo-saas-starter/12-Phase7-Rendo%E5%B9%B3%E5%8F%B0%E9%97%AD%E7%8E%AFTODO.md)
 
 ## 当前重点
 
@@ -57,7 +46,7 @@
 
 - [x] 将 `application/saas-starter` 提升为当前仓库最高优先级的产品交付目标
 - [x] 明确本轮不推进任何 `rendo-saas-starter`、runtime 平台或狗粮逻辑，先完成通用 SaaS 基座稳定落地
-- [x] 新增独立 `docs/todo/saas-starter/` 主线并按模块拆分任务与验收标准
+- [x] `application/saas-starter` 已拥有独立 `docs/todo/` 主线并按模块拆分任务与验收标准
 - [x] 在 `saas-starter` 交付清单中强制实现前阅读与本目标相关的 Vercel skills（至少 `nextjs`、`shadcn`、`turborepo`，按需补充 `geist`、`observability`）
 - [x] 将“docker 开箱即用”提升为 `application/saas-starter` 的硬性交付标准
 - [x] 立刻收敛 `.rendo/` 工作区命名空间、来源 lineage、发布角色自动归一化和 `core/base/derived` 价值定义
